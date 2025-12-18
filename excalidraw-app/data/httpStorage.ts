@@ -71,11 +71,11 @@ export const saveToHttpStorage = async (
     `${HTTP_STORAGE_BACKEND_URL}/rooms/${roomId}`,
   );
 
-  if (!getResponse.ok && getResponse.status !== 404) {
+  if (!getResponse.ok && getResponse.status !== 404 && getResponse.status !== 204) {
     return false;
   }
 
-  if (getResponse.status === 404) {
+  if (getResponse.status === 404 || getResponse.status === 204) {
     // Room doesn't exist yet, create it
     const result = await saveElementsToBackend(
       roomKey,
@@ -129,7 +129,7 @@ export const loadFromHttpStorage = async (
     `${HTTP_STORAGE_BACKEND_URL}/rooms/${roomId}`,
   );
 
-  if (!getResponse.ok) {
+  if (!getResponse.ok || getResponse.status === 204) {
     return null;
   }
 
@@ -222,7 +222,7 @@ export const loadFilesFromHttpStorage = async (
     [...new Set(filesIds)].map(async (id) => {
       try {
         const response = await fetch(`${HTTP_STORAGE_BACKEND_URL}/files/${id}`);
-        if (response.status < 400) {
+        if (response.status < 400 && response.status !== 204) {
           const arrayBuffer = await response.arrayBuffer();
 
           const { data, metadata } = await decompressData<BinaryFileMetadata>(
@@ -306,7 +306,7 @@ const decryptElements = async (
   roomKey: string,
 ): Promise<readonly ExcalidrawElement[]> => {
   const ciphertext = data.ciphertext;
-  const iv = data.iv instanceof Uint8Array 
+  const iv = data.iv instanceof Uint8Array
     ? data.iv as Uint8Array<ArrayBuffer>
     : new Uint8Array(data.iv) as Uint8Array<ArrayBuffer>;
 

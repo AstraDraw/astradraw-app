@@ -8,6 +8,12 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.11] - 2025-12-19
+
+### Added
+
+- Support for 204 No Content status from storage backend, allowing clean initialization without console error logs.
+
 ## [0.18.0-beta0.10] - 2025-12-18
 
 ### Changed
