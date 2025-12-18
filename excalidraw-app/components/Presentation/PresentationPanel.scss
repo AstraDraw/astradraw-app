@@ -1,0 +1,320 @@
+.presentation-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 0;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--default-border-color, #e5e5e5);
+  }
+
+  &__title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary-color, #1b1b1f);
+  }
+
+  &__add-button {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 10px;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--color-primary, #4a6ee0);
+    transition: background-color 0.15s ease;
+
+    &:hover {
+      background: var(--button-hover-bg, rgba(74, 110, 224, 0.1));
+    }
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  &__slides {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__slide {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    padding: 0;
+    border: 2px solid var(--default-border-color, #e5e5e5);
+    background: var(--island-bg-color, #fff);
+    border-radius: 8px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    overflow: hidden;
+
+    &:hover {
+      border-color: var(--color-primary-light, #a8c7fa);
+    }
+
+    &--active {
+      border-color: var(--color-primary, #4a6ee0);
+      box-shadow: 0 0 0 2px var(--color-primary-light, rgba(74, 110, 224, 0.2));
+    }
+  }
+
+  &__slide-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    text-align: left;
+  }
+
+  &__slide-actions {
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid var(--default-border-color, #e5e5e5);
+  }
+
+  &__slide-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    flex: 1;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: var(--text-secondary-color, #6b6b6b);
+    font-size: 12px;
+    transition: background-color 0.15s ease, color 0.15s ease;
+
+    &:hover:not(:disabled) {
+      background: var(--button-hover-bg, rgba(0, 0, 0, 0.05));
+      color: var(--text-primary-color, #1b1b1f);
+    }
+
+    &:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    &:first-child {
+      border-bottom: 1px solid var(--default-border-color, #e5e5e5);
+    }
+  }
+
+  &__slide-preview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 60px;
+    background: var(--button-hover-bg, #f5f5f5);
+    position: relative;
+  }
+
+  &__slide-number {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-secondary-color, #6b6b6b);
+    opacity: 0.5;
+  }
+
+  &__slide-name {
+    padding: 6px 10px;
+    font-size: 11px;
+    color: var(--text-primary-color, #1b1b1f);
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    border-top: 1px solid var(--default-border-color, #e5e5e5);
+  }
+
+  &__footer {
+    padding: 12px 16px;
+    border-top: 1px solid var(--default-border-color, #e5e5e5);
+  }
+
+  &__start-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 12px 16px;
+    border: none;
+    background: var(--color-primary, #4a6ee0);
+    color: white;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+
+    &:hover {
+      background: var(--color-primary-darker, #3a5ecc);
+    }
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  // Instructions state (no frames)
+  &__instructions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    text-align: center;
+    flex: 1;
+  }
+
+  &__instructions-icon {
+    margin-bottom: 16px;
+    color: var(--text-secondary-color, #6b6b6b);
+    opacity: 0.5;
+  }
+
+  &__instructions-title {
+    margin: 0 0 8px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary-color, #1b1b1f);
+  }
+
+  &__instructions-text {
+    margin: 0 0 16px;
+    font-size: 13px;
+    color: var(--text-secondary-color, #6b6b6b);
+    line-height: 1.5;
+  }
+
+  &__instructions-steps {
+    margin: 0 0 20px;
+    padding-left: 20px;
+    text-align: left;
+    font-size: 13px;
+    color: var(--text-secondary-color, #6b6b6b);
+    line-height: 1.8;
+
+    li {
+      margin-bottom: 4px;
+    }
+  }
+
+  &__create-slide-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border: none;
+    background: var(--color-primary, #4a6ee0);
+    color: white;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+
+    &:hover {
+      background: var(--color-primary-darker, #3a5ecc);
+    }
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+}
+
+// Dark mode overrides
+.excalidraw.theme--dark .presentation-panel {
+  &__header {
+    border-color: var(--default-border-color, #3d3d4a);
+  }
+
+  &__title {
+    color: var(--text-primary-color, #f1f1f1);
+  }
+
+  &__add-button {
+    color: var(--color-primary-light, #a8c7fa);
+
+    &:hover {
+      background: rgba(168, 199, 250, 0.1);
+    }
+  }
+
+  &__slide {
+    border-color: var(--default-border-color, #3d3d4a);
+    background: var(--island-bg-color, #232329);
+
+    &:hover {
+      border-color: var(--color-primary-light, #a8c7fa);
+    }
+
+    &--active {
+      border-color: var(--color-primary, #4a6ee0);
+    }
+  }
+
+  &__slide-preview {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  &__slide-number {
+    color: var(--text-secondary-color, #9a9a9a);
+  }
+
+  &__slide-name {
+    color: var(--text-primary-color, #f1f1f1);
+    border-color: var(--default-border-color, #3d3d4a);
+  }
+
+  &__slide-actions {
+    border-color: var(--default-border-color, #3d3d4a);
+  }
+
+  &__slide-action {
+    color: var(--text-secondary-color, #9a9a9a);
+
+    &:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-primary-color, #f1f1f1);
+    }
+
+    &:first-child {
+      border-color: var(--default-border-color, #3d3d4a);
+    }
+  }
+
+  &__footer {
+    border-color: var(--default-border-color, #3d3d4a);
+  }
+
+  &__instructions-title {
+    color: var(--text-primary-color, #f1f1f1);
+  }
+
+  &__instructions-text,
+  &__instructions-steps {
+    color: var(--text-secondary-color, #9a9a9a);
+  }
+}

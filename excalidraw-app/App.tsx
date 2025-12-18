@@ -140,6 +140,7 @@ import "./index.scss";
 
 import { ExcalidrawPlusPromoBanner } from "./components/ExcalidrawPlusPromoBanner";
 import { AppSidebar } from "./components/AppSidebar";
+import { PresentationMode } from "./components/Presentation";
 import { PenToolbar, getDefaultPenPresets } from "./pens";
 
 import type { CollabAPI } from "./collab/Collab";
@@ -977,9 +978,10 @@ const ExcalidrawWrapper = () => {
           }}
         />
 
-        <AppSidebar />
+        <AppSidebar excalidrawAPI={excalidrawAPI} />
 
         {excalidrawAPI && <PenToolbar excalidrawAPI={excalidrawAPI} />}
+        {excalidrawAPI && <PresentationMode excalidrawAPI={excalidrawAPI} />}
 
         {errorMessage && (
           <ErrorDialog onClose={() => setErrorMessage("")}>

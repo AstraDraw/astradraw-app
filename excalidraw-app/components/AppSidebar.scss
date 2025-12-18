@@ -30,6 +30,17 @@
     padding: 0 2rem;
   }
 
+  .app-sidebar-promo-coming-soon {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    margin: 0 auto;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-secondary-color, #6b6b6b);
+    background: var(--button-hover-bg, rgba(0, 0, 0, 0.05));
+    border-radius: 0.5rem;
+  }
+
   .link-button {
     margin: 0 auto;
   }

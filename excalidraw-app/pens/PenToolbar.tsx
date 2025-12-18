@@ -8,6 +8,7 @@ import type {
   AppState,
 } from "@excalidraw/excalidraw/types";
 import { t } from "@excalidraw/excalidraw/i18n";
+import { useUIAppState } from "@excalidraw/excalidraw/context/ui-appState";
 
 import { PENS } from "./pens";
 import { PenSettingsModal, getPenTypeLabel } from "./PenSettingsModal";
@@ -88,9 +89,20 @@ const getPens = (appState: AppState): PenStyle[] => {
 };
 
 export const PenToolbar: React.FC<PenToolbarProps> = ({ excalidrawAPI }) => {
+  // Use reactive UI state for sidebar and zen mode detection
+  const uiAppState = useUIAppState();
+  const isSidebarOpen = !!uiAppState.openSidebar;
+  const isZenMode = uiAppState.zenModeEnabled;
+  const isViewMode = uiAppState.viewModeEnabled;
+
   const appState = excalidrawAPI.getAppState();
   const currentPenType = appState.currentPenType;
   const pens = getPens(appState);
+
+  // Hide toolbar in zen mode or view mode (presentation mode uses both)
+  if (isZenMode || isViewMode) {
+    return null;
+  }
 
   // State for pen settings modal
   const [editingPenIndex, setEditingPenIndex] = useState<number | null>(null);
@@ -201,7 +213,9 @@ export const PenToolbar: React.FC<PenToolbarProps> = ({ excalidrawAPI }) => {
   return (
     <>
       <div
-        className="pen-toolbar"
+        className={clsx("pen-toolbar", {
+          "pen-toolbar--sidebar-open": isSidebarOpen,
+        })}
       >
         <div className="pen-toolbar__pens">
           {pens.map((pen, index) => {

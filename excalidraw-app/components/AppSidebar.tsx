@@ -6,9 +6,17 @@ import {
 import { LinkButton } from "@excalidraw/excalidraw/components/LinkButton";
 import { useUIAppState } from "@excalidraw/excalidraw/context/ui-appState";
 
+import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
+
+import { PresentationPanel } from "./Presentation";
+
 import "./AppSidebar.scss";
 
-export const AppSidebar = () => {
+interface AppSidebarProps {
+  excalidrawAPI: ExcalidrawImperativeAPI | null;
+}
+
+export const AppSidebar: React.FC<AppSidebarProps> = ({ excalidrawAPI }) => {
   const { theme, openSidebar } = useUIAppState();
 
   return (
@@ -39,40 +47,13 @@ export const AppSidebar = () => {
             }}
           />
           <div className="app-sidebar-promo-text">
-            Make comments with Excalidraw+
+            Make comments with AstraDraw
           </div>
-          <LinkButton
-            href={`${
-              import.meta.env.VITE_APP_PLUS_LP
-            }/plus?utm_source=excalidraw&utm_medium=app&utm_content=comments_promo#excalidraw-redirect`}
-          >
-            Sign up now
-          </LinkButton>
+          <div className="app-sidebar-promo-coming-soon">Coming soon</div>
         </div>
       </Sidebar.Tab>
-      <Sidebar.Tab tab="presentation" className="px-3">
-        <div className="app-sidebar-promo-container">
-          <div
-            className="app-sidebar-promo-image"
-            style={{
-              ["--image-source" as any]: `url(/oss_promo_presentations_${
-                theme === THEME.DARK ? "dark" : "light"
-              }.svg)`,
-              backgroundSize: "60%",
-              opacity: 0.4,
-            }}
-          />
-          <div className="app-sidebar-promo-text">
-            Create presentations with Excalidraw+
-          </div>
-          <LinkButton
-            href={`${
-              import.meta.env.VITE_APP_PLUS_LP
-            }/plus?utm_source=excalidraw&utm_medium=app&utm_content=presentations_promo#excalidraw-redirect`}
-          >
-            Sign up now
-          </LinkButton>
-        </div>
+      <Sidebar.Tab tab="presentation">
+        <PresentationPanel excalidrawAPI={excalidrawAPI} />
       </Sidebar.Tab>
     </DefaultSidebar>
   );
