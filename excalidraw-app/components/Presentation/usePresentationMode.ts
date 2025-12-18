@@ -73,8 +73,8 @@ export const usePresentationMode = ({
   // Animation duration for slide transitions (ms)
   const SLIDE_TRANSITION_DURATION = 800;
 
-  // How much of the viewport the frame should fill (0.95 = 95%, leaving ~2.5% margin each side)
-  const PRESENTATION_VIEWPORT_ZOOM_FACTOR = 0.95;
+  // How much of the viewport the frame should fill (1.0 = 100%, edge-to-edge on limiting dimension)
+  const PRESENTATION_VIEWPORT_ZOOM_FACTOR = 1.0;
 
   // Navigate to a specific slide
   const goToSlide = useCallback(

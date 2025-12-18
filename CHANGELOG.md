@@ -8,6 +8,18 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.9] - 2025-12-18
+
+### Changed
+
+- **Presentation Controls**
+  - Controls now completely invisible when not hovered (was 10% opacity)
+  - Faster fade-in on hover (0.15s)
+
+- **Presentation Zoom**
+  - Increased viewport zoom factor to 100% (edge-to-edge on limiting dimension)
+  - Frames now fill the entire viewport height/width with no margins
+
 ## [0.18.0-beta0.8] - 2025-12-18
 
 ### Fixed
