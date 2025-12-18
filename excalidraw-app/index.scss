@@ -134,3 +134,26 @@
     }
   }
 }
+
+// Presentation mode - hide UI elements that shouldn't be visible during presentation
+body.excalidraw-presentation-mode {
+  // Hide the hamburger menu button (top-left)
+  .main-menu-trigger {
+    display: none !important;
+  }
+
+  // Hide zoom controls (bottom-left)
+  .layer-ui__wrapper__footer-left {
+    display: none !important;
+  }
+
+  // Hide the "Exit Zen Mode" button
+  .disable-zen-mode {
+    display: none !important;
+  }
+
+  // Hide the help button (bottom-right) 
+  .layer-ui__wrapper__footer-right {
+    display: none !important;
+  }
+}

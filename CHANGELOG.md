@@ -8,6 +8,31 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.5] - 2024-12-18
+
+### Added
+
+- **Presentation Mode Enhancements**
+  - Live frame previews in presentation sidebar panel
+  - Inline frame rename: double-click name or click edit button (✎)
+  - Auto-numbering: frames get order prefixes (e.g., "1. ", "2. ") when reordered
+  - Order persistence: frame order is saved via name prefixes, persists across sessions
+  - Clean presentation view: hamburger menu, zoom controls, zen mode button all hidden
+
+### Fixed
+
+- Frame order now respects custom ordering set in sidebar (not just alphabetical)
+- Laser pointer now works correctly in presentation mode (fixed canvas panning conflict)
+- Frame borders and names properly hidden during presentation
+- Russian translation: changed "рамки" to "фреймы" for design frames
+
+### Technical
+
+- Added `PRESENTATION_MODE.md` documentation
+- CSS class `excalidraw-presentation-mode` on body for UI hiding
+- Helper functions for order prefix management: `extractOrderPrefix()`, `removeOrderPrefix()`, `setOrderPrefix()`
+- Frame previews use `exportToCanvas` with `exportingFrame` parameter
+
 ## [0.18.0-beta0.4] - 2024-12-18
 
 ### Fixed

@@ -1,15 +1,42 @@
 import clsx from "clsx";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 
 import { PlusIcon } from "@excalidraw/excalidraw/components/icons";
 import { t } from "@excalidraw/excalidraw/i18n";
+import { exportToCanvas } from "@excalidraw/utils";
 
 import type { ExcalidrawFrameLikeElement } from "@excalidraw/element/types";
-import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
+import type {
+  ExcalidrawImperativeAPI,
+  BinaryFiles,
+} from "@excalidraw/excalidraw/types";
 
 import { usePresentationMode } from "./usePresentationMode";
 
 import "./PresentationPanel.scss";
+
+// Helper to extract the order prefix from a frame name (e.g., "3. My Frame" -> 3)
+const extractOrderPrefix = (name: string | null): number | null => {
+  if (!name) {
+    return null;
+  }
+  const match = name.match(/^(\d+)\.\s*/);
+  return match ? parseInt(match[1], 10) : null;
+};
+
+// Helper to remove the order prefix from a frame name (e.g., "3. My Frame" -> "My Frame")
+const removeOrderPrefix = (name: string | null): string => {
+  if (!name) {
+    return "";
+  }
+  return name.replace(/^\d+\.\s*/, "");
+};
+
+// Helper to add/update order prefix to a frame name
+const setOrderPrefix = (name: string | null, order: number): string => {
+  const baseName = removeOrderPrefix(name) || `Frame`;
+  return `${order}. ${baseName}`;
+};
 
 interface PresentationPanelProps {
   excalidrawAPI: ExcalidrawImperativeAPI | null;
@@ -23,6 +50,9 @@ interface SlideThumbProps {
   onClick: () => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
+  onRename: (newName: string) => void;
+  excalidrawAPI: ExcalidrawImperativeAPI | null;
+  refreshKey?: number;
 }
 
 const SlideThumb: React.FC<SlideThumbProps> = ({
@@ -33,8 +63,121 @@ const SlideThumb: React.FC<SlideThumbProps> = ({
   onClick,
   onMoveUp,
   onMoveDown,
+  onRename,
+  excalidrawAPI,
+  refreshKey,
 }) => {
   const frameName = frame.name || `Frame ${index + 1}`;
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [previewError, setPreviewError] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState(frameName);
+
+  // Update editValue when frame name changes externally
+  useEffect(() => {
+    if (!isEditing) {
+      setEditValue(frame.name || `Frame ${index + 1}`);
+    }
+  }, [frame.name, index, isEditing]);
+
+  // Focus input when entering edit mode
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [isEditing]);
+
+  const handleStartEditing = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsEditing(true);
+    setEditValue(frame.name || "");
+  };
+
+  const handleFinishEditing = () => {
+    setIsEditing(false);
+    const trimmedValue = editValue.trim();
+    if (trimmedValue !== frame.name) {
+      onRename(trimmedValue);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleFinishEditing();
+    } else if (e.key === "Escape") {
+      setIsEditing(false);
+      setEditValue(frame.name || `Frame ${index + 1}`);
+    }
+  };
+
+  // Generate preview when frame changes
+  useEffect(() => {
+    if (!excalidrawAPI || !canvasRef.current) {
+      return;
+    }
+
+    const generatePreview = async () => {
+      try {
+        const elements = excalidrawAPI.getSceneElements();
+        const appState = excalidrawAPI.getAppState();
+        const files = excalidrawAPI.getFiles();
+
+        // Export the frame content to canvas
+        const exportedCanvas = await exportToCanvas({
+          elements,
+          appState: {
+            ...appState,
+            exportBackground: true,
+            viewBackgroundColor: appState.viewBackgroundColor,
+          },
+          files: files as BinaryFiles,
+          exportingFrame: frame,
+          maxWidthOrHeight: 200, // Limit preview size for performance
+        });
+
+        // Draw the exported canvas onto our preview canvas
+        const ctx = canvasRef.current?.getContext("2d");
+        if (ctx && canvasRef.current) {
+          const previewWidth = canvasRef.current.width;
+          const previewHeight = canvasRef.current.height;
+
+          // Clear canvas
+          ctx.clearRect(0, 0, previewWidth, previewHeight);
+
+          // Calculate scaling to fit while maintaining aspect ratio
+          const scale = Math.min(
+            previewWidth / exportedCanvas.width,
+            previewHeight / exportedCanvas.height,
+          );
+
+          const scaledWidth = exportedCanvas.width * scale;
+          const scaledHeight = exportedCanvas.height * scale;
+
+          // Center the preview
+          const offsetX = (previewWidth - scaledWidth) / 2;
+          const offsetY = (previewHeight - scaledHeight) / 2;
+
+          ctx.drawImage(
+            exportedCanvas,
+            offsetX,
+            offsetY,
+            scaledWidth,
+            scaledHeight,
+          );
+          setPreviewError(false);
+        }
+      } catch (error) {
+        console.error("Failed to generate frame preview:", error);
+        setPreviewError(true);
+      }
+    };
+
+    // Debounce preview generation
+    const timeoutId = setTimeout(generatePreview, 100);
+    return () => clearTimeout(timeoutId);
+  }, [frame, excalidrawAPI, refreshKey]);
 
   return (
     <div
@@ -48,9 +191,39 @@ const SlideThumb: React.FC<SlideThumbProps> = ({
         title={`${t("presentation.goToSlide")} ${frameName}`}
       >
         <div className="presentation-panel__slide-preview">
-          <span className="presentation-panel__slide-number">{index + 1}</span>
+          <canvas
+            ref={canvasRef}
+            width={160}
+            height={90}
+            className="presentation-panel__slide-canvas"
+          />
+          {previewError && (
+            <span className="presentation-panel__slide-number">
+              {index + 1}
+            </span>
+          )}
         </div>
-        <span className="presentation-panel__slide-name">{frameName}</span>
+        {isEditing ? (
+          <input
+            ref={inputRef}
+            type="text"
+            className="presentation-panel__slide-name-input"
+            value={editValue}
+            onChange={(e) => setEditValue(e.target.value)}
+            onBlur={handleFinishEditing}
+            onKeyDown={handleKeyDown}
+            onClick={(e) => e.stopPropagation()}
+            placeholder={`Frame ${index + 1}`}
+          />
+        ) : (
+          <span
+            className="presentation-panel__slide-name"
+            onDoubleClick={handleStartEditing}
+            title={t("presentation.doubleClickToRename")}
+          >
+            {frameName}
+          </span>
+        )}
       </button>
       <div className="presentation-panel__slide-actions">
         <button
@@ -74,6 +247,13 @@ const SlideThumb: React.FC<SlideThumbProps> = ({
           title={t("presentation.moveDown")}
         >
           ↓
+        </button>
+        <button
+          className="presentation-panel__slide-action presentation-panel__slide-action--rename"
+          onClick={handleStartEditing}
+          title={t("presentation.renameFrame")}
+        >
+          ✎
         </button>
       </div>
     </div>
@@ -136,20 +316,43 @@ export const PresentationPanel: React.FC<PresentationPanelProps> = ({
   const [selectedFrameIndex, setSelectedFrameIndex] = useState<number | null>(
     null,
   );
+  // Key to trigger preview refresh when scene changes
+  const [previewRefreshKey, setPreviewRefreshKey] = useState(0);
 
   const { startPresentation, getFrames, isPresentationMode, setSlides } =
     usePresentationMode({
       excalidrawAPI,
     });
 
-  // Refresh frames list
+  // Refresh frames list - sort by order prefix if present
   const refreshFrames = useCallback(() => {
     const currentFrames = getFrames();
 
-    // Preserve custom order if we have one, otherwise use the default order
+    // Sort frames by their order prefix (if any), then by name
+    const sortedFrames = [...currentFrames].sort((a, b) => {
+      const orderA = extractOrderPrefix(a.name);
+      const orderB = extractOrderPrefix(b.name);
+
+      // Both have order prefixes - sort by prefix
+      if (orderA !== null && orderB !== null) {
+        return orderA - orderB;
+      }
+      // Only one has prefix - prefixed comes first
+      if (orderA !== null) {
+        return -1;
+      }
+      if (orderB !== null) {
+        return 1;
+      }
+      // Neither has prefix - sort by name
+      const nameA = a.name || "";
+      const nameB = b.name || "";
+      return nameA.localeCompare(nameB);
+    });
+
     setOrderedFrames((prevOrdered) => {
       if (prevOrdered.length === 0) {
-        return currentFrames;
+        return sortedFrames;
       }
 
       // Keep existing order, add new frames at the end, remove deleted frames
@@ -159,8 +362,8 @@ export const PresentationPanel: React.FC<PresentationPanelProps> = ({
       // Keep frames that still exist in their current order
       const kept = prevOrdered.filter((f) => existingIds.has(f.id));
 
-      // Add new frames at the end
-      const newFrames = currentFrames.filter((f) => !orderedIds.has(f.id));
+      // Add new frames at the end (sorted by their prefix if they have one)
+      const newFrames = sortedFrames.filter((f) => !orderedIds.has(f.id));
 
       // Update references to current frame objects
       const updatedKept = kept.map(
@@ -169,6 +372,9 @@ export const PresentationPanel: React.FC<PresentationPanelProps> = ({
 
       return [...updatedKept, ...newFrames];
     });
+
+    // Trigger preview refresh
+    setPreviewRefreshKey((prev) => prev + 1);
   }, [getFrames]);
 
   // Refresh on mount and when elements change
@@ -218,21 +424,54 @@ export const PresentationPanel: React.FC<PresentationPanelProps> = ({
     [excalidrawAPI, orderedFrames],
   );
 
-  // Handle move slide up
-  const handleMoveUp = useCallback((index: number) => {
-    if (index <= 0) {
-      return;
-    }
+  // Helper to update frame names with order prefixes after reordering
+  const updateFrameOrderPrefixes = useCallback(
+    (frames: ExcalidrawFrameLikeElement[]) => {
+      if (!excalidrawAPI) {
+        return;
+      }
 
-    setOrderedFrames((prev) => {
-      const newOrder = [...prev];
-      [newOrder[index - 1], newOrder[index]] = [
-        newOrder[index],
-        newOrder[index - 1],
-      ];
-      return newOrder;
-    });
-  }, []);
+      const elements = excalidrawAPI.getSceneElements();
+      const updatedElements = elements.map((el) => {
+        if (el.type === "frame" || el.type === "magicframe") {
+          const frameIndex = frames.findIndex((f) => f.id === el.id);
+          if (frameIndex !== -1) {
+            const newName = setOrderPrefix(el.name, frameIndex + 1);
+            if (newName !== el.name) {
+              return { ...el, name: newName };
+            }
+          }
+        }
+        return el;
+      });
+
+      excalidrawAPI.updateScene({
+        elements: updatedElements,
+      });
+    },
+    [excalidrawAPI],
+  );
+
+  // Handle move slide up
+  const handleMoveUp = useCallback(
+    (index: number) => {
+      if (index <= 0) {
+        return;
+      }
+
+      setOrderedFrames((prev) => {
+        const newOrder = [...prev];
+        [newOrder[index - 1], newOrder[index]] = [
+          newOrder[index],
+          newOrder[index - 1],
+        ];
+        // Update frame names with new order prefixes
+        updateFrameOrderPrefixes(newOrder);
+        return newOrder;
+      });
+    },
+    [updateFrameOrderPrefixes],
+  );
 
   // Handle move slide down
   const handleMoveDown = useCallback(
@@ -247,10 +486,37 @@ export const PresentationPanel: React.FC<PresentationPanelProps> = ({
           newOrder[index + 1],
           newOrder[index],
         ];
+        // Update frame names with new order prefixes
+        updateFrameOrderPrefixes(newOrder);
         return newOrder;
       });
     },
-    [orderedFrames.length],
+    [orderedFrames.length, updateFrameOrderPrefixes],
+  );
+
+  // Handle rename frame
+  const handleRenameFrame = useCallback(
+    (frameId: string, newName: string) => {
+      if (!excalidrawAPI) {
+        return;
+      }
+
+      const elements = excalidrawAPI.getSceneElements();
+      const updatedElements = elements.map((el) => {
+        if (el.id === frameId && (el.type === "frame" || el.type === "magicframe")) {
+          return {
+            ...el,
+            name: newName || null,
+          };
+        }
+        return el;
+      });
+
+      excalidrawAPI.updateScene({
+        elements: updatedElements,
+      });
+    },
+    [excalidrawAPI],
   );
 
   // Handle start presentation - use ordered frames
@@ -298,6 +564,9 @@ export const PresentationPanel: React.FC<PresentationPanelProps> = ({
                 onClick={() => handleSlideClick(index)}
                 onMoveUp={() => handleMoveUp(index)}
                 onMoveDown={() => handleMoveDown(index)}
+                onRename={(newName) => handleRenameFrame(frame.id, newName)}
+                excalidrawAPI={excalidrawAPI}
+                refreshKey={previewRefreshKey}
               />
             ))}
           </div>

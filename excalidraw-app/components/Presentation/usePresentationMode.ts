@@ -15,6 +15,19 @@ export const originalThemeAtom = atom<"light" | "dark" | null>(null);
 // Atom for custom slide order (frame IDs in presentation order)
 export const slideOrderAtom = atom<string[]>([]);
 
+// Type for frame rendering state
+type FrameRenderingState = {
+  enabled: boolean;
+  name: boolean;
+  outline: boolean;
+  clip: boolean;
+};
+
+// Atom for original frame rendering state (to restore after presentation)
+export const originalFrameRenderingAtom = atom<FrameRenderingState | null>(
+  null,
+);
+
 export interface UsePresentationModeOptions {
   excalidrawAPI: ExcalidrawImperativeAPI | null;
 }
@@ -29,6 +42,9 @@ export const usePresentationMode = ({
   const [slides, setSlides] = useAtom(slidesAtom);
   const [isLaserActive, setIsLaserActive] = useAtom(isLaserActiveAtom);
   const [originalTheme, setOriginalTheme] = useAtom(originalThemeAtom);
+  const [originalFrameRendering, setOriginalFrameRendering] = useAtom(
+    originalFrameRenderingAtom,
+  );
   const isFullscreenRef = useRef(false);
 
   // Get frames sorted alphabetically by name
@@ -142,7 +158,9 @@ export const usePresentationMode = ({
       return;
     }
 
-    const frames = getFrames();
+    // Use existing ordered slides if already set (from PresentationPanel),
+    // otherwise fall back to alphabetically sorted frames
+    const frames = slides.length > 0 ? slides : getFrames();
     if (frames.length === 0) {
       excalidrawAPI.setToast({
         message: "No frames found. Add frames to create slides.",
@@ -152,30 +170,45 @@ export const usePresentationMode = ({
       return;
     }
 
-    // Save current theme
+    // Save current theme and frame rendering state
     const appState = excalidrawAPI.getAppState();
     setOriginalTheme(appState.theme);
+    setOriginalFrameRendering(appState.frameRendering);
 
-    // Set up presentation state
-    setSlides(frames);
+    // Set up presentation state - only update slides if not already set
+    if (slides.length === 0) {
+      setSlides(frames);
+    }
     setCurrentSlide(0);
     setIsPresentationMode(true);
     setIsLaserActive(false);
 
+    // Add presentation mode class to body for CSS hiding of UI elements
+    document.body.classList.add("excalidraw-presentation-mode");
+
     // Close sidebar before starting presentation
     excalidrawAPI.toggleSidebar({ name: "default", force: false });
 
-    // Enable view mode and hide UI, set laser as default tool
+    // Enable view mode, hide UI, and hide frame borders/names
     excalidrawAPI.updateScene({
       appState: {
         viewModeEnabled: true,
         zenModeEnabled: true,
+        frameRendering: {
+          enabled: appState.frameRendering.enabled,
+          clip: appState.frameRendering.clip,
+          outline: false, // Hide frame borders in presentation
+          name: false, // Hide frame names in presentation
+        },
       },
     });
 
     // Set laser tool as the default for presentation
-    excalidrawAPI.setActiveTool({ type: "laser" });
-    setIsLaserActive(true);
+    // Use setTimeout to ensure the scene update is processed first
+    setTimeout(() => {
+      excalidrawAPI.setActiveTool({ type: "laser" });
+      setIsLaserActive(true);
+    }, 50);
 
     // Navigate to first slide with smooth animation
     setTimeout(() => {
@@ -190,11 +223,13 @@ export const usePresentationMode = ({
   }, [
     excalidrawAPI,
     getFrames,
+    slides,
     setSlides,
     setCurrentSlide,
     setIsPresentationMode,
     setIsLaserActive,
     setOriginalTheme,
+    setOriginalFrameRendering,
   ]);
 
   // End presentation
@@ -212,20 +247,34 @@ export const usePresentationMode = ({
       }
     }
 
-    // Restore original theme if it was saved
+    // Restore original theme and frame rendering state
+    // Build appState updates - always include viewModeEnabled and zenModeEnabled
+    // Conditionally include theme and frameRendering if they were saved
+    const restoredAppState: {
+      viewModeEnabled: boolean;
+      zenModeEnabled: boolean;
+      theme?: "light" | "dark";
+      frameRendering?: FrameRenderingState;
+    } = {
+      viewModeEnabled: false,
+      zenModeEnabled: false,
+    };
+
     if (originalTheme) {
-      excalidrawAPI.updateScene({
-        appState: { theme: originalTheme },
-      });
+      restoredAppState.theme = originalTheme;
+    }
+    if (originalFrameRendering) {
+      restoredAppState.frameRendering = originalFrameRendering;
     }
 
-    // Disable view mode and zen mode
     excalidrawAPI.updateScene({
-      appState: {
-        viewModeEnabled: false,
-        zenModeEnabled: false,
-      },
+      appState: restoredAppState as Parameters<
+        typeof excalidrawAPI.updateScene
+      >[0]["appState"],
     });
+
+    // Remove presentation mode class from body
+    document.body.classList.remove("excalidraw-presentation-mode");
 
     // Reset presentation state
     setIsPresentationMode(false);
@@ -233,17 +282,20 @@ export const usePresentationMode = ({
     setSlides([]);
     setCurrentSlide(0);
     setOriginalTheme(null);
+    setOriginalFrameRendering(null);
 
     // Reset to selection tool
     excalidrawAPI.setActiveTool({ type: "selection" });
   }, [
     excalidrawAPI,
     originalTheme,
+    originalFrameRendering,
     setIsPresentationMode,
     setIsLaserActive,
     setSlides,
     setCurrentSlide,
     setOriginalTheme,
+    setOriginalFrameRendering,
   ]);
 
   // Keyboard event handler
