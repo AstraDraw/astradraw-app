@@ -65,6 +65,71 @@ import type { JSX } from "react";
 
 export type SocketId = string & { _brand: "SocketId" };
 
+// Custom Pen Types
+export interface PenStrokeOptions {
+  thinning: number;
+  smoothing: number;
+  streamline: number;
+  easing: string;
+  simulatePressure?: boolean;
+  start: {
+    cap: boolean;
+    taper: number | boolean;
+    easing: string;
+  };
+  end: {
+    cap: boolean;
+    taper: number | boolean;
+    easing: string;
+  };
+}
+
+export interface PenOptions {
+  highlighter: boolean;
+  constantPressure: boolean;
+  hasOutline: boolean;
+  outlineWidth: number;
+  options: PenStrokeOptions;
+}
+
+export type PenType =
+  | "default"
+  | "highlighter"
+  | "finetip"
+  | "fountain"
+  | "marker"
+  | "thick-thin"
+  | "thin-thick-thin";
+
+export type ExtendedFillStyle =
+  | "dots"
+  | "zigzag"
+  | "zigzag-line"
+  | "dashed"
+  | "hachure"
+  | "cross-hatch"
+  | "solid"
+  | "";
+
+export interface PenStyle {
+  type: PenType;
+  freedrawOnly: boolean;
+  strokeColor?: string;
+  backgroundColor?: string;
+  fillStyle: ExtendedFillStyle;
+  strokeWidth: number;
+  roughness: number | null;
+  penOptions: PenOptions;
+}
+
+export interface ResetCustomPenState {
+  currentItemStrokeWidth: number;
+  currentItemBackgroundColor: string;
+  currentItemStrokeColor: string;
+  currentItemFillStyle: string;
+  currentItemRoughness: number;
+}
+
 export type Collaborator = Readonly<{
   pointer?: CollaboratorPointer;
   button?: "up" | "down";
@@ -458,6 +523,14 @@ export interface AppState {
   // and also remove groupId from this map
   lockedMultiSelections: { [groupId: string]: true };
   bindMode: BindMode;
+
+  // Custom Pen State
+  /** Current stroke options for custom pens - overrides default freedraw settings */
+  currentStrokeOptions: PenOptions | null;
+  /** Saved state to restore when switching away from a custom pen */
+  resetCustomPen: ResetCustomPenState | null;
+  /** Array of custom pen presets */
+  customPens: PenStyle[];
 }
 
 export type SearchMatch = {

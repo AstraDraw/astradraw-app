@@ -140,6 +140,7 @@ import "./index.scss";
 
 import { ExcalidrawPlusPromoBanner } from "./components/ExcalidrawPlusPromoBanner";
 import { AppSidebar } from "./components/AppSidebar";
+import { PenToolbar, getDefaultPenPresets } from "./pens";
 
 import type { CollabAPI } from "./collab/Collab";
 
@@ -292,6 +293,21 @@ const initializeScene = async (opts: {
     }
   }
 
+  // Add default pen presets to scene
+  const defaultPenPresets = getDefaultPenPresets();
+  const addPenPresets = (sceneData: typeof scene | null) => {
+    if (!sceneData) {
+      return null;
+    }
+    return {
+      ...sceneData,
+      appState: {
+        ...sceneData.appState,
+        customPens: sceneData.appState?.customPens ?? defaultPenPresets,
+      },
+    };
+  };
+
   if (roomLinkData && opts.collabAPI) {
     const { excalidrawAPI } = opts;
 
@@ -314,6 +330,7 @@ const initializeScene = async (opts: {
           // necessary if we're invoking from a hashchange handler which doesn't
           // go through App.initializeScene() that resets this flag
           isLoading: false,
+          customPens: defaultPenPresets,
         },
         elements: reconcileElements(
           scene?.elements || [],
@@ -328,12 +345,12 @@ const initializeScene = async (opts: {
   } else if (scene) {
     return isExternalScene && jsonBackendMatch
       ? {
-          scene,
+          scene: addPenPresets(scene),
           isExternalScene,
           id: jsonBackendMatch[1],
           key: jsonBackendMatch[2],
         }
-      : { scene, isExternalScene: false };
+      : { scene: addPenPresets(scene), isExternalScene: false };
   }
   return { scene: null, isExternalScene: false };
 };
@@ -961,6 +978,8 @@ const ExcalidrawWrapper = () => {
         />
 
         <AppSidebar />
+
+        {excalidrawAPI && <PenToolbar excalidrawAPI={excalidrawAPI} />}
 
         {errorMessage && (
           <ErrorDialog onClose={() => setErrorMessage("")}>

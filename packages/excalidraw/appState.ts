@@ -128,6 +128,10 @@ export const getDefaultAppState = (): Omit<
     lockedMultiSelections: {},
     activeLockedId: null,
     bindMode: "orbit",
+    // Custom Pen State
+    currentStrokeOptions: null,
+    resetCustomPen: null,
+    customPens: [],
   };
 };
 
@@ -254,6 +258,10 @@ const APP_STATE_STORAGE_CONF = (<
   lockedMultiSelections: { browser: true, export: true, server: true },
   activeLockedId: { browser: false, export: false, server: false },
   bindMode: { browser: true, export: false, server: false },
+  // Custom Pen State
+  currentStrokeOptions: { browser: true, export: false, server: false },
+  resetCustomPen: { browser: false, export: false, server: false },
+  customPens: { browser: true, export: false, server: false },
 });
 
 const _clearAppStateForStorage = <

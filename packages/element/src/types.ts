@@ -371,12 +371,32 @@ export type ExcalidrawElbowArrowElement = Merge<
   }
 >;
 
+/** Custom stroke options for freedraw elements with custom pens */
+export interface FreeDrawStrokeOptions {
+  thinning: number;
+  smoothing: number;
+  streamline: number;
+  easing: string;
+  start?: {
+    cap: boolean;
+    taper: number | boolean;
+    easing: string;
+  };
+  end?: {
+    cap: boolean;
+    taper: number | boolean;
+    easing: string;
+  };
+}
+
 export type ExcalidrawFreeDrawElement = _ExcalidrawElementBase &
   Readonly<{
     type: "freedraw";
     points: readonly LocalPoint[];
     pressures: readonly number[];
     simulatePressure: boolean;
+    /** Custom stroke options from pen presets - if not set, uses defaults */
+    customStrokeOptions?: FreeDrawStrokeOptions;
   }>;
 
 export type FileId = string & { _brand: "FileId" };

@@ -1099,6 +1099,42 @@ export function getFreedrawOutlineAsSegments(
   );
 }
 
+// Easing functions for custom pen strokes
+// https://easings.net/
+const EASING_FUNCTIONS: Record<string, (t: number) => number> = {
+  linear: (t) => t,
+  easeInQuad: (t) => t * t,
+  easeOutQuad: (t) => t * (2 - t),
+  easeInOutQuad: (t) => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t),
+  easeInCubic: (t) => t * t * t,
+  easeOutCubic: (t) => --t * t * t + 1,
+  easeInOutCubic: (t) =>
+    t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1,
+  easeInSine: (t) => 1 - Math.cos((t * Math.PI) / 2),
+  easeOutSine: (t) => Math.sin((t * Math.PI) / 2),
+  easeInOutSine: (t) => -(Math.cos(Math.PI * t) - 1) / 2,
+  easeInExpo: (t) => (t === 0 ? 0 : Math.pow(2, 10 * t - 10)),
+  easeOutExpo: (t) => (t === 1 ? 1 : 1 - Math.pow(2, -10 * t)),
+  easeInOutExpo: (t) =>
+    t === 0
+      ? 0
+      : t === 1
+      ? 1
+      : t < 0.5
+      ? Math.pow(2, 20 * t - 10) / 2
+      : (2 - Math.pow(2, -20 * t + 10)) / 2,
+  easeInCirc: (t) => 1 - Math.sqrt(1 - t * t),
+  easeOutCirc: (t) => Math.sqrt(1 - --t * t),
+  easeInOutCirc: (t) =>
+    t < 0.5
+      ? (1 - Math.sqrt(1 - 4 * t * t)) / 2
+      : (Math.sqrt(1 - Math.pow(-2 * t + 2, 2)) + 1) / 2,
+};
+
+const getEasingFunction = (easing: string): ((t: number) => number) => {
+  return EASING_FUNCTIONS[easing] || EASING_FUNCTIONS.easeOutSine;
+};
+
 export function getFreedrawOutlinePoints(element: ExcalidrawFreeDrawElement) {
   // If input points are empty (should they ever be?) return a dot
   const inputPoints = element.simulatePressure
@@ -1107,15 +1143,39 @@ export function getFreedrawOutlinePoints(element: ExcalidrawFreeDrawElement) {
     ? element.points.map(([x, y], i) => [x, y, element.pressures[i]])
     : [[0, 0, 0.5]];
 
-  // Consider changing the options for simulated pressure vs real pressure
+  const customOpts = element.customStrokeOptions;
+
+  // Use custom stroke options if available, otherwise use defaults
   const options: StrokeOptions = {
     simulatePressure: element.simulatePressure,
     size: element.strokeWidth * 4.25,
-    thinning: 0.6,
-    smoothing: 0.5,
-    streamline: 0.5,
-    easing: (t) => Math.sin((t * Math.PI) / 2), // https://easings.net/#easeOutSine
+    thinning: customOpts?.thinning ?? 0.6,
+    smoothing: customOpts?.smoothing ?? 0.5,
+    streamline: customOpts?.streamline ?? 0.5,
+    easing: customOpts?.easing
+      ? getEasingFunction(customOpts.easing)
+      : (t) => Math.sin((t * Math.PI) / 2), // https://easings.net/#easeOutSine
     last: true,
+    ...(customOpts?.start && {
+      start: {
+        cap: customOpts.start.cap,
+        taper:
+          typeof customOpts.start.taper === "boolean"
+            ? customOpts.start.taper
+            : customOpts.start.taper,
+        easing: getEasingFunction(customOpts.start.easing),
+      },
+    }),
+    ...(customOpts?.end && {
+      end: {
+        cap: customOpts.end.cap,
+        taper:
+          typeof customOpts.end.taper === "boolean"
+            ? customOpts.end.taper
+            : customOpts.end.taper,
+        easing: getEasingFunction(customOpts.end.easing),
+      },
+    }),
   };
 
   return getStroke(inputPoints as number[][], options) as [number, number][];
