@@ -12,11 +12,29 @@ Astradraw includes a full-featured presentation mode that transforms your canvas
 ### Presentation Panel (Sidebar)
 Located in the sidebar, the presentation panel provides:
 
-- **Live Previews**: Real-time thumbnail previews of each frame's content
-- **Drag Order**: Move slides up/down using arrow buttons
+- **Large Slide Previews**: Real-time thumbnail previews of each frame's content in a vertical card layout
+- **Drag & Drop Reordering**: Drag slides to reorder with visual drop indicator line
+- **Auto-Scroll on Drag**: When dragging near edges, the list auto-scrolls
+- **Hover Actions**: Hover over a slide to reveal rename button and drag handle
 - **Auto-Numbering**: When you reorder slides, frames are automatically renamed with order prefixes (e.g., "1. ", "2. ", etc.)
-- **Inline Rename**: Double-click a slide name or click the edit button (✎) to rename
-- **Start Presentation**: One-click to enter presentation mode
+- **Inline Rename**: Double-click a slide name to rename
+- **Start Presentation**: One-click to enter presentation mode (button always visible at bottom)
+- **Scrollable List**: When many slides exist, the list scrolls while header and footer stay fixed
+
+### Slides Layout Dialog
+Accessed via the grid icon in the presentation panel header:
+
+- **Row Layout**: Arranges all frames horizontally from left to right
+- **Column Layout**: Arranges all frames vertically from top to bottom  
+- **Grid Layout**: Arranges frames in a grid with configurable column count
+- **Auto-Arrange**: Physically moves frames on the canvas based on selected layout
+
+### Footer Toggle Button
+A presentation toggle button is available in the footer (next to undo/redo):
+
+- **Quick Access**: One-click to open/close the presentation sidebar
+- **Tooltip**: Hover shows localized tooltip ("Toggle presentation sidebar" / "Панель презентации")
+- **Styled Button**: Matches the styling of undo/redo buttons with background and shadow
 
 ### Presentation Controls
 During presentation, a floating control bar appears at the bottom:
@@ -92,9 +110,14 @@ body.excalidraw-presentation-mode {
 |------|-------------|
 | `excalidraw-app/components/Presentation/usePresentationMode.ts` | Core hook with all presentation logic |
 | `excalidraw-app/components/Presentation/PresentationPanel.tsx` | Sidebar panel with slide list and previews |
+| `excalidraw-app/components/Presentation/PresentationPanel.scss` | Styles for presentation panel with grid layout |
 | `excalidraw-app/components/Presentation/PresentationControls.tsx` | Floating control bar during presentation |
 | `excalidraw-app/components/Presentation/PresentationMode.tsx` | Portal wrapper for controls |
+| `excalidraw-app/components/Presentation/SlidesLayoutDialog.tsx` | Dialog for arranging frames in row/column/grid |
+| `excalidraw-app/components/Presentation/SlidesLayoutDialog.scss` | Styles for layout dialog |
+| `excalidraw-app/components/AppFooter.tsx` | Footer with presentation toggle button |
 | `excalidraw-app/index.scss` | CSS for hiding UI in presentation mode |
+| `packages/excalidraw/components/footer/FooterLeftExtra.tsx` | Tunnel component for footer-left content |
 
 ## Translations
 
@@ -102,9 +125,53 @@ Presentation mode is fully translated:
 - English (`en.json`)
 - Russian (`ru-RU.json`) - Uses "фреймы" (frames) not "рамки" (borders)
 
+## Known Issues
+
+### Scroll on Slide Previews
+Mouse wheel scrolling may not work when cursor is directly over slide preview images. 
+
+**Workaround**: Scroll when cursor is between slides or use the scrollbar.
+
+**Root Cause**: The Excalidraw canvas captures wheel events for zooming. When the mouse is over a slide preview element, the wheel event propagates to the canvas instead of scrolling the sidebar.
+
+**Approaches Tried (not working)**:
+1. `onWheel={(e) => e.stopPropagation()}` on the slides container - doesn't prevent canvas from capturing
+2. `onWheel={(e) => e.stopPropagation()}` on the main presentation-panel div - same issue
+3. Changed slide content from `<button>` to `<div role="button">` - no effect on wheel events
+4. CSS `overscroll-behavior: contain` on slides container - doesn't help with event capture
+5. CSS `overflow: hidden` on main panel - no effect
+6. CSS `pointer-events: auto` on all children - no effect
+
+**Potential Solutions to Try**:
+- Capture wheel events at the sidebar level in the Excalidraw package
+- Prevent canvas wheel handler from firing when mouse is over sidebar
+- Use a portal to render slide previews outside the canvas event scope
+
+### Toggle Button Close
+The footer toggle button may not properly close the sidebar in some cases.
+
+**Workaround**: Use the X button in the sidebar header to close.
+
+**Root Cause**: The `updateScene({ appState: { openSidebar: null } })` API call doesn't seem to properly update the sidebar state, while the internal `setAppState({ openSidebar: null })` used by the X button works.
+
+**Approaches Tried (not working)**:
+1. `excalidrawAPI.toggleSidebar({ name: "default", tab: "presentation" })` - only opens, doesn't close when already open
+2. `excalidrawAPI.toggleSidebar({ name: "default", force: false })` - doesn't close
+3. Checking `appState.openSidebar?.tab === "presentation"` and conditionally closing - state detection works but close doesn't
+4. `excalidrawAPI.updateScene({ appState: { openSidebar: null } })` - doesn't close the sidebar
+5. Checking `appState.openSidebar?.name === "default"` and calling updateScene with null - same issue
+
+**Potential Solutions to Try**:
+- Access internal `setAppState` function (not exposed in public API)
+- Dispatch a custom event that the sidebar listens to
+- Modify the Excalidraw package to expose `setAppState` or a dedicated close method
+- Use React context to access the internal state setter
+
 ## Future Improvements
 
 Potential enhancements for future versions:
+- [ ] Fix scroll capture on slide previews
+- [ ] Fix toggle button close behavior
 - [ ] Preset frame sizes (16:9, 4:3, mobile, etc.) like Figma
 - [ ] Speaker notes
 - [ ] Slide transitions/animations

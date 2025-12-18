@@ -1,8 +1,10 @@
 .presentation-panel {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: auto 1fr auto; // header, scrollable slides, footer
   height: 100%;
+  min-height: 0; // Required for grid children to respect overflow
   padding: 0;
+  overflow: hidden; // Contain scroll within panel
 
   &__header {
     display: flex;
@@ -16,6 +18,37 @@
     font-size: 14px;
     font-weight: 600;
     color: var(--text-primary-color, #1b1b1f);
+  }
+
+  &__header-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  &__header-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--text-secondary-color, #6b6b6b);
+    transition: background-color 0.15s ease, color 0.15s ease;
+
+    &:hover {
+      background: var(--button-hover-bg, rgba(0, 0, 0, 0.05));
+      color: var(--text-primary-color, #1b1b1f);
+    }
+
+    svg {
+      width: 18px;
+      height: 18px;
+    }
   }
 
   &__add-button {
@@ -42,91 +75,107 @@
   }
 
   &__slides {
-    flex: 1;
     overflow-y: auto;
+    overscroll-behavior: contain; // Prevent scroll from propagating to canvas
+    min-height: 0; // Critical for grid item to enable scrolling
     padding: 12px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 12px;
+    
+    // Ensure scrolling works on all child elements
+    * {
+      pointer-events: auto;
+    }
   }
 
+  // Slide card - vertical layout with large preview
   &__slide {
     display: flex;
-    flex-direction: row;
-    align-items: stretch;
-    padding: 0;
+    flex-direction: column;
+    flex-shrink: 0;
+    position: relative;
     border: 2px solid var(--default-border-color, #e5e5e5);
     background: var(--island-bg-color, #fff);
     border-radius: 8px;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
     overflow: hidden;
+    cursor: grab;
 
     &:hover {
       border-color: var(--color-primary-light, #a8c7fa);
+    }
+
+    &:active {
+      cursor: grabbing;
     }
 
     &--active {
       border-color: var(--color-primary, #4a6ee0);
       box-shadow: 0 0 0 2px var(--color-primary-light, rgba(74, 110, 224, 0.2));
     }
+
+    &--dragging {
+      opacity: 0.5;
+      transform: scale(1.02);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    }
+
+    &--drag-over {
+      border-color: var(--color-primary, #4a6ee0);
+    }
+  }
+
+  // Drop indicator line
+  &__drop-indicator {
+    position: absolute;
+    top: -8px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--color-primary, #4a6ee0);
+    border-radius: 2px;
+    z-index: 10;
+
+    &::before,
+    &::after {
+      content: "";
+      position: absolute;
+      top: -3px;
+      width: 9px;
+      height: 9px;
+      background: var(--color-primary, #4a6ee0);
+      border-radius: 50%;
+    }
+
+    &::before {
+      left: -4px;
+    }
+
+    &::after {
+      right: -4px;
+    }
   }
 
   &__slide-content {
     display: flex;
     flex-direction: column;
-    flex: 1;
     padding: 0;
     border: none;
     background: transparent;
     cursor: pointer;
     text-align: left;
+    width: 100%;
   }
 
-  &__slide-actions {
-    display: flex;
-    flex-direction: column;
-    border-left: 1px solid var(--default-border-color, #e5e5e5);
-  }
-
-  &__slide-action {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    flex: 1;
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    color: var(--text-secondary-color, #6b6b6b);
-    font-size: 12px;
-    transition: background-color 0.15s ease, color 0.15s ease;
-
-    &:hover:not(:disabled) {
-      background: var(--button-hover-bg, rgba(0, 0, 0, 0.05));
-      color: var(--text-primary-color, #1b1b1f);
-    }
-
-    &:disabled {
-      opacity: 0.3;
-      cursor: not-allowed;
-    }
-
-    &:not(:last-child) {
-      border-bottom: 1px solid var(--default-border-color, #e5e5e5);
-    }
-
-    &--rename {
-      font-size: 14px;
-    }
-  }
-
+  // Large preview area
   &__slide-preview {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 90px;
+    height: 140px;
     background: var(--button-hover-bg, #f5f5f5);
-    position: relative;
     overflow: hidden;
   }
 
@@ -138,15 +187,86 @@
 
   &__slide-number {
     position: absolute;
-    font-size: 20px;
+    font-size: 24px;
     font-weight: 600;
     color: var(--text-secondary-color, #6b6b6b);
     opacity: 0.5;
   }
 
+  // Hover overlay with actions
+  &__slide-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+    padding: 8px;
+    gap: 6px;
+
+    .presentation-panel__slide:hover & {
+      opacity: 1;
+    }
+  }
+
+  &__overlay-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--text-primary-color, #1b1b1f);
+    transition: background-color 0.15s ease, transform 0.1s ease;
+
+    &:hover {
+      background: #fff;
+      transform: scale(1.05);
+    }
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  &__overlay-drag-handle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 6px;
+    cursor: grab;
+    color: var(--text-secondary-color, #6b6b6b);
+    transition: background-color 0.15s ease;
+
+    &:hover {
+      background: #fff;
+      color: var(--text-primary-color, #1b1b1f);
+    }
+
+    &:active {
+      cursor: grabbing;
+    }
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  // Frame name below preview
   &__slide-name {
-    padding: 6px 10px;
-    font-size: 11px;
+    padding: 10px 12px;
+    font-size: 13px;
+    font-weight: 500;
     color: var(--text-primary-color, #1b1b1f);
     text-align: left;
     overflow: hidden;
@@ -154,6 +274,7 @@
     white-space: nowrap;
     border-top: 1px solid var(--default-border-color, #e5e5e5);
     cursor: text;
+    background: var(--island-bg-color, #fff);
 
     &:hover {
       background: var(--button-hover-bg, rgba(0, 0, 0, 0.03));
@@ -161,8 +282,9 @@
   }
 
   &__slide-name-input {
-    padding: 5px 9px;
-    font-size: 11px;
+    padding: 9px 11px;
+    font-size: 13px;
+    font-weight: 500;
     color: var(--text-primary-color, #1b1b1f);
     text-align: left;
     border: 1px solid var(--color-primary, #4a6ee0);
@@ -298,6 +420,15 @@
     }
   }
 
+  &__header-button {
+    color: var(--text-secondary-color, #9a9a9a);
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-primary-color, #f1f1f1);
+    }
+  }
+
   &__slide {
     border-color: var(--default-border-color, #3d3d4a);
     background: var(--island-bg-color, #232329);
@@ -309,10 +440,37 @@
     &--active {
       border-color: var(--color-primary, #4a6ee0);
     }
+
+    &--dragging {
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
   }
 
   &__slide-preview {
     background: rgba(255, 255, 255, 0.05);
+  }
+
+  &__slide-overlay {
+    background: rgba(0, 0, 0, 0.6);
+  }
+
+  &__overlay-action {
+    background: rgba(50, 50, 60, 0.9);
+    color: var(--text-primary-color, #f1f1f1);
+
+    &:hover {
+      background: rgba(70, 70, 80, 1);
+    }
+  }
+
+  &__overlay-drag-handle {
+    background: rgba(50, 50, 60, 0.9);
+    color: var(--text-secondary-color, #9a9a9a);
+
+    &:hover {
+      background: rgba(70, 70, 80, 1);
+      color: var(--text-primary-color, #f1f1f1);
+    }
   }
 
   &__slide-number {
@@ -322,6 +480,7 @@
   &__slide-name {
     color: var(--text-primary-color, #f1f1f1);
     border-color: var(--default-border-color, #3d3d4a);
+    background: var(--island-bg-color, #232329);
 
     &:hover {
       background: rgba(255, 255, 255, 0.05);
@@ -335,23 +494,6 @@
 
     &::placeholder {
       color: var(--text-secondary-color, #9a9a9a);
-    }
-  }
-
-  &__slide-actions {
-    border-color: var(--default-border-color, #3d3d4a);
-  }
-
-  &__slide-action {
-    color: var(--text-secondary-color, #9a9a9a);
-
-    &:hover:not(:disabled) {
-      background: rgba(255, 255, 255, 0.1);
-      color: var(--text-primary-color, #f1f1f1);
-    }
-
-    &:not(:last-child) {
-      border-color: var(--default-border-color, #3d3d4a);
     }
   }
 

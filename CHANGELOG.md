@@ -8,6 +8,43 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.7] - 2025-12-18
+
+### Added
+
+- **Slides Layout Dialog**
+  - New dialog to arrange frames on canvas (Row, Column, Grid layouts)
+  - Grid layout with configurable column count
+  - Accessible via grid icon button in presentation panel header
+  - Full translations for EN and RU
+
+- **Presentation Toggle Button**
+  - New button in footer next to undo/redo
+  - Opens/closes presentation sidebar with one click
+  - Styled to match undo/redo buttons with background and shadow
+  - Tooltip on hover (localized)
+
+- **Redesigned Slide Previews**
+  - Large vertical card layout for slide previews
+  - Hover overlay with rename and drag handle icons
+  - Drag & drop reordering with visual drop indicator line
+  - Auto-scroll when dragging near edges
+
+- **FooterLeftExtra Component**
+  - New tunnel component for injecting content after undo/redo in footer
+  - Exported from @excalidraw/excalidraw package
+
+### Changed
+
+- Presentation panel now uses CSS Grid layout for fixed header/footer with scrollable content
+- Slide previews are larger (280x158px canvas)
+- Removed up/down arrow buttons, replaced with drag & drop
+
+### Known Issues
+
+- Scroll may not work when cursor is directly over slide preview images
+- Toggle button may not close sidebar properly (use X button instead)
+
 ## [0.18.0-beta0.6] - 2025-12-18
 
 ### Changed

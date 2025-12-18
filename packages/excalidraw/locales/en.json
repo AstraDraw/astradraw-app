@@ -686,7 +686,22 @@
     "moveUp": "Move up",
     "moveDown": "Move down",
     "renameFrame": "Rename frame",
-    "doubleClickToRename": "Double-click to rename"
+    "doubleClickToRename": "Double-click to rename",
+    "dragToReorder": "Drag to reorder",
+    "toggleSidebar": "Toggle presentation sidebar"
+  },
+  "slidesLayout": {
+    "title": "Slides layout",
+    "description": "Are your slides all over the place? Choose from our predefined layouts for a tidier canvas and smooth transitions in your presentation.",
+    "orderNote": "The slides will be arranged in the order they appear in the sidebar.",
+    "orderNoteSub": "Nested slides will be treated as one unit. For optimal results, make sure to order your slides in such a way that each outermost slide comes before the slide(s) nested within it.",
+    "row": "Row",
+    "column": "Column",
+    "grid": "Grid",
+    "columnCount": "Column count",
+    "columnCountDescription": "Specify how many columns you want in your grid layout.",
+    "close": "Close",
+    "apply": "Apply layout"
   },
   "pens": {
     "settings": "Pen Settings",

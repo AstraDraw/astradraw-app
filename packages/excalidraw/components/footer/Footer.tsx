@@ -21,7 +21,7 @@ const Footer = ({
   showExitZenModeBtn: boolean;
   renderWelcomeScreen: boolean;
 }) => {
-  const { FooterCenterTunnel, WelcomeScreenHelpHintTunnel } = useTunnels();
+  const { FooterCenterTunnel, FooterLeftExtraTunnel, WelcomeScreenHelpHintTunnel } = useTunnels();
 
   return (
     <footer
@@ -50,6 +50,7 @@ const Footer = ({
                 })}
               />
             )}
+            <FooterLeftExtraTunnel.Out />
           </Section>
         </Stack.Col>
       </div>

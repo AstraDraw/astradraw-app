@@ -12,6 +12,8 @@ import type {
 } from "@excalidraw/excalidraw/types";
 
 import { usePresentationMode } from "./usePresentationMode";
+import { SlidesLayoutDialog, applyLayoutToFrames } from "./SlidesLayoutDialog";
+import type { LayoutType } from "./SlidesLayoutDialog";
 
 import "./PresentationPanel.scss";
 
@@ -45,12 +47,16 @@ interface PresentationPanelProps {
 interface SlideThumbProps {
   frame: ExcalidrawFrameLikeElement;
   index: number;
-  totalSlides: number;
   isActive: boolean;
+  isDragging: boolean;
+  isDragOver: boolean;
   onClick: () => void;
-  onMoveUp: () => void;
-  onMoveDown: () => void;
   onRename: (newName: string) => void;
+  onDragStart: (e: React.DragEvent) => void;
+  onDragEnd: (e: React.DragEvent) => void;
+  onDragOver: (e: React.DragEvent) => void;
+  onDragLeave: (e: React.DragEvent) => void;
+  onDrop: (e: React.DragEvent) => void;
   excalidrawAPI: ExcalidrawImperativeAPI | null;
   refreshKey?: number;
 }
@@ -58,12 +64,16 @@ interface SlideThumbProps {
 const SlideThumb: React.FC<SlideThumbProps> = ({
   frame,
   index,
-  totalSlides,
   isActive,
+  isDragging,
+  isDragOver,
   onClick,
-  onMoveUp,
-  onMoveDown,
   onRename,
+  onDragStart,
+  onDragEnd,
+  onDragOver,
+  onDragLeave,
+  onDrop,
   excalidrawAPI,
   refreshKey,
 }) => {
@@ -91,6 +101,7 @@ const SlideThumb: React.FC<SlideThumbProps> = ({
 
   const handleStartEditing = (e: React.MouseEvent) => {
     e.stopPropagation();
+    e.preventDefault();
     setIsEditing(true);
     setEditValue(frame.name || "");
   };
@@ -134,7 +145,7 @@ const SlideThumb: React.FC<SlideThumbProps> = ({
           },
           files: files as BinaryFiles,
           exportingFrame: frame,
-          maxWidthOrHeight: 200, // Limit preview size for performance
+          maxWidthOrHeight: 300, // Larger preview for better quality
         });
 
         // Draw the exported canvas onto our preview canvas
@@ -183,18 +194,37 @@ const SlideThumb: React.FC<SlideThumbProps> = ({
     <div
       className={clsx("presentation-panel__slide", {
         "presentation-panel__slide--active": isActive,
+        "presentation-panel__slide--dragging": isDragging,
+        "presentation-panel__slide--drag-over": isDragOver,
       })}
+      draggable
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
     >
-      <button
+      {/* Drop indicator line */}
+      {isDragOver && <div className="presentation-panel__drop-indicator" />}
+      
+      <div
         className="presentation-panel__slide-content"
         onClick={onClick}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onClick();
+          }
+        }}
         title={`${t("presentation.goToSlide")} ${frameName}`}
       >
         <div className="presentation-panel__slide-preview">
           <canvas
             ref={canvasRef}
-            width={160}
-            height={90}
+            width={280}
+            height={158}
             className="presentation-panel__slide-canvas"
           />
           {previewError && (
@@ -202,60 +232,57 @@ const SlideThumb: React.FC<SlideThumbProps> = ({
               {index + 1}
             </span>
           )}
+          {/* Hover overlay with actions */}
+          <div className="presentation-panel__slide-overlay">
+            <button
+              className="presentation-panel__overlay-action"
+              onClick={handleStartEditing}
+              title={t("presentation.renameFrame")}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
+            </button>
+            <div
+              className="presentation-panel__overlay-drag-handle"
+              title={t("presentation.dragToReorder")}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="9" cy="5" r="1.5" />
+                <circle cx="15" cy="5" r="1.5" />
+                <circle cx="9" cy="12" r="1.5" />
+                <circle cx="15" cy="12" r="1.5" />
+                <circle cx="9" cy="19" r="1.5" />
+                <circle cx="15" cy="19" r="1.5" />
+              </svg>
+            </div>
+          </div>
         </div>
-        {isEditing ? (
-          <input
-            ref={inputRef}
-            type="text"
-            className="presentation-panel__slide-name-input"
-            value={editValue}
-            onChange={(e) => setEditValue(e.target.value)}
-            onBlur={handleFinishEditing}
-            onKeyDown={handleKeyDown}
-            onClick={(e) => e.stopPropagation()}
-            placeholder={`Frame ${index + 1}`}
-          />
-        ) : (
-          <span
-            className="presentation-panel__slide-name"
-            onDoubleClick={handleStartEditing}
-            title={t("presentation.doubleClickToRename")}
-          >
-            {frameName}
-          </span>
-        )}
-      </button>
-      <div className="presentation-panel__slide-actions">
-        <button
-          className="presentation-panel__slide-action"
-          onClick={(e) => {
-            e.stopPropagation();
-            onMoveUp();
-          }}
-          disabled={index === 0}
-          title={t("presentation.moveUp")}
-        >
-          ↑
-        </button>
-        <button
-          className="presentation-panel__slide-action"
-          onClick={(e) => {
-            e.stopPropagation();
-            onMoveDown();
-          }}
-          disabled={index === totalSlides - 1}
-          title={t("presentation.moveDown")}
-        >
-          ↓
-        </button>
-        <button
-          className="presentation-panel__slide-action presentation-panel__slide-action--rename"
-          onClick={handleStartEditing}
-          title={t("presentation.renameFrame")}
-        >
-          ✎
-        </button>
       </div>
+      
+      {/* Frame name below preview */}
+      {isEditing ? (
+        <input
+          ref={inputRef}
+          type="text"
+          className="presentation-panel__slide-name-input"
+          value={editValue}
+          onChange={(e) => setEditValue(e.target.value)}
+          onBlur={handleFinishEditing}
+          onKeyDown={handleKeyDown}
+          onClick={(e) => e.stopPropagation()}
+          placeholder={`Frame ${index + 1}`}
+        />
+      ) : (
+        <span
+          className="presentation-panel__slide-name"
+          onDoubleClick={handleStartEditing}
+          title={t("presentation.doubleClickToRename")}
+        >
+          {frameName}
+        </span>
+      )}
     </div>
   );
 };
@@ -318,6 +345,15 @@ export const PresentationPanel: React.FC<PresentationPanelProps> = ({
   );
   // Key to trigger preview refresh when scene changes
   const [previewRefreshKey, setPreviewRefreshKey] = useState(0);
+  
+  // Layout dialog state
+  const [isLayoutDialogOpen, setIsLayoutDialogOpen] = useState(false);
+  
+  // Drag and drop state
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const slidesContainerRef = useRef<HTMLDivElement>(null);
+  const autoScrollIntervalRef = useRef<number | null>(null);
 
   const { startPresentation, getFrames, isPresentationMode, setSlides } =
     usePresentationMode({
@@ -452,46 +488,122 @@ export const PresentationPanel: React.FC<PresentationPanelProps> = ({
     [excalidrawAPI],
   );
 
-  // Handle move slide up
-  const handleMoveUp = useCallback(
-    (index: number) => {
-      if (index <= 0) {
-        return;
-      }
-
-      setOrderedFrames((prev) => {
-        const newOrder = [...prev];
-        [newOrder[index - 1], newOrder[index]] = [
-          newOrder[index],
-          newOrder[index - 1],
-        ];
-        // Update frame names with new order prefixes
-        updateFrameOrderPrefixes(newOrder);
-        return newOrder;
+  // Drag and drop handlers
+  const handleDragStart = useCallback(
+    (index: number) => (e: React.DragEvent) => {
+      setDraggedIndex(index);
+      e.dataTransfer.effectAllowed = "move";
+      e.dataTransfer.setData("text/plain", String(index));
+      
+      // Add a slight delay to allow the drag image to be created
+      requestAnimationFrame(() => {
+        const target = e.target as HTMLElement;
+        target.style.opacity = "0.5";
       });
     },
-    [updateFrameOrderPrefixes],
+    [],
   );
 
-  // Handle move slide down
-  const handleMoveDown = useCallback(
-    (index: number) => {
-      if (index >= orderedFrames.length - 1) {
+  const handleDragEnd = useCallback(
+    () => (e: React.DragEvent) => {
+      const target = e.target as HTMLElement;
+      target.style.opacity = "";
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      
+      // Clear auto-scroll interval
+      if (autoScrollIntervalRef.current) {
+        clearInterval(autoScrollIntervalRef.current);
+        autoScrollIntervalRef.current = null;
+      }
+    },
+    [],
+  );
+
+  const handleDragOver = useCallback(
+    (index: number) => (e: React.DragEvent) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      
+      if (draggedIndex !== null && draggedIndex !== index) {
+        setDragOverIndex(index);
+      }
+      
+      // Auto-scroll when near edges
+      const container = slidesContainerRef.current;
+      if (container) {
+        const rect = container.getBoundingClientRect();
+        const scrollZone = 60;
+        
+        // Clear existing interval
+        if (autoScrollIntervalRef.current) {
+          clearInterval(autoScrollIntervalRef.current);
+          autoScrollIntervalRef.current = null;
+        }
+        
+        if (e.clientY < rect.top + scrollZone) {
+          // Scroll up
+          autoScrollIntervalRef.current = window.setInterval(() => {
+            container.scrollBy(0, -8);
+          }, 16);
+        } else if (e.clientY > rect.bottom - scrollZone) {
+          // Scroll down
+          autoScrollIntervalRef.current = window.setInterval(() => {
+            container.scrollBy(0, 8);
+          }, 16);
+        }
+      }
+    },
+    [draggedIndex],
+  );
+
+  const handleDragLeave = useCallback(
+    () => (e: React.DragEvent) => {
+      // Only clear if we're leaving the slide entirely
+      const relatedTarget = e.relatedTarget as HTMLElement;
+      const currentTarget = e.currentTarget as HTMLElement;
+      if (!currentTarget.contains(relatedTarget)) {
+        setDragOverIndex(null);
+      }
+    },
+    [],
+  );
+
+  const handleDrop = useCallback(
+    (dropIndex: number) => (e: React.DragEvent) => {
+      e.preventDefault();
+      
+      if (draggedIndex === null || draggedIndex === dropIndex) {
+        setDraggedIndex(null);
+        setDragOverIndex(null);
         return;
       }
-
+      
+      // Reorder the frames
       setOrderedFrames((prev) => {
         const newOrder = [...prev];
-        [newOrder[index], newOrder[index + 1]] = [
-          newOrder[index + 1],
-          newOrder[index],
-        ];
+        const [draggedItem] = newOrder.splice(draggedIndex, 1);
+        
+        // Adjust drop index if dragging from before to after
+        const adjustedDropIndex = draggedIndex < dropIndex ? dropIndex - 1 : dropIndex;
+        newOrder.splice(adjustedDropIndex, 0, draggedItem);
+        
         // Update frame names with new order prefixes
         updateFrameOrderPrefixes(newOrder);
+        
         return newOrder;
       });
+      
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      
+      // Clear auto-scroll interval
+      if (autoScrollIntervalRef.current) {
+        clearInterval(autoScrollIntervalRef.current);
+        autoScrollIntervalRef.current = null;
+      }
     },
-    [orderedFrames.length, updateFrameOrderPrefixes],
+    [draggedIndex, updateFrameOrderPrefixes],
   );
 
   // Handle rename frame
@@ -526,6 +638,26 @@ export const PresentationPanel: React.FC<PresentationPanelProps> = ({
     startPresentation();
   }, [startPresentation, setSlides, orderedFrames]);
 
+  // Handle layout apply
+  const handleApplyLayout = useCallback(
+    (layout: LayoutType, columnCount: number) => {
+      if (!excalidrawAPI || orderedFrames.length === 0) {
+        return;
+      }
+      applyLayoutToFrames(excalidrawAPI, orderedFrames, layout, columnCount);
+    },
+    [excalidrawAPI, orderedFrames],
+  );
+
+  // Cleanup auto-scroll on unmount
+  useEffect(() => {
+    return () => {
+      if (autoScrollIntervalRef.current) {
+        clearInterval(autoScrollIntervalRef.current);
+      }
+    };
+  }, []);
+
   // Don't render if in presentation mode
   if (isPresentationMode) {
     return null;
@@ -534,7 +666,7 @@ export const PresentationPanel: React.FC<PresentationPanelProps> = ({
   const hasFrames = orderedFrames.length > 0;
 
   return (
-    <div className="presentation-panel">
+    <div className="presentation-panel" onWheel={(e) => e.stopPropagation()}>
       {hasFrames ? (
         <>
           {/* Header */}
@@ -542,29 +674,57 @@ export const PresentationPanel: React.FC<PresentationPanelProps> = ({
             <span className="presentation-panel__title">
               {t("presentation.title")}
             </span>
-            <button
-              className="presentation-panel__add-button"
-              onClick={handleCreateSlide}
-              title={t("presentation.createSlide")}
-            >
-              {PlusIcon}
-              <span>{t("presentation.createSlide")}</span>
-            </button>
+            <div className="presentation-panel__header-actions">
+              <button
+                className="presentation-panel__header-button"
+                onClick={() => setIsLayoutDialogOpen(true)}
+                title={t("slidesLayout.title")}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="3" width="7" height="7" rx="1" />
+                  <rect x="14" y="3" width="7" height="7" rx="1" />
+                  <rect x="3" y="14" width="7" height="7" rx="1" />
+                  <rect x="14" y="14" width="7" height="7" rx="1" />
+                </svg>
+              </button>
+              <button
+                className="presentation-panel__header-button"
+                onClick={handleCreateSlide}
+                title={t("presentation.createSlide")}
+              >
+                {PlusIcon}
+              </button>
+            </div>
           </div>
+          
+          {/* Layout Dialog */}
+          <SlidesLayoutDialog
+            isOpen={isLayoutDialogOpen}
+            onClose={() => setIsLayoutDialogOpen(false)}
+            onApply={handleApplyLayout}
+          />
 
           {/* Slides list */}
-          <div className="presentation-panel__slides">
+          <div
+            className="presentation-panel__slides"
+            ref={slidesContainerRef}
+            onWheel={(e) => e.stopPropagation()}
+          >
             {orderedFrames.map((frame, index) => (
               <SlideThumb
                 key={frame.id}
                 frame={frame}
                 index={index}
-                totalSlides={orderedFrames.length}
                 isActive={selectedFrameIndex === index}
+                isDragging={draggedIndex === index}
+                isDragOver={dragOverIndex === index}
                 onClick={() => handleSlideClick(index)}
-                onMoveUp={() => handleMoveUp(index)}
-                onMoveDown={() => handleMoveDown(index)}
                 onRename={(newName) => handleRenameFrame(frame.id, newName)}
+                onDragStart={handleDragStart(index)}
+                onDragEnd={handleDragEnd()}
+                onDragOver={handleDragOver(index)}
+                onDragLeave={handleDragLeave()}
+                onDrop={handleDrop(index)}
                 excalidrawAPI={excalidrawAPI}
                 refreshKey={previewRefreshKey}
               />

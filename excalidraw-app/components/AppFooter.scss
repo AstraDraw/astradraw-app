@@ -1,0 +1,56 @@
+// Footer left extra container - matches undo/redo styling
+.footer-left-extra {
+  display: flex;
+  align-items: center;
+  margin-left: 0.5rem;
+}
+
+// Presentation toggle button - styled to match undo/redo buttons
+.app-footer {
+  &__presentation-button {
+    // Match ToolIcon button styling with visible background
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: none;
+    border-radius: var(--border-radius-lg, 8px);
+    cursor: pointer;
+    color: var(--icon-fill-color, #1b1b1f);
+    background: var(--island-bg-color, #fff);
+    box-shadow: var(--shadow-island, 0 1px 4px rgba(0, 0, 0, 0.1));
+    transition: background-color 0.15s ease, color 0.15s ease;
+
+    &:hover {
+      background: var(--button-hover-bg, #f5f5f5);
+      color: var(--color-primary, #4a6ee0);
+    }
+
+    .ToolIcon__icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      
+      svg {
+        width: 20px;
+        height: 20px;
+      }
+    }
+  }
+}
+
+// Dark mode
+.excalidraw.theme--dark .app-footer {
+  &__presentation-button {
+    background: var(--island-bg-color, #232329);
+    color: var(--icon-fill-color, #e1e1e1);
+    box-shadow: var(--shadow-island, 0 1px 4px rgba(0, 0, 0, 0.3));
+
+    &:hover {
+      background: var(--button-hover-bg, #363640);
+      color: var(--color-primary-light, #a8c7fa);
+    }
+  }
+}
