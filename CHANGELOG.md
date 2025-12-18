@@ -8,6 +8,15 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.8] - 2025-12-18
+
+### Fixed
+
+- **Presentation Mode Zoom**
+  - Frames now properly zoom to fill the viewport during presentation
+  - Changed from `fitToContent` (max 100% zoom) to `fitToViewport` with 95% viewport coverage
+  - Matches upstream Excalidraw+ behavior with minimal margins around slides
+
 ## [0.18.0-beta0.7] - 2025-12-18
 
 ### Added

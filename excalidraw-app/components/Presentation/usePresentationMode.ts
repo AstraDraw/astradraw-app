@@ -73,6 +73,9 @@ export const usePresentationMode = ({
   // Animation duration for slide transitions (ms)
   const SLIDE_TRANSITION_DURATION = 800;
 
+  // How much of the viewport the frame should fill (0.95 = 95%, leaving ~2.5% margin each side)
+  const PRESENTATION_VIEWPORT_ZOOM_FACTOR = 0.95;
+
   // Navigate to a specific slide
   const goToSlide = useCallback(
     (slideIndex: number) => {
@@ -86,7 +89,8 @@ export const usePresentationMode = ({
       if (frame) {
         setCurrentSlide(targetIndex);
         excalidrawAPI.scrollToContent(frame, {
-          fitToContent: true,
+          fitToViewport: true,
+          viewportZoomFactor: PRESENTATION_VIEWPORT_ZOOM_FACTOR,
           animate: true,
           duration: SLIDE_TRANSITION_DURATION,
         });
@@ -214,7 +218,8 @@ export const usePresentationMode = ({
     setTimeout(() => {
       if (frames[0]) {
         excalidrawAPI.scrollToContent(frames[0], {
-          fitToContent: true,
+          fitToViewport: true,
+          viewportZoomFactor: PRESENTATION_VIEWPORT_ZOOM_FACTOR,
           animate: true,
           duration: SLIDE_TRANSITION_DURATION,
         });
