@@ -8,6 +8,14 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.12] - 2025-12-19
+
+### Changed
+
+- **Large Image Support**
+  - Fully resolved the consistent 4MB limit issue by increasing it to 200MB across frontend, storage backend, and WebSocket room server.
+  - Updated all frontend components to correctly reference the new 200MB global limit.
+
 ## [0.18.0-beta0.11] - 2025-12-19
 
 ### Added
