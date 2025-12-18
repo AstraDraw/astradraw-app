@@ -130,6 +130,7 @@ export const getDefaultAppState = (): Omit<
     bindMode: "orbit",
     // Custom Pen State
     currentStrokeOptions: null,
+    currentPenType: null,
     resetCustomPen: null,
     customPens: [],
   };
@@ -260,6 +261,7 @@ const APP_STATE_STORAGE_CONF = (<
   bindMode: { browser: true, export: false, server: false },
   // Custom Pen State
   currentStrokeOptions: { browser: true, export: false, server: false },
+  currentPenType: { browser: true, export: false, server: false },
   resetCustomPen: { browser: false, export: false, server: false },
   customPens: { browser: true, export: false, server: false },
 });

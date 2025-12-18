@@ -4,7 +4,6 @@ import clsx from "clsx";
 import type {
   ExcalidrawImperativeAPI,
   PenStyle,
-  PenOptions,
   AppState,
 } from "@excalidraw/excalidraw/types";
 import { useUIAppState } from "@excalidraw/excalidraw/context/ui-appState";
@@ -84,7 +83,7 @@ export const PenToolbar: React.FC<PenToolbarProps> = ({ excalidrawAPI }) => {
   const isSidebarOpen = !!uiAppState.openSidebar;
   
   const appState = excalidrawAPI.getAppState();
-  const currentStrokeOptions = appState.currentStrokeOptions;
+  const currentPenType = appState.currentPenType;
 
   const setPen = useCallback(
     (pen: PenStyle) => {
@@ -105,6 +104,7 @@ export const PenToolbar: React.FC<PenToolbarProps> = ({ excalidrawAPI }) => {
       // Build the appState update object
       const appStateUpdate: Record<string, unknown> = {
         currentStrokeOptions: pen.penOptions,
+        currentPenType: pen.type,
       };
 
       if (pen.strokeWidth && pen.strokeWidth > 0) {
@@ -142,6 +142,7 @@ export const PenToolbar: React.FC<PenToolbarProps> = ({ excalidrawAPI }) => {
     const appStateUpdate: Record<string, unknown> = {
       resetCustomPen: null,
       currentStrokeOptions: null,
+      currentPenType: null,
     };
 
     if (st.resetCustomPen) {
@@ -163,15 +164,7 @@ export const PenToolbar: React.FC<PenToolbarProps> = ({ excalidrawAPI }) => {
   }, [excalidrawAPI]);
 
   const isPenActive = (pen: PenStyle): boolean => {
-    if (!currentStrokeOptions) {
-      return false;
-    }
-    // Compare by pen options reference or values
-    return (
-      currentStrokeOptions.options?.thinning === pen.penOptions.options.thinning &&
-      currentStrokeOptions.options?.smoothing === pen.penOptions.options.smoothing &&
-      currentStrokeOptions.options?.streamline === pen.penOptions.options.streamline
-    );
+    return currentPenType === pen.type;
   };
 
   const penTypes = Object.keys(PENS) as Array<keyof typeof PENS>;

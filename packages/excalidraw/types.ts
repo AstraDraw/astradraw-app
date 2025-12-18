@@ -527,6 +527,8 @@ export interface AppState {
   // Custom Pen State
   /** Current stroke options for custom pens - overrides default freedraw settings */
   currentStrokeOptions: PenOptions | null;
+  /** Currently active pen type (for UI highlighting) */
+  currentPenType: PenType | null;
   /** Saved state to restore when switching away from a custom pen */
   resetCustomPen: ResetCustomPenState | null;
   /** Array of custom pen presets */
