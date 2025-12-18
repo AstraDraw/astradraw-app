@@ -8,6 +8,15 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.2] - 2024-12-18
+
+### Fixed
+
+- Pen toolbar now correctly positions to the left of sidebar when sidebar is open
+- Added missing `--right-sidebar-width` CSS variable (360px)
+- Fixed pen toolbar z-index to be above sidebar layer
+- Used reactive `useUIAppState()` hook for proper sidebar state detection
+
 ## [0.18.0-beta0.1] - 2024-12-18
 
 ### Added

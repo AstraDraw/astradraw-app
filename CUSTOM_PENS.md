@@ -380,6 +380,58 @@ The Obsidian Excalidraw plugin uses a heavily modified fork (`@zsviczian/excalid
 3. Renders in the main Excalidraw component tree
 4. Designed for web-first (not Electron/Obsidian)
 
+## Bug Fixes
+
+### Pen Toolbar Hidden Behind Sidebar (v0.18.0-beta0.2)
+
+**Problem**: When the sidebar was opened, the pen toolbar was hidden behind it instead of shifting to the left.
+
+**Root Causes**:
+1. **Missing CSS variable**: `--right-sidebar-width` was referenced but never defined
+2. **Insufficient z-index**: Pen toolbar had `z-index: 100` while sidebar had `z-index: 120`
+3. **Non-reactive state**: `PenToolbar` used `excalidrawAPI.getAppState()` which doesn't trigger re-renders when sidebar state changes
+
+**Solution**:
+
+1. **Added `--right-sidebar-width` CSS variable** in `packages/excalidraw/css/styles.scss`:
+```scss
+:root {
+  // ... other variables
+  --right-sidebar-width: 360px;
+}
+```
+
+2. **Fixed z-index** in `excalidraw-app/pens/PenToolbar.scss`:
+```scss
+.pen-toolbar {
+  z-index: calc(var(--zIndex-ui-library, 120) + 1); // Above sidebar
+  
+  &--sidebar-open {
+    right: var(--right-sidebar-width, 360px);
+    border-radius: 8px;
+  }
+}
+```
+
+3. **Used reactive hook** in `excalidraw-app/pens/PenToolbar.tsx`:
+```typescript
+import { useUIAppState } from "@excalidraw/excalidraw/context/ui-appState";
+
+export const PenToolbar: React.FC<PenToolbarProps> = ({ excalidrawAPI }) => {
+  // Use reactive UI state for sidebar detection
+  const uiAppState = useUIAppState();
+  const isSidebarOpen = !!uiAppState.openSidebar;
+  
+  return (
+    <div className={clsx("pen-toolbar", { "pen-toolbar--sidebar-open": isSidebarOpen })}>
+      {/* ... */}
+    </div>
+  );
+};
+```
+
+**Key Insight**: The `useUIAppState()` hook provides reactive state updates from Excalidraw's context, ensuring the component re-renders when `openSidebar` changes. The previous approach using `excalidrawAPI.getAppState()` only captured state at render time.
+
 ## References
 
 - [perfect-freehand options](https://github.com/steveruizok/perfect-freehand#options)
