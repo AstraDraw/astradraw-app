@@ -8,6 +8,29 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.3] - 2024-12-18
+
+### Added
+
+- Pen Settings Modal: double-click any pen to open configuration dialog
+  - All Perfect Freehand settings (thinning, smoothing, streamline, easing)
+  - Stroke/fill colors and styles
+  - Pressure sensitivity and outline settings
+  - Start/end taper options
+- Russian translation support for pen modal options
+- Pen tooltips now show human-readable names (e.g., "Highlighter", "Fine tip pen")
+
+### Changed
+
+- Renamed "Excalidraw+" button to "AstraDraw" (disabled, placeholder for future)
+- Renamed "Excalidraw Default" pen to "Default"
+
+### Technical
+
+- New `PenSettingsModal.tsx` component with full pen customization
+- Added `constants.ts` with easing functions map
+- Translations added to `en.json` and `ru-RU.json` under `pens` namespace
+
 ## [0.18.0-beta0.2] - 2024-12-18
 
 ### Fixed

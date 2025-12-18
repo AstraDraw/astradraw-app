@@ -1,14 +1,18 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import clsx from "clsx";
 
 import type {
   ExcalidrawImperativeAPI,
   PenStyle,
+  PenType,
   AppState,
 } from "@excalidraw/excalidraw/types";
 import { useUIAppState } from "@excalidraw/excalidraw/context/ui-appState";
 
+import { t } from "@excalidraw/excalidraw/i18n";
+
 import { PENS } from "./pens";
+import { PenSettingsModal, getPenTypeLabel } from "./PenSettingsModal";
 
 import "./PenToolbar.scss";
 
@@ -77,6 +81,14 @@ interface PenToolbarProps {
   excalidrawAPI: ExcalidrawImperativeAPI;
 }
 
+// Get pens from appState or fall back to defaults
+const getPens = (appState: AppState): PenStyle[] => {
+  if (appState.customPens && appState.customPens.length > 0) {
+    return appState.customPens;
+  }
+  return Object.values(PENS);
+};
+
 export const PenToolbar: React.FC<PenToolbarProps> = ({ excalidrawAPI }) => {
   // Use reactive UI state for sidebar detection
   const uiAppState = useUIAppState();
@@ -84,6 +96,10 @@ export const PenToolbar: React.FC<PenToolbarProps> = ({ excalidrawAPI }) => {
   
   const appState = excalidrawAPI.getAppState();
   const currentPenType = appState.currentPenType;
+  const pens = getPens(appState);
+
+  // State for pen settings modal
+  const [editingPenIndex, setEditingPenIndex] = useState<number | null>(null);
 
   const setPen = useCallback(
     (pen: PenStyle) => {
@@ -163,43 +179,78 @@ export const PenToolbar: React.FC<PenToolbarProps> = ({ excalidrawAPI }) => {
     });
   }, [excalidrawAPI]);
 
+  const savePen = useCallback(
+    (updatedPen: PenStyle, index: number) => {
+      const st = excalidrawAPI.getAppState();
+      const currentPens = getPens(st);
+      const newPens = [...currentPens];
+      newPens[index] = updatedPen;
+
+      excalidrawAPI.updateScene({
+        appState: {
+          customPens: newPens,
+        } as Pick<AppState, keyof AppState>,
+      });
+
+      // If this pen is currently active, update current stroke options too
+      if (st.currentPenType === updatedPen.type) {
+        setPen(updatedPen);
+      }
+    },
+    [excalidrawAPI, setPen],
+  );
+
   const isPenActive = (pen: PenStyle): boolean => {
     return currentPenType === pen.type;
   };
 
-  const penTypes = Object.keys(PENS) as Array<keyof typeof PENS>;
-
   return (
-    <div
-      className={clsx("pen-toolbar", { "pen-toolbar--sidebar-open": isSidebarOpen })}
-    >
-      <div className="pen-toolbar__pens">
-        {penTypes.map((penType) => {
-          const pen = PENS[penType];
-          const isActive = isPenActive(pen);
+    <>
+      <div
+        className={clsx("pen-toolbar", { "pen-toolbar--sidebar-open": isSidebarOpen })}
+      >
+        <div className="pen-toolbar__pens">
+          {pens.map((pen, index) => {
+            const isActive = isPenActive(pen);
 
-          return (
-            <button
-              key={penType}
-              className={clsx("pen-toolbar__button", {
-                "pen-toolbar__button--active": isActive,
-              })}
-              onClick={() => {
-                if (isActive) {
-                  resetToDefault();
-                } else {
-                  setPen(pen);
-                }
-              }}
-              title={penType}
-              type="button"
-            >
-              <PenIcon type={penType} isActive={isActive} />
-            </button>
-          );
-        })}
+            return (
+              <button
+                key={pen.type}
+                className={clsx("pen-toolbar__button", {
+                  "pen-toolbar__button--active": isActive,
+                })}
+                onClick={() => {
+                  if (isActive) {
+                    resetToDefault();
+                  } else {
+                    setPen(pen);
+                  }
+                }}
+                onDoubleClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setEditingPenIndex(index);
+                }}
+                title={`${getPenTypeLabel(pen.type)} (${t("pens.doubleClickToConfigure")})`}
+                type="button"
+              >
+                <PenIcon type={pen.type} isActive={isActive} />
+              </button>
+            );
+          })}
+        </div>
       </div>
-    </div>
+
+      {editingPenIndex !== null && pens[editingPenIndex] && (
+        <PenSettingsModal
+          excalidrawAPI={excalidrawAPI}
+          pen={pens[editingPenIndex]}
+          penIndex={editingPenIndex}
+          onClose={() => setEditingPenIndex(null)}
+          onSave={(updatedPen) => savePen(updatedPen, editingPenIndex)}
+        />
+      )}
+    </>
   );
 };
 

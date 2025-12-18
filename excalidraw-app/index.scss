@@ -107,6 +107,12 @@
   background-color: var(--color-surface-low);
   color: var(--button-color, var(--color-on-surface)) !important;
 
+  &--disabled {
+    cursor: default;
+    opacity: 0.7;
+    pointer-events: none;
+  }
+
   &:active {
     box-shadow: 0 0 0 1px var(--color-brand-active);
   }
