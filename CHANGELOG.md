@@ -8,6 +8,14 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.10] - 2025-12-18
+
+### Changed
+
+- **File Size Limit**
+  - Increased `MAX_ALLOWED_FILE_BYTES` from 4MB to 200MB for larger file support in collaboration
+  - Self-hosted deployments with fast networks can now share larger images/documents
+
 ## [0.18.0-beta0.9] - 2025-12-18
 
 ### Changed
