@@ -1,14 +1,15 @@
 import React, { useCallback, useState } from "react";
 import clsx from "clsx";
 
+import { t } from "@excalidraw/excalidraw/i18n";
+import { useUIAppState } from "@excalidraw/excalidraw/context/ui-appState";
+
 import type {
   ExcalidrawImperativeAPI,
   PenStyle,
   PenType,
   AppState,
 } from "@excalidraw/excalidraw/types";
-import { t } from "@excalidraw/excalidraw/i18n";
-import { useUIAppState } from "@excalidraw/excalidraw/context/ui-appState";
 
 import { PENS } from "./pens";
 import { PenSettingsModal, getPenTypeLabel } from "./PenSettingsModal";
@@ -50,7 +51,14 @@ const PenIcon = ({ type, isActive }: { type: string; isActive: boolean }) => {
         <>
           <path d="M12 20h9" />
           <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-          <rect x="3" y="17" width="14" height="4" fill={getIconColor()} opacity="0.5" />
+          <rect
+            x="3"
+            y="17"
+            width="14"
+            height="4"
+            fill={getIconColor()}
+            opacity="0.5"
+          />
         </>
       ) : type === "finetip" ? (
         <path d="M12 19l7-7 3 3-7 7-3-3z M18 12l-1.5-1.5M2 21l3-3m0 0l7-7m3 3l-7 7" />
@@ -62,7 +70,10 @@ const PenIcon = ({ type, isActive }: { type: string; isActive: boolean }) => {
       ) : type === "marker" ? (
         <>
           <path d="M12 20h9" />
-          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" strokeWidth="3" />
+          <path
+            d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"
+            strokeWidth="3"
+          />
         </>
       ) : type === "thick-thin" ? (
         <path d="M4 20Q8 10 12 10T20 4" strokeWidth="3" />
@@ -239,7 +250,9 @@ export const PenToolbar: React.FC<PenToolbarProps> = ({ excalidrawAPI }) => {
                   e.stopPropagation();
                   setEditingPenIndex(index);
                 }}
-                title={`${getPenTypeLabel(pen.type)} (${t("pens.doubleClickToConfigure")})`}
+                title={`${getPenTypeLabel(pen.type)} (${t(
+                  "pens.doubleClickToConfigure",
+                )})`}
                 type="button"
               >
                 <PenIcon type={pen.type} isActive={isActive} />

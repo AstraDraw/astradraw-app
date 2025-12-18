@@ -21,7 +21,11 @@ const Footer = ({
   showExitZenModeBtn: boolean;
   renderWelcomeScreen: boolean;
 }) => {
-  const { FooterCenterTunnel, FooterLeftExtraTunnel, WelcomeScreenHelpHintTunnel } = useTunnels();
+  const {
+    FooterCenterTunnel,
+    FooterLeftExtraTunnel,
+    WelcomeScreenHelpHintTunnel,
+  } = useTunnels();
 
   return (
     <footer

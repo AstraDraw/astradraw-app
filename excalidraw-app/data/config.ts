@@ -2,6 +2,7 @@
 // Allows switching between Firebase and HTTP storage backends
 
 import { ENV } from "../env";
+
 import {
   isSavedToFirebase,
   loadFilesFromFirebase,
@@ -17,6 +18,7 @@ import {
   saveSceneForMigration as saveSceneToHttpStorageForMigration,
   saveToHttpStorage,
 } from "./httpStorage";
+
 import type { StorageBackend } from "./StorageBackend";
 
 // Firebase storage adapter
@@ -102,4 +104,3 @@ export async function getStorageBackend(): Promise<StorageBackend> {
 export function isHttpStorageBackend(): boolean {
   return ENV.VITE_APP_STORAGE_BACKEND === "http";
 }
-

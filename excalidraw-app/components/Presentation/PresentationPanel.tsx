@@ -13,9 +13,10 @@ import type {
 
 import { usePresentationMode } from "./usePresentationMode";
 import { SlidesLayoutDialog, applyLayoutToFrames } from "./SlidesLayoutDialog";
-import type { LayoutType } from "./SlidesLayoutDialog";
 
 import "./PresentationPanel.scss";
+
+import type { LayoutType } from "./SlidesLayoutDialog";
 
 // Helper to extract the order prefix from a frame name (e.g., "3. My Frame" -> 3)
 const extractOrderPrefix = (name: string | null): number | null => {
@@ -206,7 +207,7 @@ const SlideThumb: React.FC<SlideThumbProps> = ({
     >
       {/* Drop indicator line */}
       {isDragOver && <div className="presentation-panel__drop-indicator" />}
-      
+
       <div
         className="presentation-panel__slide-content"
         onClick={onClick}
@@ -239,7 +240,14 @@ const SlideThumb: React.FC<SlideThumbProps> = ({
               onClick={handleStartEditing}
               title={t("presentation.renameFrame")}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
               </svg>
@@ -248,7 +256,12 @@ const SlideThumb: React.FC<SlideThumbProps> = ({
               className="presentation-panel__overlay-drag-handle"
               title={t("presentation.dragToReorder")}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
                 <circle cx="9" cy="5" r="1.5" />
                 <circle cx="15" cy="5" r="1.5" />
                 <circle cx="9" cy="12" r="1.5" />
@@ -260,7 +273,7 @@ const SlideThumb: React.FC<SlideThumbProps> = ({
           </div>
         </div>
       </div>
-      
+
       {/* Frame name below preview */}
       {isEditing ? (
         <input
@@ -345,10 +358,10 @@ export const PresentationPanel: React.FC<PresentationPanelProps> = ({
   );
   // Key to trigger preview refresh when scene changes
   const [previewRefreshKey, setPreviewRefreshKey] = useState(0);
-  
+
   // Layout dialog state
   const [isLayoutDialogOpen, setIsLayoutDialogOpen] = useState(false);
-  
+
   // Drag and drop state
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
@@ -494,7 +507,7 @@ export const PresentationPanel: React.FC<PresentationPanelProps> = ({
       setDraggedIndex(index);
       e.dataTransfer.effectAllowed = "move";
       e.dataTransfer.setData("text/plain", String(index));
-      
+
       // Add a slight delay to allow the drag image to be created
       requestAnimationFrame(() => {
         const target = e.target as HTMLElement;
@@ -510,7 +523,7 @@ export const PresentationPanel: React.FC<PresentationPanelProps> = ({
       target.style.opacity = "";
       setDraggedIndex(null);
       setDragOverIndex(null);
-      
+
       // Clear auto-scroll interval
       if (autoScrollIntervalRef.current) {
         clearInterval(autoScrollIntervalRef.current);
@@ -524,23 +537,23 @@ export const PresentationPanel: React.FC<PresentationPanelProps> = ({
     (index: number) => (e: React.DragEvent) => {
       e.preventDefault();
       e.dataTransfer.dropEffect = "move";
-      
+
       if (draggedIndex !== null && draggedIndex !== index) {
         setDragOverIndex(index);
       }
-      
+
       // Auto-scroll when near edges
       const container = slidesContainerRef.current;
       if (container) {
         const rect = container.getBoundingClientRect();
         const scrollZone = 60;
-        
+
         // Clear existing interval
         if (autoScrollIntervalRef.current) {
           clearInterval(autoScrollIntervalRef.current);
           autoScrollIntervalRef.current = null;
         }
-        
+
         if (e.clientY < rect.top + scrollZone) {
           // Scroll up
           autoScrollIntervalRef.current = window.setInterval(() => {
@@ -572,31 +585,32 @@ export const PresentationPanel: React.FC<PresentationPanelProps> = ({
   const handleDrop = useCallback(
     (dropIndex: number) => (e: React.DragEvent) => {
       e.preventDefault();
-      
+
       if (draggedIndex === null || draggedIndex === dropIndex) {
         setDraggedIndex(null);
         setDragOverIndex(null);
         return;
       }
-      
+
       // Reorder the frames
       setOrderedFrames((prev) => {
         const newOrder = [...prev];
         const [draggedItem] = newOrder.splice(draggedIndex, 1);
-        
+
         // Adjust drop index if dragging from before to after
-        const adjustedDropIndex = draggedIndex < dropIndex ? dropIndex - 1 : dropIndex;
+        const adjustedDropIndex =
+          draggedIndex < dropIndex ? dropIndex - 1 : dropIndex;
         newOrder.splice(adjustedDropIndex, 0, draggedItem);
-        
+
         // Update frame names with new order prefixes
         updateFrameOrderPrefixes(newOrder);
-        
+
         return newOrder;
       });
-      
+
       setDraggedIndex(null);
       setDragOverIndex(null);
-      
+
       // Clear auto-scroll interval
       if (autoScrollIntervalRef.current) {
         clearInterval(autoScrollIntervalRef.current);
@@ -615,7 +629,10 @@ export const PresentationPanel: React.FC<PresentationPanelProps> = ({
 
       const elements = excalidrawAPI.getSceneElements();
       const updatedElements = elements.map((el) => {
-        if (el.id === frameId && (el.type === "frame" || el.type === "magicframe")) {
+        if (
+          el.id === frameId &&
+          (el.type === "frame" || el.type === "magicframe")
+        ) {
           return {
             ...el,
             name: newName || null,
@@ -680,7 +697,14 @@ export const PresentationPanel: React.FC<PresentationPanelProps> = ({
                 onClick={() => setIsLayoutDialogOpen(true)}
                 title={t("slidesLayout.title")}
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
                   <rect x="3" y="3" width="7" height="7" rx="1" />
                   <rect x="14" y="3" width="7" height="7" rx="1" />
                   <rect x="3" y="14" width="7" height="7" rx="1" />
@@ -696,7 +720,7 @@ export const PresentationPanel: React.FC<PresentationPanelProps> = ({
               </button>
             </div>
           </div>
-          
+
           {/* Layout Dialog */}
           <SlidesLayoutDialog
             isOpen={isLayoutDialogOpen}

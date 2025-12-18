@@ -35,9 +35,8 @@ export interface UsePresentationModeOptions {
 export const usePresentationMode = ({
   excalidrawAPI,
 }: UsePresentationModeOptions) => {
-  const [isPresentationMode, setIsPresentationMode] = useAtom(
-    presentationModeAtom,
-  );
+  const [isPresentationMode, setIsPresentationMode] =
+    useAtom(presentationModeAtom);
   const [currentSlide, setCurrentSlide] = useAtom(currentSlideAtom);
   const [slides, setSlides] = useAtom(slidesAtom);
   const [isLaserActive, setIsLaserActive] = useAtom(isLaserActiveAtom);

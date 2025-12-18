@@ -8,7 +8,7 @@ import {
 import { restoreElements } from "@excalidraw/excalidraw/data/restore";
 import { getSceneVersion } from "@excalidraw/element";
 import { initializeApp } from "firebase/app";
-import { ENV } from "../env";
+
 import {
   getFirestore,
   doc,
@@ -31,6 +31,8 @@ import type {
   DataURL,
 } from "@excalidraw/excalidraw/types";
 
+import { ENV } from "../env";
+
 import { FILE_CACHE_MAX_AGE_SEC } from "../app_constants";
 
 import { getSyncableElements } from ".";
@@ -47,9 +49,7 @@ try {
   FIREBASE_CONFIG = JSON.parse(ENV.VITE_APP_FIREBASE_CONFIG || "{}");
 } catch (error: any) {
   console.warn(
-    `Error JSON parsing firebase config. Supplied value: ${
-      ENV.VITE_APP_FIREBASE_CONFIG
-    }`,
+    `Error JSON parsing firebase config. Supplied value: ${ENV.VITE_APP_FIREBASE_CONFIG}`,
   );
   FIREBASE_CONFIG = {};
 }

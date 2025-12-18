@@ -871,7 +871,10 @@ const ExcalidrawWrapper = () => {
           <OverwriteConfirmDialog.Actions.SaveToDisk />
           {/* AstraDraw+: Disabled until user functionality is implemented */}
         </OverwriteConfirmDialog>
-        <AppFooter onChange={() => excalidrawAPI?.refresh()} excalidrawAPI={excalidrawAPI} />
+        <AppFooter
+          onChange={() => excalidrawAPI?.refresh()}
+          excalidrawAPI={excalidrawAPI}
+        />
         {excalidrawAPI && <AIComponents excalidrawAPI={excalidrawAPI} />}
 
         <TTDDialogTrigger />
@@ -1002,7 +1005,11 @@ const ExcalidrawWrapper = () => {
                 "community",
               ],
               perform: () => {
-                window.open(ASTRADRAW_GITHUB_URL, "_blank", "noopener noreferrer");
+                window.open(
+                  ASTRADRAW_GITHUB_URL,
+                  "_blank",
+                  "noopener noreferrer",
+                );
               },
             },
             {

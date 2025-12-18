@@ -5,6 +5,7 @@ All notable changes to Astradraw App will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
+
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
@@ -35,6 +36,7 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 ### Changed
 
 - **Presentation Controls**
+
   - Controls now completely invisible when not hovered (was 10% opacity)
   - Faster fade-in on hover (0.15s)
 
@@ -56,18 +58,21 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 ### Added
 
 - **Slides Layout Dialog**
+
   - New dialog to arrange frames on canvas (Row, Column, Grid layouts)
   - Grid layout with configurable column count
   - Accessible via grid icon button in presentation panel header
   - Full translations for EN and RU
 
 - **Presentation Toggle Button**
+
   - New button in footer next to undo/redo
   - Opens/closes presentation sidebar with one click
   - Styled to match undo/redo buttons with background and shadow
   - Tooltip on hover (localized)
 
 - **Redesigned Slide Previews**
+
   - Large vertical card layout for slide previews
   - Hover overlay with rename and drag handle icons
   - Drag & drop reordering with visual drop indicator line
@@ -93,6 +98,7 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 ### Changed
 
 - **AstraDraw Branding**
+
   - New AstraDraw logo component with presentation-screen icon
   - Updated welcome screen with AstraDraw logo
   - Updated favicon to AstraDraw icon (SVG)
@@ -100,13 +106,14 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
   - Tab title changed to "AstraDraw Whiteboard"
 
 - **Menu & Links Updates**
+
   - Left menu: removed Excalidraw+ and social links, kept GitHub with custom URL
   - Help dialog: disabled docs/blog/YouTube links, updated GitHub issues URL
   - Command palette: removed Excalidraw+/Twitter/Discord/YouTube commands
   - Sign up buttons changed to "Sign in" (disabled until auth implementation)
 
 - **Export Dialog**
-  - Renamed "Excalidraw+" to "AstraDraw+" 
+  - Renamed "Excalidraw+" to "AstraDraw+"
   - Export to AstraDraw+ button disabled (coming soon)
   - Uses i18n for proper Russian translations
 

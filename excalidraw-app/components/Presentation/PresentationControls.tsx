@@ -102,7 +102,14 @@ export const PresentationControls: React.FC<PresentationControlsProps> = ({
           title={`${t("presentation.previousSlide")} (←)`}
           aria-label={t("presentation.previousSlide")}
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
             <path d="M15 18l-6-6 6-6" />
           </svg>
         </button>
@@ -118,7 +125,14 @@ export const PresentationControls: React.FC<PresentationControlsProps> = ({
           title={`${t("presentation.nextSlide")} (→)`}
           aria-label={t("presentation.nextSlide")}
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
             <path d="M9 18l6-6-6-6" />
           </svg>
         </button>

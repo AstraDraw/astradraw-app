@@ -24,10 +24,10 @@ export const AppFooter = React.memo(
       if (!excalidrawAPI) {
         return;
       }
-      
+
       const appState = excalidrawAPI.getAppState();
       const sidebarIsOpen = appState.openSidebar?.name === "default";
-      
+
       if (sidebarIsOpen) {
         // Sidebar is open - close it
         excalidrawAPI.updateScene({
@@ -58,7 +58,7 @@ export const AppFooter = React.memo(
             </button>
           </Tooltip>
         </FooterLeftExtra>
-        
+
         {/* Center footer content */}
         <Footer>
           <div

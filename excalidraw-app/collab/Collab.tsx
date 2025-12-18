@@ -28,7 +28,6 @@ import { withBatchedUpdates } from "@excalidraw/excalidraw/reactUtils";
 
 import throttle from "lodash.throttle";
 import { PureComponent } from "react";
-import { ENV } from "../env";
 
 import type {
   ReconciledExcalidrawElement,
@@ -49,6 +48,8 @@ import type {
   Gesture,
 } from "@excalidraw/excalidraw/types";
 import type { Mutable, ValueOf } from "@excalidraw/common/utility-types";
+
+import { ENV } from "../env";
 
 import { appJotaiStore, atom } from "../app-jotai";
 import {
@@ -176,7 +177,9 @@ class Collab extends PureComponent<CollabProps, CollabState> {
         const savedFilesMap =
           savedFiles instanceof Map
             ? savedFiles
-            : new Map((savedFiles as FileId[]).map((id) => [id, true] as const));
+            : new Map(
+                (savedFiles as FileId[]).map((id) => [id, true] as const),
+              );
         const erroredFilesMap =
           erroredFiles instanceof Map
             ? erroredFiles
@@ -791,10 +794,11 @@ class Collab extends PureComponent<CollabProps, CollabState> {
   };
 
   private loadImageFiles = throttle(async () => {
-    const { loadedFiles, erroredFiles } =
-      await this.fetchImageFilesFromStorage({
+    const { loadedFiles, erroredFiles } = await this.fetchImageFilesFromStorage(
+      {
         elements: this.excalidrawAPI.getSceneElementsIncludingDeleted(),
-      });
+      },
+    );
 
     this.excalidrawAPI.addFiles(loadedFiles);
 

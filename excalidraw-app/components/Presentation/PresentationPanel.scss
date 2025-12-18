@@ -82,7 +82,7 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
-    
+
     // Ensure scrolling works on all child elements
     * {
       pointer-events: auto;
@@ -98,7 +98,8 @@
     border: 2px solid var(--default-border-color, #e5e5e5);
     background: var(--island-bg-color, #fff);
     border-radius: 8px;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease,
+      opacity 0.15s ease, transform 0.15s ease;
     overflow: hidden;
     cursor: grab;
 

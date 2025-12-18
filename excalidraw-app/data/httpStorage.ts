@@ -2,8 +2,6 @@
 // Inspired by https://gitlab.com/kiliandeca/excalidraw-fork and alswl's fork
 // MIT License
 
-import type { SyncableExcalidrawElement } from ".";
-import { getSyncableElements } from ".";
 import { MIME_TYPES } from "@excalidraw/common";
 import { decompressData } from "@excalidraw/excalidraw/data/encode";
 import {
@@ -27,10 +25,16 @@ import type {
   DataURL,
 } from "@excalidraw/excalidraw/types";
 import type { RemoteExcalidrawElement } from "@excalidraw/excalidraw/data/reconcile";
+
+import { ENV } from "../env";
+
+import { getSyncableElements } from ".";
+
 import type Portal from "../collab/Portal";
 import type { StoredScene } from "./StorageBackend";
 import type { Socket } from "socket.io-client";
-import { ENV } from "../env";
+
+import type { SyncableExcalidrawElement } from ".";
 
 const HTTP_STORAGE_BACKEND_URL = ENV.VITE_APP_HTTP_STORAGE_BACKEND_URL;
 const SCENE_VERSION_LENGTH_BYTES = 4;
@@ -71,7 +75,11 @@ export const saveToHttpStorage = async (
     `${HTTP_STORAGE_BACKEND_URL}/rooms/${roomId}`,
   );
 
-  if (!getResponse.ok && getResponse.status !== 404 && getResponse.status !== 204) {
+  if (
+    !getResponse.ok &&
+    getResponse.status !== 404 &&
+    getResponse.status !== 204
+  ) {
     return false;
   }
 
@@ -260,7 +268,9 @@ export const saveSceneForMigration = async (
   _data: Blob,
 ): Promise<void> => {
   // HTTP storage doesn't support migration to Excalidraw+
-  console.warn("Saving scene for migration is not supported with HTTP storage backend");
+  console.warn(
+    "Saving scene for migration is not supported with HTTP storage backend",
+  );
 };
 
 const saveElementsToBackend = async (
@@ -306,9 +316,10 @@ const decryptElements = async (
   roomKey: string,
 ): Promise<readonly ExcalidrawElement[]> => {
   const ciphertext = data.ciphertext;
-  const iv = data.iv instanceof Uint8Array
-    ? data.iv as Uint8Array<ArrayBuffer>
-    : new Uint8Array(data.iv) as Uint8Array<ArrayBuffer>;
+  const iv =
+    data.iv instanceof Uint8Array
+      ? (data.iv as Uint8Array<ArrayBuffer>)
+      : (new Uint8Array(data.iv) as Uint8Array<ArrayBuffer>);
 
   const decrypted = await decryptData(iv, ciphertext, roomKey);
   const decodedData = new TextDecoder("utf-8").decode(
@@ -327,4 +338,3 @@ const encryptElements = async (
 
   return { ciphertext: encryptedBuffer, iv };
 };
-

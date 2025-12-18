@@ -35,7 +35,11 @@ export const SlidesLayoutDialog: React.FC<SlidesLayoutDialogProps> = ({
   };
 
   return (
-    <Dialog onCloseRequest={onClose} title={t("slidesLayout.title")} size="wide">
+    <Dialog
+      onCloseRequest={onClose}
+      title={t("slidesLayout.title")}
+      size="wide"
+    >
       <div className="slides-layout-dialog">
         <p className="slides-layout-dialog__description">
           {t("slidesLayout.description")}
@@ -53,7 +57,8 @@ export const SlidesLayoutDialog: React.FC<SlidesLayoutDialogProps> = ({
           {/* Row Layout */}
           <button
             className={clsx("slides-layout-dialog__option", {
-              "slides-layout-dialog__option--selected": selectedLayout === "row",
+              "slides-layout-dialog__option--selected":
+                selectedLayout === "row",
             })}
             onClick={() => setSelectedLayout("row")}
           >
@@ -78,7 +83,9 @@ export const SlidesLayoutDialog: React.FC<SlidesLayoutDialogProps> = ({
               </div>
             </div>
             <div className="slides-layout-dialog__option-label">
-              <span className="slides-layout-dialog__option-name">{t("slidesLayout.row")}</span>
+              <span className="slides-layout-dialog__option-name">
+                {t("slidesLayout.row")}
+              </span>
               {selectedLayout === "row" && (
                 <span className="slides-layout-dialog__option-check">✓</span>
               )}
@@ -88,7 +95,8 @@ export const SlidesLayoutDialog: React.FC<SlidesLayoutDialogProps> = ({
           {/* Column Layout */}
           <button
             className={clsx("slides-layout-dialog__option", {
-              "slides-layout-dialog__option--selected": selectedLayout === "column",
+              "slides-layout-dialog__option--selected":
+                selectedLayout === "column",
             })}
             onClick={() => setSelectedLayout("column")}
           >
@@ -113,7 +121,9 @@ export const SlidesLayoutDialog: React.FC<SlidesLayoutDialogProps> = ({
               </div>
             </div>
             <div className="slides-layout-dialog__option-label">
-              <span className="slides-layout-dialog__option-name">{t("slidesLayout.column")}</span>
+              <span className="slides-layout-dialog__option-name">
+                {t("slidesLayout.column")}
+              </span>
               {selectedLayout === "column" && (
                 <span className="slides-layout-dialog__option-check">✓</span>
               )}
@@ -123,7 +133,8 @@ export const SlidesLayoutDialog: React.FC<SlidesLayoutDialogProps> = ({
           {/* Grid Layout */}
           <button
             className={clsx("slides-layout-dialog__option", {
-              "slides-layout-dialog__option--selected": selectedLayout === "grid",
+              "slides-layout-dialog__option--selected":
+                selectedLayout === "grid",
             })}
             onClick={() => setSelectedLayout("grid")}
           >
@@ -157,7 +168,9 @@ export const SlidesLayoutDialog: React.FC<SlidesLayoutDialogProps> = ({
               </div>
             </div>
             <div className="slides-layout-dialog__option-label">
-              <span className="slides-layout-dialog__option-name">{t("slidesLayout.grid")}</span>
+              <span className="slides-layout-dialog__option-name">
+                {t("slidesLayout.grid")}
+              </span>
               {selectedLayout === "grid" && (
                 <span className="slides-layout-dialog__option-check">✓</span>
               )}
@@ -220,7 +233,7 @@ export const applyLayoutToFrames = (
   }
 
   const elements = excalidrawAPI.getSceneElements();
-  
+
   // Find the maximum frame dimensions to use as reference
   let maxWidth = 0;
   let maxHeight = 0;

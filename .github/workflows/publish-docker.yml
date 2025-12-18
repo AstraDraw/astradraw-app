@@ -5,7 +5,7 @@ name: Release
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
   workflow_dispatch:
     inputs:
       version:
@@ -57,7 +57,7 @@ jobs:
         run: |
           VERSION_NUMBER="${{ steps.version.outputs.VERSION_NUMBER }}"
           echo "Extracting changelog for version ${VERSION_NUMBER}"
-          
+
           # Extract section between current version header and next version header (or end)
           CHANGELOG=$(awk -v ver="$VERSION_NUMBER" '
             /^## \[/ {
@@ -66,12 +66,12 @@ jobs:
             }
             found { print }
           ' CHANGELOG.md)
-          
+
           if [ -z "$CHANGELOG" ]; then
             echo "Warning: No changelog entry found for version ${VERSION_NUMBER}"
             CHANGELOG="No changelog entry for this version."
           fi
-          
+
           # Write to file for multiline output
           echo "$CHANGELOG" > /tmp/changelog_body.md
           echo "Changelog content:"

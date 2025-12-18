@@ -4,8 +4,7 @@
 
 Self-hosted Excalidraw frontend with real-time collaboration and custom HTTP storage backend support.
 
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Docker](https://img.shields.io/badge/docker-ghcr.io-blue)](https://github.com/astrateam-net/astradraw-app/pkgs/container/astradraw-app)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![Docker](https://img.shields.io/badge/docker-ghcr.io-blue)](https://github.com/astrateam-net/astradraw-app/pkgs/container/astradraw-app)
 
 ## Features
 
@@ -51,7 +50,7 @@ Environment variables are injected at container startup instead of build time:
 ## Environment Variables
 
 | Variable | Description | Example |
-|----------|-------------|---------|
+| --- | --- | --- |
 | `VITE_APP_WS_SERVER_URL` | WebSocket server for collaboration | `wss://draw.example.com` |
 | `VITE_APP_STORAGE_BACKEND` | Storage type | `http` or `firebase` |
 | `VITE_APP_HTTP_STORAGE_BACKEND_URL` | Storage API base URL | `https://draw.example.com` |
@@ -140,16 +139,18 @@ const ALLOW_SAME_ORIGIN = new Set([
   "vimeo.com",
   "kinescope.io",
   "kinescopecdn.net",
-  "your-video-platform.com",  // Add your domain here
+  "your-video-platform.com", // Add your domain here
 ]);
 ```
 
 **When to add:**
+
 - ✅ Video players (Kinescope, Wistia, etc.)
 - ✅ Interactive embeds (Figma, Miro, etc.)
 - ❌ Static content (doesn't need same-origin)
 
 Rebuild after changes:
+
 ```bash
 docker build -t astradraw-app . --no-cache
 ```

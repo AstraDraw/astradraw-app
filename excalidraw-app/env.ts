@@ -1,6 +1,6 @@
 /**
  * Runtime environment configuration helper.
- * 
+ *
  * In production Docker builds, environment variables are injected at runtime
  * via window.__ENV__. This module provides a unified way to access env vars
  * that works both in development (import.meta.env) and production (window.__ENV__).
@@ -50,4 +50,3 @@ export const ENV = {
     return getEnv("VITE_APP_DISABLE_TRACKING");
   },
 };
-
