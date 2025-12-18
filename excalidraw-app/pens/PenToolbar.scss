@@ -1,23 +1,17 @@
 .pen-toolbar {
   position: fixed;
-  right: 0;
+  right: 8px;
   top: 50%;
   transform: translateY(-50%);
-  z-index: calc(var(--zIndex-ui-library, 120) + 1); // Above sidebar
-  transition: right 0.15s ease;
+  z-index: calc(var(--zIndex-ui-library, 120) + 10); // Always on top
+  transition: none;
   display: flex;
   flex-direction: column;
   background: var(--island-bg-color, #fff);
-  border-radius: 8px 0 0 8px;
+  border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   padding: 8px 4px;
   gap: 4px;
-
-  // When sidebar is open, position to the left of it
-  &--sidebar-open {
-    right: var(--right-sidebar-width, 360px);
-    border-radius: 8px; // Full rounded corners when not attached to edge
-  }
 
   &__pens {
     display: flex;

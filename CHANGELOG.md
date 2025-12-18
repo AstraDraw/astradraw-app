@@ -8,6 +8,13 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.4] - 2024-12-18
+
+### Fixed
+
+- Pen toolbar now stays fixed on right edge, Properties panel opens to its left
+- Properties panel no longer overlaps with pen toolbar
+
 ## [0.18.0-beta0.3] - 2024-12-18
 
 ### Added

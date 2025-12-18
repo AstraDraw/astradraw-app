@@ -7,8 +7,6 @@ import type {
   PenType,
   AppState,
 } from "@excalidraw/excalidraw/types";
-import { useUIAppState } from "@excalidraw/excalidraw/context/ui-appState";
-
 import { t } from "@excalidraw/excalidraw/i18n";
 
 import { PENS } from "./pens";
@@ -90,10 +88,6 @@ const getPens = (appState: AppState): PenStyle[] => {
 };
 
 export const PenToolbar: React.FC<PenToolbarProps> = ({ excalidrawAPI }) => {
-  // Use reactive UI state for sidebar detection
-  const uiAppState = useUIAppState();
-  const isSidebarOpen = !!uiAppState.openSidebar;
-  
   const appState = excalidrawAPI.getAppState();
   const currentPenType = appState.currentPenType;
   const pens = getPens(appState);
@@ -207,7 +201,7 @@ export const PenToolbar: React.FC<PenToolbarProps> = ({ excalidrawAPI }) => {
   return (
     <>
       <div
-        className={clsx("pen-toolbar", { "pen-toolbar--sidebar-open": isSidebarOpen })}
+        className="pen-toolbar"
       >
         <div className="pen-toolbar__pens">
           {pens.map((pen, index) => {
