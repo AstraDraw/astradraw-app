@@ -58,3 +58,8 @@ export const COOKIES = {
 export const isExcalidrawPlusSignedUser = document.cookie.includes(
   COOKIES.AUTH_STATE_COOKIE,
 );
+
+// AstraDraw Branding Constants
+export const ASTRADRAW_GITHUB_URL =
+  "https://github.com/astrateam-net/astradraw-app";
+export const ASTRADRAW_GITHUB_ISSUES_URL = `${ASTRADRAW_GITHUB_URL}/issues`;

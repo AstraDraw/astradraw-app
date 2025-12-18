@@ -8,6 +8,33 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.6] - 2025-12-18
+
+### Changed
+
+- **AstraDraw Branding**
+  - New AstraDraw logo component with presentation-screen icon
+  - Updated welcome screen with AstraDraw logo
+  - Updated favicon to AstraDraw icon (SVG)
+  - PWA manifest renamed to AstraDraw
+  - Tab title changed to "AstraDraw Whiteboard"
+
+- **Menu & Links Updates**
+  - Left menu: removed Excalidraw+ and social links, kept GitHub with custom URL
+  - Help dialog: disabled docs/blog/YouTube links, updated GitHub issues URL
+  - Command palette: removed Excalidraw+/Twitter/Discord/YouTube commands
+  - Sign up buttons changed to "Sign in" (disabled until auth implementation)
+
+- **Export Dialog**
+  - Renamed "Excalidraw+" to "AstraDraw+" 
+  - Export to AstraDraw+ button disabled (coming soon)
+  - Uses i18n for proper Russian translations
+
+### Fixed
+
+- Logo centering and sizing adjustments
+- Better font for AstraDraw text (uses Assistant/Inter)
+
 ## [0.18.0-beta0.5] - 2024-12-18
 
 ### Added

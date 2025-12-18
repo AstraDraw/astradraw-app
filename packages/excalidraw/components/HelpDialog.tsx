@@ -16,44 +16,42 @@ import "./HelpDialog.scss";
 
 import type { JSX } from "react";
 
+// AstraDraw: GitHub issues URL
+const ASTRADRAW_GITHUB_ISSUES_URL =
+  "https://github.com/astrateam-net/astradraw-app/issues";
+
 const Header = () => (
   <div className="HelpDialog__header">
-    <a
-      className="HelpDialog__btn"
-      href="https://docs.excalidraw.com"
-      target="_blank"
-      rel="noopener"
+    <span
+      className="HelpDialog__btn HelpDialog__btn--disabled"
+      style={{ opacity: 0.5, cursor: "default", pointerEvents: "none" }}
     >
       <div className="HelpDialog__link-icon">{ExternalLinkIcon}</div>
       {t("helpDialog.documentation")}
-    </a>
-    <a
-      className="HelpDialog__btn"
-      href="https://plus.excalidraw.com/blog"
-      target="_blank"
-      rel="noopener"
+    </span>
+    <span
+      className="HelpDialog__btn HelpDialog__btn--disabled"
+      style={{ opacity: 0.5, cursor: "default", pointerEvents: "none" }}
     >
       <div className="HelpDialog__link-icon">{ExternalLinkIcon}</div>
       {t("helpDialog.blog")}
-    </a>
+    </span>
     <a
       className="HelpDialog__btn"
-      href="https://github.com/excalidraw/excalidraw/issues"
+      href={ASTRADRAW_GITHUB_ISSUES_URL}
       target="_blank"
       rel="noopener noreferrer"
     >
       <div className="HelpDialog__link-icon">{GithubIcon}</div>
       {t("helpDialog.github")}
     </a>
-    <a
-      className="HelpDialog__btn"
-      href="https://youtube.com/@excalidraw"
-      target="_blank"
-      rel="noopener noreferrer"
+    <span
+      className="HelpDialog__btn HelpDialog__btn--disabled"
+      style={{ opacity: 0.5, cursor: "default", pointerEvents: "none" }}
     >
       <div className="HelpDialog__link-icon">{youtubeIcon}</div>
       YouTube
-    </a>
+    </span>
   </div>
 );
 
