@@ -1,124 +1,166 @@
-<a href="https://excalidraw.com/" target="_blank" rel="noopener">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" alt="Excalidraw" srcset="https://excalidraw.nyc3.cdn.digitaloceanspaces.com/github/excalidraw_github_cover_2_dark.png" />
-    <img alt="Excalidraw" src="https://excalidraw.nyc3.cdn.digitaloceanspaces.com/github/excalidraw_github_cover_2.png" />
-  </picture>
-</a>
+# Astradraw App
 
-<h4 align="center">
-  <a href="https://excalidraw.com">Excalidraw Editor</a> |
-  <a href="https://plus.excalidraw.com/blog">Blog</a> |
-  <a href="https://docs.excalidraw.com">Documentation</a> |
-  <a href="https://plus.excalidraw.com">Excalidraw+</a>
-</h4>
+> **Built on top of [Excalidraw](https://github.com/excalidraw/excalidraw)** - An open source virtual hand-drawn style whiteboard.
 
-<div align="center">
-  <h2>
-    An open source virtual hand-drawn style whiteboard. </br>
-    Collaborative and end-to-end encrypted. </br>
-  <br />
-  </h2>
-</div>
+Self-hosted Excalidraw frontend with real-time collaboration and custom HTTP storage backend support.
 
-<br />
-<p align="center">
-  <a href="https://github.com/excalidraw/excalidraw/blob/master/LICENSE">
-    <img alt="Excalidraw is released under the MIT license." src="https://img.shields.io/badge/license-MIT-blue.svg"  /></a>
-  <a href="https://www.npmjs.com/package/@excalidraw/excalidraw">
-    <img alt="npm downloads/month" src="https://img.shields.io/npm/dm/@excalidraw/excalidraw"  /></a>
-  <a href="https://docs.excalidraw.com/docs/introduction/contributing">
-    <img alt="PRs welcome!" src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat"  /></a>
-  <a href="https://discord.gg/UexuTaE">
-    <img alt="Chat on Discord" src="https://img.shields.io/discord/723672430744174682?color=738ad6&label=Chat%20on%20Discord&logo=discord&logoColor=ffffff&widge=false"/></a>
-  <a href="https://deepwiki.com/excalidraw/excalidraw">
-    <img alt="Ask DeepWiki" src="https://deepwiki.com/badge.svg" /></a>
-  <a href="https://twitter.com/excalidraw">
-    <img alt="Follow Excalidraw on Twitter" src="https://img.shields.io/twitter/follow/excalidraw.svg?label=follow+@excalidraw&style=social&logo=twitter"/></a>
-</p>
-
-<div align="center">
-  <figure>
-    <a href="https://excalidraw.com" target="_blank" rel="noopener">
-      <img src="https://excalidraw.nyc3.cdn.digitaloceanspaces.com/github%2Fproduct_showcase.png" alt="Product showcase" />
-    </a>
-    <figcaption>
-      <p align="center">
-        Create beautiful hand-drawn like diagrams, wireframes, or whatever you like.
-      </p>
-    </figcaption>
-  </figure>
-</div>
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Docker](https://img.shields.io/badge/docker-ghcr.io-blue)](https://github.com/astrateam-net/astradraw-app/pkgs/container/astradraw-app)
 
 ## Features
 
-The Excalidraw editor (npm package) supports:
+- ✅ **HTTP Storage Backend**: Replace Firebase with your own REST API backend
+- ✅ **Runtime Environment Injection**: Configure URLs without rebuilding Docker images
+- ✅ **Universal Iframe Embeds**: Embed any URL, not just allowlisted domains
+- ✅ **Custom Sandbox Permissions**: Configure same-origin access for video players
+- ✅ **Docker Secrets Support**: Native support for Docker Swarm and Kubernetes secrets
+- ✅ **Real-time Collaboration**: WebSocket-based collaboration with E2E encryption
+- ✅ **Self-hosted**: Full control over your data and infrastructure
 
-- 💯&nbsp;Free & open-source.
-- 🎨&nbsp;Infinite, canvas-based whiteboard.
-- ✍️&nbsp;Hand-drawn like style.
-- 🌓&nbsp;Dark mode.
-- 🏗️&nbsp;Customizable.
-- 📷&nbsp;Image support.
-- 😀&nbsp;Shape libraries support.
-- 🌐&nbsp;Localization (i18n) support.
-- 🖼️&nbsp;Export to PNG, SVG & clipboard.
-- 💾&nbsp;Open format - export drawings as an `.excalidraw` json file.
-- ⚒️&nbsp;Wide range of tools - rectangle, circle, diamond, arrow, line, free-draw, eraser...
-- ➡️&nbsp;Arrow-binding & labeled arrows.
-- 🔙&nbsp;Undo / Redo.
-- 🔍&nbsp;Zoom and panning support.
+## Architecture
 
-## Excalidraw.com
+This is the frontend component of the Astradraw suite:
 
-The app hosted at [excalidraw.com](https://excalidraw.com) is a minimal showcase of what you can build with Excalidraw. Its [source code](https://github.com/excalidraw/excalidraw/tree/master/excalidraw-app) is part of this repository as well, and the app features:
+- **astradraw-app** (this repo): Frontend application
+- **[astradraw-storage](https://github.com/astrateam-net/astradraw-storage)**: Storage backend API
+- **[astradraw](https://github.com/astrateam-net/astradraw)**: Deployment configuration
 
-- 📡&nbsp;PWA support (works offline).
-- 🤼&nbsp;Real-time collaboration.
-- 🔒&nbsp;End-to-end encryption.
-- 💾&nbsp;Local-first support (autosaves to the browser).
-- 🔗&nbsp;Shareable links (export to a readonly link you can share with others).
+## Key Modifications from Upstream
 
-We'll be adding these features as drop-in plugins for the npm package in the future.
+### Storage Abstraction Layer
 
-## Quick start
+Added `StorageBackend` interface to support multiple storage providers:
 
-**Note:** following instructions are for installing the Excalidraw [npm package](https://www.npmjs.com/package/@excalidraw/excalidraw) when integrating Excalidraw into your own app. To run the repository locally for development, please refer to our [Development Guide](https://docs.excalidraw.com/docs/introduction/development).
+- `excalidraw-app/data/StorageBackend.ts` - Interface definition
+- `excalidraw-app/data/httpStorage.ts` - HTTP REST API implementation
+- `excalidraw-app/data/config.ts` - Backend selector
+- `excalidraw-app/data/firebase.ts` - Original Firebase implementation
 
-Use `npm` or `yarn` to install the package.
+### Runtime Configuration
+
+Environment variables are injected at container startup instead of build time:
+
+- `excalidraw-app/env.ts` - Runtime env helper using `window.__ENV__`
+- `docker-entrypoint.sh` - Injects configuration into `index.html` at startup
+
+### Universal Iframe Embeds
+
+- Set `validateEmbeddable={true}` in `App.tsx` to allow any URL
+- Add domains to `ALLOW_SAME_ORIGIN` in `packages/element/src/embeddable.ts` for same-origin sandbox access
+
+## Environment Variables
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `VITE_APP_WS_SERVER_URL` | WebSocket server for collaboration | `wss://draw.example.com` |
+| `VITE_APP_STORAGE_BACKEND` | Storage type | `http` or `firebase` |
+| `VITE_APP_HTTP_STORAGE_BACKEND_URL` | Storage API base URL | `https://draw.example.com` |
+| `VITE_APP_BACKEND_V2_GET_URL` | Scene GET endpoint | `https://draw.example.com/api/v2/scenes/` |
+| `VITE_APP_BACKEND_V2_POST_URL` | Scene POST endpoint | `https://draw.example.com/api/v2/scenes/` |
+| `VITE_APP_FIREBASE_CONFIG` | Firebase config (if using firebase) | `{}` |
+| `VITE_APP_DISABLE_TRACKING` | Disable analytics | `true` |
+
+## Quick Start
+
+### Using Docker (Production)
 
 ```bash
-npm install react react-dom @excalidraw/excalidraw
-# or
-yarn add react react-dom @excalidraw/excalidraw
+docker run -d \
+  -p 80:80 \
+  -e VITE_APP_WS_SERVER_URL=wss://your-domain.com \
+  -e VITE_APP_STORAGE_BACKEND=http \
+  -e VITE_APP_HTTP_STORAGE_BACKEND_URL=https://your-domain.com \
+  -e VITE_APP_BACKEND_V2_GET_URL=https://your-domain.com/api/v2/scenes/ \
+  -e VITE_APP_BACKEND_V2_POST_URL=https://your-domain.com/api/v2/scenes/ \
+  -e VITE_APP_DISABLE_TRACKING=true \
+  ghcr.io/astrateam-net/astradraw-app:latest
 ```
 
-Check out our [documentation](https://docs.excalidraw.com/docs/@excalidraw/excalidraw/installation) for more details!
+### Building from Source
 
-## Contributing
+```bash
+# Install dependencies
+yarn install
 
-- Missing something or found a bug? [Report here](https://github.com/excalidraw/excalidraw/issues).
-- Want to contribute? Check out our [contribution guide](https://docs.excalidraw.com/docs/introduction/contributing) or let us know on [Discord](https://discord.gg/UexuTaE).
-- Want to help with translations? See the [translation guide](https://docs.excalidraw.com/docs/introduction/contributing#translating).
+# Build for Docker (uses placeholder env vars)
+yarn build:app:docker
 
-## Integrations
+# Build Docker image
+docker build -t astradraw-app .
+```
 
-- [VScode extension](https://marketplace.visualstudio.com/items?itemName=pomdtr.excalidraw-editor)
-- [npm package](https://www.npmjs.com/package/@excalidraw/excalidraw)
+### Local Development
 
-## Who's integrating Excalidraw
+```bash
+# Install dependencies
+yarn install
 
-[Google Cloud](https://googlecloudcheatsheet.withgoogle.com/architecture) • [Meta](https://meta.com/) • [CodeSandbox](https://codesandbox.io/) • [Obsidian Excalidraw](https://github.com/zsviczian/obsidian-excalidraw-plugin) • [Replit](https://replit.com/) • [Slite](https://slite.com/) • [Notion](https://notion.so/) • [HackerRank](https://www.hackerrank.com/) • and many others
+# Start dev server
+yarn start
 
-## Sponsors & support
+# Run tests
+yarn test
+```
 
-If you like the project, you can become a sponsor at [Open Collective](https://opencollective.com/excalidraw) or use [Excalidraw+](https://plus.excalidraw.com/).
+## Deployment
 
-## Thank you for supporting Excalidraw
+For complete deployment with storage backend, database, and Traefik proxy, see the [astradraw deployment repo](https://github.com/astrateam-net/astradraw).
 
-[<img src="https://opencollective.com/excalidraw/tiers/sponsors/0/avatar.svg?avatarHeight=120"/>](https://opencollective.com/excalidraw/tiers/sponsors/0/website) [<img src="https://opencollective.com/excalidraw/tiers/sponsors/1/avatar.svg?avatarHeight=120"/>](https://opencollective.com/excalidraw/tiers/sponsors/1/website) [<img src="https://opencollective.com/excalidraw/tiers/sponsors/2/avatar.svg?avatarHeight=120"/>](https://opencollective.com/excalidraw/tiers/sponsors/2/website) [<img src="https://opencollective.com/excalidraw/tiers/sponsors/3/avatar.svg?avatarHeight=120"/>](https://opencollective.com/excalidraw/tiers/sponsors/3/website) [<img src="https://opencollective.com/excalidraw/tiers/sponsors/4/avatar.svg?avatarHeight=120"/>](https://opencollective.com/excalidraw/tiers/sponsors/4/website) [<img src="https://opencollective.com/excalidraw/tiers/sponsors/5/avatar.svg?avatarHeight=120"/>](https://opencollective.com/excalidraw/tiers/sponsors/5/website) [<img src="https://opencollective.com/excalidraw/tiers/sponsors/6/avatar.svg?avatarHeight=120"/>](https://opencollective.com/excalidraw/tiers/sponsors/6/website) [<img src="https://opencollective.com/excalidraw/tiers/sponsors/7/avatar.svg?avatarHeight=120"/>](https://opencollective.com/excalidraw/tiers/sponsors/7/website) [<img src="https://opencollective.com/excalidraw/tiers/sponsors/8/avatar.svg?avatarHeight=120"/>](https://opencollective.com/excalidraw/tiers/sponsors/8/website) [<img src="https://opencollective.com/excalidraw/tiers/sponsors/9/avatar.svg?avatarHeight=120"/>](https://opencollective.com/excalidraw/tiers/sponsors/9/website) [<img src="https://opencollective.com/excalidraw/tiers/sponsors/10/avatar.svg?avatarHeight=120"/>](https://opencollective.com/excalidraw/tiers/sponsors/10/website)
+### Docker Compose Example
 
-<a href="https://opencollective.com/excalidraw#category-CONTRIBUTE" target="_blank"><img src="https://opencollective.com/excalidraw/tiers/backers.svg?avatarHeight=32"/></a>
+```yaml
+services:
+  app:
+    image: ghcr.io/astrateam-net/astradraw-app:latest
+    environment:
+      - VITE_APP_WS_SERVER_URL=wss://${APP_DOMAIN}
+      - VITE_APP_STORAGE_BACKEND=http
+      - VITE_APP_HTTP_STORAGE_BACKEND_URL=https://${APP_DOMAIN}
+      - VITE_APP_BACKEND_V2_GET_URL=https://${APP_DOMAIN}/api/v2/scenes/
+      - VITE_APP_BACKEND_V2_POST_URL=https://${APP_DOMAIN}/api/v2/scenes/
+    ports:
+      - "80:80"
+```
 
-Last but not least, we're thankful to these companies for offering their services for free:
+## Iframe Embeds
 
-[![Vercel](./.github/assets/vercel.svg)](https://vercel.com) [![Sentry](./.github/assets/sentry.svg)](https://sentry.io) [![Crowdin](./.github/assets/crowdin.svg)](https://crowdin.com)
+### Allowing Any URL
+
+Set `validateEmbeddable={true}` in `excalidraw-app/App.tsx` (line 819).
+
+### Adding Same-Origin Sandbox Support
+
+Some embeds (video players, interactive tools) need `allow-same-origin` in the iframe sandbox. Edit `packages/element/src/embeddable.ts`:
+
+```typescript
+// Line 106-118
+const ALLOW_SAME_ORIGIN = new Set([
+  "youtube.com",
+  "youtu.be",
+  "vimeo.com",
+  "kinescope.io",
+  "kinescopecdn.net",
+  "your-video-platform.com",  // Add your domain here
+]);
+```
+
+**When to add:**
+- ✅ Video players (Kinescope, Wistia, etc.)
+- ✅ Interactive embeds (Figma, Miro, etc.)
+- ❌ Static content (doesn't need same-origin)
+
+Rebuild after changes:
+```bash
+docker build -t astradraw-app . --no-cache
+```
+
+## License
+
+MIT License - Based on [Excalidraw](https://github.com/excalidraw/excalidraw)
+
+## Links
+
+- **Upstream**: [excalidraw/excalidraw](https://github.com/excalidraw/excalidraw)
+- **Storage Backend**: [astradraw-storage](https://github.com/astrateam-net/astradraw-storage)
+- **Deployment**: [astradraw](https://github.com/astrateam-net/astradraw)
+- **Docker Image**: [ghcr.io/astrateam-net/astradraw-app](https://github.com/astrateam-net/astradraw-app/pkgs/container/astradraw-app)
