@@ -70,5 +70,164 @@ fi
 
 echo "Environment configuration complete."
 
+# ============================================================================
+# Pre-bundled Libraries Processing
+# Scans /app/libraries/*.excalidrawlib files and generates bundled-libraries.js
+# ============================================================================
+
+LIBRARIES_DIR="/app/libraries"
+BUNDLED_LIBS_FILE="$APP_DIR/bundled-libraries.js"
+
+# Function to process .excalidrawlib files and extract library items
+process_libraries() {
+    local first=true
+    
+    # Start the JavaScript file
+    echo "// Pre-bundled libraries - generated at container startup" > "$BUNDLED_LIBS_FILE"
+    echo "window.__BUNDLED_LIBRARIES__ = [" >> "$BUNDLED_LIBS_FILE"
+    
+    # Check if libraries directory exists and has files
+    if [ -d "$LIBRARIES_DIR" ]; then
+        for libfile in "$LIBRARIES_DIR"/*.excalidrawlib; do
+            # Check if file exists (glob might not match anything)
+            [ -e "$libfile" ] || continue
+            
+            echo "Processing library: $libfile"
+            
+            # Extract the library array from the .excalidrawlib file
+            # The file format is: { "type": "excalidrawlib", "version": N, "library": [...] }
+            # or older format with "libraryItems" instead of "library"
+            
+            # Use sed/awk to extract library items and add required fields
+            # Each item needs: id, status, created, elements, name (optional)
+            
+            if [ "$first" = true ]; then
+                first=false
+            else
+                echo "," >> "$BUNDLED_LIBS_FILE"
+            fi
+            
+            # Parse the JSON and extract library items
+            # Using a simple approach that works with busybox tools in Alpine
+            # Extract the "library" or "libraryItems" array content
+            
+            # Get filename without path and extension for naming
+            libname=$(basename "$libfile" .excalidrawlib)
+            
+            # Process the library file - extract items and add metadata
+            # This awk script extracts items from the library array
+            awk -v libname="$libname" '
+            BEGIN { 
+                in_library = 0
+                bracket_count = 0
+                item_count = 0
+                buffer = ""
+            }
+            {
+                line = $0
+                
+                # Look for start of library array
+                if (match(line, /"library"\s*:\s*\[/) || match(line, /"libraryItems"\s*:\s*\[/)) {
+                    in_library = 1
+                    # Get everything after the opening bracket
+                    sub(/.*"library"\s*:\s*\[/, "", line)
+                    sub(/.*"libraryItems"\s*:\s*\[/, "", line)
+                }
+                
+                if (in_library) {
+                    # Count brackets to track nested arrays
+                    for (i = 1; i <= length(line); i++) {
+                        c = substr(line, i, 1)
+                        if (c == "[") bracket_count++
+                        if (c == "]") {
+                            bracket_count--
+                            if (bracket_count < 0) {
+                                # End of library array - remove trailing ]
+                                sub(/\].*$/, "", line)
+                                in_library = 0
+                            }
+                        }
+                    }
+                    buffer = buffer line "\n"
+                }
+            }
+            END {
+                # Output the extracted library items with wrapper
+                # Each item is an array of elements, we need to wrap it as a LibraryItem
+                print buffer
+            }
+            ' "$libfile" | \
+            # Now process each item (array of elements) and wrap it
+            awk -v libname="$libname" '
+            BEGIN {
+                item_num = 0
+                in_item = 0
+                bracket_count = 0
+                item_buffer = ""
+                first_item = 1
+            }
+            {
+                line = $0
+                for (i = 1; i <= length(line); i++) {
+                    c = substr(line, i, 1)
+                    
+                    if (c == "[" && !in_item) {
+                        in_item = 1
+                        bracket_count = 1
+                        item_buffer = "["
+                    } else if (in_item) {
+                        item_buffer = item_buffer c
+                        if (c == "[") bracket_count++
+                        if (c == "]") {
+                            bracket_count--
+                            if (bracket_count == 0) {
+                                # Complete item found
+                                item_num++
+                                if (first_item) {
+                                    first_item = 0
+                                } else {
+                                    printf ","
+                                }
+                                # Generate unique ID based on library name and item number
+                                id = libname "-" item_num
+                                timestamp = systime() * 1000
+                                printf "{\n"
+                                printf "  \"id\": \"%s\",\n", id
+                                printf "  \"status\": \"published\",\n"
+                                printf "  \"created\": %d,\n", timestamp
+                                printf "  \"name\": \"%s Item %d\",\n", libname, item_num
+                                printf "  \"elements\": %s\n", item_buffer
+                                printf "}"
+                                in_item = 0
+                                item_buffer = ""
+                            }
+                        }
+                    }
+                }
+            }
+            ' >> "$BUNDLED_LIBS_FILE"
+            
+        done
+    fi
+    
+    # Close the JavaScript array
+    echo "" >> "$BUNDLED_LIBS_FILE"
+    echo "];" >> "$BUNDLED_LIBS_FILE"
+    
+    echo "Generated bundled libraries at $BUNDLED_LIBS_FILE"
+}
+
+# Process libraries
+process_libraries
+
+# Inject the bundled-libraries.js script into index.html if not already present
+if ! grep -q "bundled-libraries.js" "$APP_DIR/index.html"; then
+    # Insert the script tag right after env-config.js
+    sed -i 's|<script src="/env-config.js"></script>|<script src="/env-config.js"></script><script src="/bundled-libraries.js"></script>|' "$APP_DIR/index.html"
+    echo "Injected bundled-libraries.js into index.html"
+fi
+
+echo "Library configuration complete."
+
 # Execute the original entrypoint (nginx)
 exec "$@"

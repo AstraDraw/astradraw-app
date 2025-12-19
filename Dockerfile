@@ -28,6 +28,9 @@ FROM --platform=${TARGETPLATFORM} nginx:1.27-alpine
 # Copy the built application
 COPY --from=build /opt/node_app/excalidraw-app/build /usr/share/nginx/html
 
+# Create libraries directory for pre-bundled libraries (mounted via Docker volume)
+RUN mkdir -p /app/libraries
+
 # Copy the entrypoint script
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh

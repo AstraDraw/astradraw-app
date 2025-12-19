@@ -4,12 +4,29 @@
  * In production Docker builds, environment variables are injected at runtime
  * via window.__ENV__. This module provides a unified way to access env vars
  * that works both in development (import.meta.env) and production (window.__ENV__).
+ *
+ * Pre-bundled libraries are injected via window.__BUNDLED_LIBRARIES__ from
+ * .excalidrawlib files mounted in /app/libraries/ directory.
  */
+
+import type { LibraryItem } from "@excalidraw/excalidraw/types";
 
 declare global {
   interface Window {
     __ENV__?: Record<string, string>;
+    __BUNDLED_LIBRARIES__?: LibraryItem[];
   }
+}
+
+/**
+ * Get bundled libraries injected at container startup.
+ * These are pre-installed libraries from /app/libraries/*.excalidrawlib files.
+ */
+export function getBundledLibraries(): LibraryItem[] {
+  if (typeof window !== "undefined" && window.__BUNDLED_LIBRARIES__) {
+    return window.__BUNDLED_LIBRARIES__;
+  }
+  return [];
 }
 
 /**

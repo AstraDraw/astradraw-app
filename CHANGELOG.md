@@ -9,6 +9,28 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.13] - 2025-12-20
+
+### Added
+
+- **Pre-bundled Libraries Support**
+  - Docker volume mount for pre-installed libraries (`/app/libraries/*.excalidrawlib`)
+  - Libraries are automatically parsed at container startup and loaded into the app
+  - New `getBundledLibraries()` helper in `env.ts` for accessing bundled libraries
+  - `docker-entrypoint.sh` generates `bundled-libraries.js` from mounted `.excalidrawlib` files
+
+- **Library URL Whitelist**
+  - Custom `validateLibraryUrl` function allowing `#addLibrary` URLs from:
+    - `astrateam.net` and all subdomains (e.g., `libraries.astrateam.net`)
+    - `excalidraw.com` (upstream compatibility)
+    - `raw.githubusercontent.com` (GitHub-hosted libraries)
+
+### Changed
+
+- **Rebranding**
+  - Sidebar library section title changed from "Excalidraw Library" to "AstraDraw Library"
+  - Updated English (`en.json`) and Russian (`ru-RU.json`) locale files
+
 ## [0.18.0-beta0.12] - 2025-12-19
 
 ### Changed

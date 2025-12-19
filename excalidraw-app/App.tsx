@@ -135,6 +135,7 @@ import "./index.scss";
 import { AppSidebar } from "./components/AppSidebar";
 import { PresentationMode } from "./components/Presentation";
 import { PenToolbar, getDefaultPenPresets } from "./pens";
+import { getBundledLibraries } from "./env";
 
 import type { CollabAPI } from "./collab/Collab";
 
@@ -395,7 +396,46 @@ const ExcalidrawWrapper = () => {
     adapter: LibraryIndexedDBAdapter,
     // TODO maybe remove this in several months (shipped: 24-03-11)
     migrationAdapter: LibraryLocalStorageMigrationAdapter,
+    // AstraDraw: Allow libraries from astrateam.net subdomains and upstream sources
+    validateLibraryUrl: (url: string) => {
+      try {
+        const { hostname } = new URL(url);
+        // Allow any subdomain of astrateam.net (e.g., libraries.astrateam.net)
+        // Also allow upstream excalidraw sources for compatibility
+        const allowedDomains = [
+          "astrateam.net",
+          "excalidraw.com",
+          "raw.githubusercontent.com",
+        ];
+        return allowedDomains.some((domain) => {
+          return hostname === domain || hostname.endsWith(`.${domain}`);
+        });
+      } catch {
+        return false;
+      }
+    },
   });
+
+  // AstraDraw: Load pre-bundled libraries from Docker volume mount
+  // These are .excalidrawlib files placed in /app/libraries/ directory
+  useEffect(() => {
+    if (!excalidrawAPI) {
+      return;
+    }
+    const bundledLibraries = getBundledLibraries();
+    if (bundledLibraries.length > 0) {
+      excalidrawAPI
+        .updateLibrary({
+          libraryItems: bundledLibraries,
+          merge: true,
+          defaultStatus: "published",
+        })
+        .catch((error) => {
+          // eslint-disable-next-line no-console
+          console.error("AstraDraw: Failed to load bundled libraries:", error);
+        });
+    }
+  }, [excalidrawAPI]);
 
   const [, forceRefresh] = useState(false);
 
