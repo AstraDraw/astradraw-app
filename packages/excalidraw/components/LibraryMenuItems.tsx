@@ -24,6 +24,7 @@ import {
   LibraryMenuSection,
   LibraryMenuSectionGrid,
 } from "./LibraryMenuSection";
+import { CollapsibleLibrarySection } from "./CollapsibleLibrarySection";
 
 import Spinner from "./Spinner";
 import Stack from "./Stack";
@@ -120,6 +121,22 @@ export default function LibraryMenuItems({
     () => libraryItems.filter((item) => item.status === "published"),
     [libraryItems],
   );
+
+  // Group published items by libraryName for collapsible sections
+  const groupedPublishedItems = useMemo(() => {
+    const groups = new Map<string, LibraryItem[]>();
+    const defaultGroupName = t("labels.excalidrawLib");
+
+    for (const item of publishedItems) {
+      const groupName = item.libraryName || defaultGroupName;
+      if (!groups.has(groupName)) {
+        groups.set(groupName, []);
+      }
+      groups.get(groupName)!.push(item);
+    }
+
+    return groups;
+  }, [publishedItems]);
 
   const onItemSelectToggle = useCallback(
     (id: LibraryItem["id"], event: React.MouseEvent) => {
@@ -304,25 +321,23 @@ export default function LibraryMenuItems({
       )}
 
       {publishedItems.length > 0 && (
-        <div
-          className="library-menu-items-container__header"
-          style={{ marginTop: "0.75rem" }}
-        >
-          {t("labels.excalidrawLib")}
+        <div className="library-menu-items-container__published-sections">
+          {Array.from(groupedPublishedItems.entries()).map(
+            ([libraryName, items]) => (
+              <CollapsibleLibrarySection
+                key={libraryName}
+                libraryName={libraryName}
+                items={items}
+                onItemSelectToggle={onItemSelectToggle}
+                onItemDrag={onItemDrag}
+                onItemClick={onItemClick}
+                isItemSelected={isItemSelected}
+                svgCache={svgCache}
+                itemsRenderedPerBatch={itemsRenderedPerBatch}
+              />
+            ),
+          )}
         </div>
-      )}
-      {publishedItems.length > 0 && (
-        <LibraryMenuSectionGrid>
-          <LibraryMenuSection
-            itemsRenderedPerBatch={itemsRenderedPerBatch}
-            items={publishedItems}
-            onItemSelectToggle={onItemSelectToggle}
-            onItemDrag={onItemDrag}
-            onClick={onItemClick}
-            isItemSelected={isItemSelected}
-            svgCache={svgCache}
-          />
-        </LibraryMenuSectionGrid>
       )}
     </>
   );

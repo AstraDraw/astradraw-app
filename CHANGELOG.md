@@ -9,6 +9,25 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.14] - 2025-12-20
+
+### Added
+
+- **Collapsible Library Sections**
+  - Published library items are now grouped by library name in the sidebar
+  - Each library section is expandable/collapsible with a toggle button
+  - Library names extracted from `"name"` field in `.excalidrawlib` files, or auto-generated from filename (e.g., `software-architecture` → "Software Architecture")
+  - Item count displayed next to each library name
+  - Search continues to work across all items regardless of collapsed state (shows flat results)
+  - New `libraryName` field added to `LibraryItem` type for grouping
+
+### Changed
+
+- **docker-entrypoint.sh**
+  - Now extracts `"name"` field from library JSON if present
+  - Falls back to humanized filename (converts hyphens/underscores to spaces, capitalizes words)
+  - Adds `libraryName` field to each generated library item
+
 ## [0.18.0-beta0.13] - 2025-12-20
 
 ### Added

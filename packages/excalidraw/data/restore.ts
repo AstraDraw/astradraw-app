@@ -933,6 +933,8 @@ export const restoreLibraryItems = (
         id: _item.id || randomId(),
         status: _item.status || defaultStatus,
         created: _item.created || Date.now(),
+        // preserve libraryName for grouping in the sidebar
+        libraryName: _item.libraryName,
       });
       if (restoredItem) {
         restoredItems.push(restoredItem);

@@ -78,6 +78,25 @@ echo "Environment configuration complete."
 LIBRARIES_DIR="/app/libraries"
 BUNDLED_LIBS_FILE="$APP_DIR/bundled-libraries.js"
 
+# Function to humanize a filename (e.g., "software-architecture" -> "Software Architecture")
+humanize_filename() {
+    echo "$1" | sed 's/-/ /g; s/_/ /g' | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2))}1'
+}
+
+# Function to extract the "name" field from JSON if present
+extract_library_name() {
+    local file="$1"
+    local fallback="$2"
+    # Try to extract "name" field from JSON root level
+    # Using grep and sed for compatibility with Alpine/busybox
+    local name=$(grep -o '"name"[[:space:]]*:[[:space:]]*"[^"]*"' "$file" | head -1 | sed 's/.*"name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/')
+    if [ -n "$name" ]; then
+        echo "$name"
+    else
+        echo "$fallback"
+    fi
+}
+
 # Function to process .excalidrawlib files and extract library items
 process_libraries() {
     local first=true
@@ -99,7 +118,7 @@ process_libraries() {
             # or older format with "libraryItems" instead of "library"
             
             # Use sed/awk to extract library items and add required fields
-            # Each item needs: id, status, created, elements, name (optional)
+            # Each item needs: id, status, created, elements, name (optional), libraryName
             
             if [ "$first" = true ]; then
                 first=false
@@ -113,6 +132,14 @@ process_libraries() {
             
             # Get filename without path and extension for naming
             libname=$(basename "$libfile" .excalidrawlib)
+            
+            # Get humanized fallback name from filename
+            humanized_name=$(humanize_filename "$libname")
+            
+            # Extract library display name from JSON "name" field, or use humanized filename
+            library_display_name=$(extract_library_name "$libfile" "$humanized_name")
+            
+            echo "  Library display name: $library_display_name"
             
             # Process the library file - extract items and add metadata
             # This awk script extracts items from the library array
@@ -158,7 +185,7 @@ process_libraries() {
             }
             ' "$libfile" | \
             # Now process each item (array of elements) and wrap it
-            awk -v libname="$libname" '
+            awk -v libname="$libname" -v libraryDisplayName="$library_display_name" '
             BEGIN {
                 item_num = 0
                 in_item = 0
@@ -196,6 +223,7 @@ process_libraries() {
                                 printf "  \"status\": \"published\",\n"
                                 printf "  \"created\": %d,\n", timestamp
                                 printf "  \"name\": \"%s Item %d\",\n", libname, item_num
+                                printf "  \"libraryName\": \"%s\",\n", libraryDisplayName
                                 printf "  \"elements\": %s\n", item_buffer
                                 printf "}"
                                 in_item = 0

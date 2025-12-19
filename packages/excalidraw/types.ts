@@ -591,6 +591,8 @@ export type LibraryItem = {
   created: number;
   name?: string;
   error?: string;
+  /** library name for grouping items in the sidebar */
+  libraryName?: string;
 };
 export type LibraryItems = readonly LibraryItem[];
 export type LibraryItems_anyVersion = LibraryItems | LibraryItems_v1;
