@@ -582,6 +582,11 @@ export type LibraryItem_v1 = readonly NonDeleted<ExcalidrawElement>[];
 /** @deprecated legacy: do not use outside of migration paths */
 type LibraryItems_v1 = readonly LibraryItem_v1[];
 
+/** Localized names map for library items (language code -> name) */
+export type LibraryLocalizedNames = {
+  [langCode: string]: string;
+};
+
 /** v2 library item */
 export type LibraryItem = {
   id: string;
@@ -591,8 +596,10 @@ export type LibraryItem = {
   created: number;
   name?: string;
   error?: string;
-  /** library name for grouping items in the sidebar */
+  /** library name for grouping items in the sidebar (fallback) */
   libraryName?: string;
+  /** localized library names map (e.g., { "en": "Icons", "ru-RU": "Иконки" }) */
+  libraryNames?: LibraryLocalizedNames;
 };
 export type LibraryItems = readonly LibraryItem[];
 export type LibraryItems_anyVersion = LibraryItems | LibraryItems_v1;

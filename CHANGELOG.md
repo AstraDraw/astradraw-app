@@ -9,6 +9,32 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.15] - 2025-12-20
+
+### Added
+
+- **Localized Library Names (i18n)**
+  - Library section titles now support multiple languages
+  - Add `"names"` object in `.excalidrawlib` files with language codes as keys (e.g., `"ru-RU": "Архитектура ПО"`)
+  - Automatically displays localized name based on user's UI language
+  - Fallback chain: exact match → language prefix → English → `name` field
+  - Search works across all localized names
+
+- **Enhanced Library Search**
+  - Search now includes text content inside library item elements
+  - Search in library names (both default and localized)
+  - Example: searching "Menu" finds items containing text element with "Menu"
+
+### Changed
+
+- **LibraryItem Type**
+  - Added `libraryNames?: Record<string, string>` field for localized names
+  - Added `LibraryLocalizedNames` type alias
+
+- **docker-entrypoint.sh**
+  - Now extracts `"names"` object from library JSON for i18n support
+  - Passes `libraryNames` to each generated library item
+
 ## [0.18.0-beta0.14] - 2025-12-20
 
 ### Added

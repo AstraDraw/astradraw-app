@@ -13,10 +13,11 @@ import { duplicateElements } from "@excalidraw/element";
 import clsx from "clsx";
 
 import { deburr } from "../deburr";
+import { getLocalizedLibraryName } from "../data/libraryUtils";
 
 import { useLibraryCache } from "../hooks/useLibraryItemSvg";
 import { useScrollPosition } from "../hooks/useScrollPosition";
-import { t } from "../i18n";
+import { t, useI18n } from "../i18n";
 
 import { LibraryMenuControlButtons } from "./LibraryMenuControlButtons";
 import { LibraryDropdownMenu } from "./LibraryMenuHeaderContent";
@@ -105,10 +106,37 @@ export default function LibraryMenuItems({
     }
 
     return libraryItems.filter((item) => {
+      // Search in item name
       const itemName = item.name || "";
-      return (
-        itemName.trim() && deburr(itemName.toLowerCase()).includes(searchQuery)
-      );
+      if (itemName.trim() && deburr(itemName.toLowerCase()).includes(searchQuery)) {
+        return true;
+      }
+
+      // Search in library name (group name)
+      const libraryName = item.libraryName || "";
+      if (libraryName.trim() && deburr(libraryName.toLowerCase()).includes(searchQuery)) {
+        return true;
+      }
+
+      // Search in localized library names
+      if (item.libraryNames) {
+        for (const localizedName of Object.values(item.libraryNames)) {
+          if (localizedName && deburr(localizedName.toLowerCase()).includes(searchQuery)) {
+            return true;
+          }
+        }
+      }
+
+      // Search in element text content
+      for (const element of item.elements) {
+        if ("text" in element && typeof element.text === "string") {
+          if (deburr(element.text.toLowerCase()).includes(searchQuery)) {
+            return true;
+          }
+        }
+      }
+
+      return false;
     });
   }, [libraryItems, searchInputValue]);
 
@@ -123,16 +151,21 @@ export default function LibraryMenuItems({
   );
 
   // Group published items by libraryName for collapsible sections
+  // Also track libraryNames (localized) for each group
   const groupedPublishedItems = useMemo(() => {
-    const groups = new Map<string, LibraryItem[]>();
+    const groups = new Map<
+      string,
+      { items: LibraryItem[]; libraryNames?: LibraryItem["libraryNames"] }
+    >();
     const defaultGroupName = t("labels.excalidrawLib");
 
     for (const item of publishedItems) {
       const groupName = item.libraryName || defaultGroupName;
       if (!groups.has(groupName)) {
-        groups.set(groupName, []);
+        // Store libraryNames from the first item in the group (all items in same library should have same libraryNames)
+        groups.set(groupName, { items: [], libraryNames: item.libraryNames });
       }
-      groups.get(groupName)!.push(item);
+      groups.get(groupName)!.items.push(item);
     }
 
     return groups;
@@ -323,10 +356,11 @@ export default function LibraryMenuItems({
       {publishedItems.length > 0 && (
         <div className="library-menu-items-container__published-sections">
           {Array.from(groupedPublishedItems.entries()).map(
-            ([libraryName, items]) => (
+            ([libraryName, { items, libraryNames }]) => (
               <CollapsibleLibrarySection
                 key={libraryName}
                 libraryName={libraryName}
+                libraryNames={libraryNames}
                 items={items}
                 onItemSelectToggle={onItemSelectToggle}
                 onItemDrag={onItemDrag}

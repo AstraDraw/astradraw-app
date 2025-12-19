@@ -97,6 +97,41 @@ extract_library_name() {
     fi
 }
 
+# Function to extract the "names" object (localized names) from JSON if present
+# Returns the JSON object as-is for embedding, or empty string if not found
+extract_library_names() {
+    local file="$1"
+    # Extract "names" object from JSON root level using awk
+    # This handles nested objects properly by counting braces
+    awk '
+    BEGIN { in_names = 0; brace_count = 0; buffer = "" }
+    {
+        if (!in_names && match($0, /"names"[[:space:]]*:[[:space:]]*\{/)) {
+            in_names = 1
+            # Get everything starting from the opening brace
+            sub(/.*"names"[[:space:]]*:[[:space:]]*/, "")
+            brace_count = 0
+        }
+        if (in_names) {
+            for (i = 1; i <= length($0); i++) {
+                c = substr($0, i, 1)
+                buffer = buffer c
+                if (c == "{") brace_count++
+                if (c == "}") {
+                    brace_count--
+                    if (brace_count == 0) {
+                        # Complete object found
+                        print buffer
+                        exit
+                    }
+                }
+            }
+            buffer = buffer "\n"
+        }
+    }
+    ' "$file" | tr -d '\n'
+}
+
 # Function to process .excalidrawlib files and extract library items
 process_libraries() {
     local first=true
@@ -139,7 +174,13 @@ process_libraries() {
             # Extract library display name from JSON "name" field, or use humanized filename
             library_display_name=$(extract_library_name "$libfile" "$humanized_name")
             
+            # Extract localized names object if present
+            library_names_json=$(extract_library_names "$libfile")
+            
             echo "  Library display name: $library_display_name"
+            if [ -n "$library_names_json" ]; then
+                echo "  Localized names found: $library_names_json"
+            fi
             
             # Process the library file - extract items and add metadata
             # This awk script extracts items from the library array
@@ -185,13 +226,14 @@ process_libraries() {
             }
             ' "$libfile" | \
             # Now process each item (array of elements) and wrap it
-            awk -v libname="$libname" -v libraryDisplayName="$library_display_name" '
+            awk -v libname="$libname" -v libraryDisplayName="$library_display_name" -v libraryNamesJson="$library_names_json" '
             BEGIN {
                 item_num = 0
                 in_item = 0
                 bracket_count = 0
                 item_buffer = ""
                 first_item = 1
+                has_localized_names = (length(libraryNamesJson) > 0)
             }
             {
                 line = $0
@@ -224,6 +266,9 @@ process_libraries() {
                                 printf "  \"created\": %d,\n", timestamp
                                 printf "  \"name\": \"%s Item %d\",\n", libname, item_num
                                 printf "  \"libraryName\": \"%s\",\n", libraryDisplayName
+                                if (has_localized_names) {
+                                    printf "  \"libraryNames\": %s,\n", libraryNamesJson
+                                }
                                 printf "  \"elements\": %s\n", item_buffer
                                 printf "}"
                                 in_item = 0

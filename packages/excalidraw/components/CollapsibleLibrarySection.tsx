@@ -2,6 +2,9 @@ import React, { memo, useState } from "react";
 
 import clsx from "clsx";
 
+import { resolveLocalizedName } from "../data/libraryUtils";
+import { useI18n } from "../i18n";
+
 import { collapseDownIcon, collapseUpIcon } from "./icons";
 import {
   LibraryMenuSection,
@@ -9,10 +12,13 @@ import {
 } from "./LibraryMenuSection";
 
 import type { SvgCache } from "../hooks/useLibraryItemSvg";
-import type { LibraryItem } from "../types";
+import type { LibraryItem, LibraryLocalizedNames } from "../types";
 
 interface CollapsibleLibrarySectionProps {
+  /** Fallback library name (used as key and fallback display) */
   libraryName: string;
+  /** Localized names map for i18n support */
+  libraryNames?: LibraryLocalizedNames;
   items: LibraryItem[];
   onItemSelectToggle: (id: LibraryItem["id"], event: React.MouseEvent) => void;
   onItemDrag: (id: LibraryItem["id"], event: React.DragEvent) => void;
@@ -26,6 +32,7 @@ interface CollapsibleLibrarySectionProps {
 export const CollapsibleLibrarySection = memo(
   ({
     libraryName,
+    libraryNames,
     items,
     onItemSelectToggle,
     onItemDrag,
@@ -36,10 +43,15 @@ export const CollapsibleLibrarySection = memo(
     defaultCollapsed = false,
   }: CollapsibleLibrarySectionProps) => {
     const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
+    // Subscribe to language changes to re-render when language changes
+    useI18n();
 
     const toggleCollapsed = () => {
       setIsCollapsed((prev) => !prev);
     };
+
+    // Resolve the display name based on current language
+    const displayName = resolveLocalizedName(libraryNames, libraryName);
 
     return (
       <div className="library-menu-items-container__section">
@@ -55,7 +67,7 @@ export const CollapsibleLibrarySection = memo(
             {isCollapsed ? collapseDownIcon : collapseUpIcon}
           </span>
           <span className="library-menu-items-container__section-header-title">
-            {libraryName}
+            {displayName}
           </span>
           <span className="library-menu-items-container__section-header-count">
             ({items.length})
