@@ -1,7 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 import { useAuth } from "../../auth";
 import "./LoginDialog.scss";
+
+// Stop keyboard events from propagating to Excalidraw canvas
+const stopPropagation = (e: React.KeyboardEvent) => {
+  e.stopPropagation();
+};
 
 type DialogMode = "signin" | "signup";
 
@@ -138,6 +143,8 @@ export const LoginDialog: React.FC<LoginDialogProps> = ({
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
+                    onKeyDown={stopPropagation}
+                    onKeyUp={stopPropagation}
                     placeholder={t("workspace.namePlaceholder")}
                   />
                 </div>
@@ -150,6 +157,8 @@ export const LoginDialog: React.FC<LoginDialogProps> = ({
                   type={isSignUp ? "email" : "text"}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  onKeyDown={stopPropagation}
+                  onKeyUp={stopPropagation}
                   placeholder={isSignUp ? "you@example.com" : "admin"}
                   required
                   autoFocus
@@ -163,6 +172,8 @@ export const LoginDialog: React.FC<LoginDialogProps> = ({
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  onKeyDown={stopPropagation}
+                  onKeyUp={stopPropagation}
                   placeholder="••••••••"
                   required
                 />
@@ -176,6 +187,8 @@ export const LoginDialog: React.FC<LoginDialogProps> = ({
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
+                    onKeyDown={stopPropagation}
+                    onKeyUp={stopPropagation}
                     placeholder="••••••••"
                     required
                   />
