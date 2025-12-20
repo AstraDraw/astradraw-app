@@ -68,34 +68,31 @@ export const AppFooter = React.memo(
       <>
         {/* Presentation and Talktrack toggle buttons - positioned after undo/redo in footer left */}
         <FooterLeftExtra>
-          <div className="app-footer__buttons-container">
-            <Tooltip label={t("presentation.title")}>
-              <button
-                className="app-footer__sidebar-button"
-                onClick={handleTogglePresentationSidebar}
-                type="button"
-                aria-label={t("presentation.title")}
-              >
-                <div className="ToolIcon__icon" aria-hidden="true">
-                  {presentationIcon}
-                </div>
-              </button>
-            </Tooltip>
+          <Tooltip label={t("presentation.title")}>
+            <button
+              className="app-footer__sidebar-button"
+              onClick={handleTogglePresentationSidebar}
+              type="button"
+              aria-label={t("presentation.title")}
+            >
+              <div className="ToolIcon__icon" aria-hidden="true">
+                {presentationIcon}
+              </div>
+            </button>
+          </Tooltip>
 
-            {/* Talktrack toggle button */}
-            <Tooltip label={t("talktrack.title")}>
-              <button
-                className="app-footer__sidebar-button"
-                onClick={handleToggleTalktrackSidebar}
-                type="button"
-                aria-label={t("talktrack.title")}
-              >
-                <div className="ToolIcon__icon" aria-hidden="true">
-                  {videoIcon}
-                </div>
-              </button>
-            </Tooltip>
-          </div>
+          <Tooltip label={t("talktrack.title")}>
+            <button
+              className="app-footer__sidebar-button"
+              onClick={handleToggleTalktrackSidebar}
+              type="button"
+              aria-label={t("talktrack.title")}
+            >
+              <div className="ToolIcon__icon" aria-hidden="true">
+                {videoIcon}
+              </div>
+            </button>
+          </Tooltip>
         </FooterLeftExtra>
 
         {/* Center footer content */}

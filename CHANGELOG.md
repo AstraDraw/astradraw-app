@@ -9,6 +9,16 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.27] - 2025-12-20
+
+### Fixed
+
+- **Footer Button Layout**
+  - Separated Presentation and Talktrack buttons into individual islands
+  - Added proper spacing between buttons (0.375rem gap)
+  - Added margin before buttons to separate from undo/redo (0.5rem)
+  - Each button now has its own background and shadow (matching undo/redo style)
+
 ## [0.18.0-beta0.26] - 2025-12-20
 
 ### Added
