@@ -877,6 +877,7 @@
     "loginWithOIDC": "Sign in with SSO",
     "defaultCredentialsHint": "Default: admin / admin",
     "alreadyHaveAccount": "Already have an account?",
-    "noAccount": "Don't have an account?"
+    "noAccount": "Don't have an account?",
+    "newSceneCreated": "New scene created"
   }
 }

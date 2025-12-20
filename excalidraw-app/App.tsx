@@ -841,9 +841,46 @@ const ExcalidrawWrapper = () => {
   );
 
   // Workspace handlers
-  const handleNewScene = useCallback(() => {
-    if (excalidrawAPI) {
+  const handleNewScene = useCallback(async () => {
+    if (!excalidrawAPI) {
+      return;
+    }
+
+    try {
+      // Generate a title with timestamp
+      const title = `${t("workspace.untitled")} ${new Date().toLocaleTimeString()}`;
+      
+      // Create scene in backend immediately
+      const scene = await createScene({ title });
+      
       // Clear the canvas
+      excalidrawAPI.resetScene();
+      
+      // Set the new scene as current (so auto-save works)
+      setCurrentSceneId(scene.id);
+      setCurrentSceneTitle(title);
+      setWorkspaceSidebarOpen(false);
+      
+      // Save empty scene data to establish storage
+      const emptySceneData = {
+        type: "excalidraw",
+        version: 2,
+        source: window.location.href,
+        elements: [],
+        appState: {
+          viewBackgroundColor: "#ffffff",
+        },
+        files: {},
+      };
+      const blob = new Blob([JSON.stringify(emptySceneData)], {
+        type: "application/json",
+      });
+      await updateSceneData(scene.id, blob);
+      
+      excalidrawAPI.setToast({ message: t("workspace.newSceneCreated") || "New scene created" });
+    } catch (error) {
+      console.error("Failed to create new scene:", error);
+      // Fallback: just clear canvas without backend save
       excalidrawAPI.resetScene();
       setCurrentSceneId(null);
       setCurrentSceneTitle("Untitled");

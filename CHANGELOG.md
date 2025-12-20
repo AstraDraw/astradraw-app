@@ -9,6 +9,23 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.32] - 2025-12-20
+
+### Added
+
+- **Auto-save for New Scenes**
+  - "New Scene" button now auto-creates scene in backend
+  - Scene is immediately saved to workspace (no manual save required)
+  - Subsequent edits auto-save to the created scene
+  - Toast notification confirms scene creation
+
+### Fixed
+
+- **Workspace Trigger Button Position**
+  - Button now renders before hamburger menu (like Excalidraw+)
+  - Uses tunnel system to inject into correct DOM position
+  - Updated icon to match Excalidraw+ sidebar panel icon
+
 ## [0.18.0-beta0.30] - 2025-12-20
 
 ### Changed
