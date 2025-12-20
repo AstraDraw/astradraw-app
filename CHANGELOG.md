@@ -9,6 +9,21 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.30] - 2025-12-20
+
+### Changed
+
+- **Backend Service Renamed**
+  - Renamed from `excalidraw-storage-backend` to `astradraw-api`
+  - Docker service renamed from `storage` to `api`
+  - New image: `ghcr.io/astrateam-net/astradraw-api:0.5`
+
+- **Faster Docker Builds**
+  - Switched from `bcrypt` to `bcryptjs` (pure JS, no native compilation)
+  - Changed base image from `node:20-alpine` to `node:20-slim`
+  - Removed python/make/g++ build dependencies
+  - Build time reduced from ~10min to ~2min
+
 ## [0.18.0-beta0.29] - 2025-12-20
 
 ### Added
