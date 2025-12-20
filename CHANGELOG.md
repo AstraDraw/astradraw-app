@@ -9,6 +9,41 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.33] - 2025-12-20
+
+### Added
+
+- **Scene-Specific Talktrack Storage**
+  - Recordings now linked to workspace scenes (stored in PostgreSQL)
+  - Recordings sync across devices and browsers
+  - Shared viewers can see recordings on public scenes
+  - New "Save scene first" message when recording without a saved scene
+
+- **Talktrack API Integration**
+  - New API functions in `workspaceApi.ts`:
+    - `listTalktracks(sceneId)` - Get recordings for a scene
+    - `createTalktrack(sceneId, dto)` - Save recording to scene
+    - `updateTalktrack(sceneId, id, dto)` - Update recording
+    - `deleteTalktrack(sceneId, id)` - Delete recording
+    - `updateTalktrackStatus(sceneId, id, status)` - Update processing status
+
+- **Permission-Based UI**
+  - Only recording owners see edit/delete options
+  - Viewers can copy links and add to board
+  - Loading and error states in TalktrackPanel
+
+### Changed
+
+- `TalktrackPanel` now requires `sceneId` prop
+- `TalktrackManager` now requires `sceneId` and `onRecordingSaved` props
+- `AppSidebar` passes `sceneId` to Talktrack components
+- Removed localStorage-based recording storage (replaced with API)
+
+### Removed
+
+- `getRecordings()`, `saveRecording()`, `deleteRecording()`, `renameRecording()` from `kinescopeApi.ts`
+- Local `TalktrackRecording` type (now imported from `workspaceApi.ts`)
+
 ## [0.18.0-beta0.32] - 2025-12-20
 
 ### Added

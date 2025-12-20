@@ -261,3 +261,196 @@ export async function duplicateScene(id: string): Promise<WorkspaceScene> {
 
   return response.json();
 }
+
+// ============================================================================
+// Talktrack Recording API
+// ============================================================================
+
+export interface TalktrackRecording {
+  id: string;
+  title: string;
+  kinescopeVideoId: string;
+  duration: number;
+  processingStatus: "uploading" | "processing" | "ready" | "error";
+  sceneId: string;
+  userId: string;
+  isOwner: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateTalktrackDto {
+  title: string;
+  kinescopeVideoId: string;
+  duration: number;
+  processingStatus?: string;
+}
+
+export interface UpdateTalktrackDto {
+  title?: string;
+  processingStatus?: string;
+}
+
+/**
+ * List all talktrack recordings for a scene
+ */
+export async function listTalktracks(
+  sceneId: string,
+): Promise<TalktrackRecording[]> {
+  const response = await fetch(
+    `${getApiBaseUrl()}/workspace/scenes/${sceneId}/talktracks`,
+    {
+      credentials: "include",
+    },
+  );
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("Not authenticated");
+    }
+    if (response.status === 404) {
+      throw new Error("Scene not found");
+    }
+    if (response.status === 403) {
+      throw new Error("Access denied");
+    }
+    throw new Error("Failed to list recordings");
+  }
+
+  return response.json();
+}
+
+/**
+ * Create a new talktrack recording for a scene
+ */
+export async function createTalktrack(
+  sceneId: string,
+  dto: CreateTalktrackDto,
+): Promise<TalktrackRecording> {
+  const response = await fetch(
+    `${getApiBaseUrl()}/workspace/scenes/${sceneId}/talktracks`,
+    {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(dto),
+    },
+  );
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("Not authenticated");
+    }
+    if (response.status === 404) {
+      throw new Error("Scene not found");
+    }
+    if (response.status === 403) {
+      throw new Error("Only scene owner can create recordings");
+    }
+    throw new Error("Failed to create recording");
+  }
+
+  return response.json();
+}
+
+/**
+ * Update a talktrack recording
+ */
+export async function updateTalktrack(
+  sceneId: string,
+  recordingId: string,
+  dto: UpdateTalktrackDto,
+): Promise<TalktrackRecording> {
+  const response = await fetch(
+    `${getApiBaseUrl()}/workspace/scenes/${sceneId}/talktracks/${recordingId}`,
+    {
+      method: "PUT",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(dto),
+    },
+  );
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("Not authenticated");
+    }
+    if (response.status === 404) {
+      throw new Error("Recording not found");
+    }
+    if (response.status === 403) {
+      throw new Error("Only recording owner can update");
+    }
+    throw new Error("Failed to update recording");
+  }
+
+  return response.json();
+}
+
+/**
+ * Delete a talktrack recording
+ */
+export async function deleteTalktrack(
+  sceneId: string,
+  recordingId: string,
+): Promise<{ success: boolean }> {
+  const response = await fetch(
+    `${getApiBaseUrl()}/workspace/scenes/${sceneId}/talktracks/${recordingId}`,
+    {
+      method: "DELETE",
+      credentials: "include",
+    },
+  );
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("Not authenticated");
+    }
+    if (response.status === 404) {
+      throw new Error("Recording not found");
+    }
+    if (response.status === 403) {
+      throw new Error("Only recording owner can delete");
+    }
+    throw new Error("Failed to delete recording");
+  }
+
+  return response.json();
+}
+
+/**
+ * Update talktrack processing status
+ */
+export async function updateTalktrackStatus(
+  sceneId: string,
+  recordingId: string,
+  status: string,
+): Promise<TalktrackRecording> {
+  const response = await fetch(
+    `${getApiBaseUrl()}/workspace/scenes/${sceneId}/talktracks/${recordingId}/status`,
+    {
+      method: "PUT",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ status }),
+    },
+  );
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("Not authenticated");
+    }
+    if (response.status === 404) {
+      throw new Error("Recording not found");
+    }
+    throw new Error("Failed to update status");
+  }
+
+  return response.json();
+}

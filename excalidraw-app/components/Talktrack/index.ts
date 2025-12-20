@@ -15,11 +15,9 @@ export {
 export {
   isKinescopeConfigured,
   uploadToKinescope,
-  getRecordings,
-  saveRecording,
-  deleteRecording,
-  renameRecording,
   getKinescopeEmbedUrl,
-  type TalktrackRecording,
+  checkVideoStatus,
   type UploadProgress,
 } from "./kinescopeApi";
+// TalktrackRecording type is now exported from workspaceApi.ts
+export type { TalktrackRecording } from "../../auth/workspaceApi";

@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 
 import { DefaultSidebar, Sidebar, THEME } from "@excalidraw/excalidraw";
 import {
@@ -20,11 +20,13 @@ import "./AppSidebar.scss";
 
 interface AppSidebarProps {
   excalidrawAPI: ExcalidrawImperativeAPI | null;
+  sceneId: string | null;
 }
 
-export const AppSidebar: React.FC<AppSidebarProps> = ({ excalidrawAPI }) => {
+export const AppSidebar: React.FC<AppSidebarProps> = ({ excalidrawAPI, sceneId }) => {
   const { theme, openSidebar } = useUIAppState();
   const [isRecordingDialogOpen, setIsRecordingDialogOpen] = useState(false);
+  const [recordingsRefreshKey, setRecordingsRefreshKey] = useState(0);
 
   const handleStartRecording = useCallback(() => {
     setIsRecordingDialogOpen(true);
@@ -32,6 +34,11 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ excalidrawAPI }) => {
 
   const handleCloseRecordingDialog = useCallback(() => {
     setIsRecordingDialogOpen(false);
+  }, []);
+
+  // Called when a recording is saved to refresh the panel
+  const handleRecordingSaved = useCallback(() => {
+    setRecordingsRefreshKey((prev) => prev + 1);
   }, []);
 
   return (
@@ -82,8 +89,10 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ excalidrawAPI }) => {
       </Sidebar.Tab>
         <Sidebar.Tab tab="talktrack">
           <TalktrackPanel
+            key={recordingsRefreshKey}
             excalidrawAPI={excalidrawAPI}
             onStartRecording={handleStartRecording}
+            sceneId={sceneId}
           />
         </Sidebar.Tab>
     </DefaultSidebar>
@@ -93,6 +102,8 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ excalidrawAPI }) => {
         excalidrawAPI={excalidrawAPI}
         isRecordingDialogOpen={isRecordingDialogOpen}
         onCloseRecordingDialog={handleCloseRecordingDialog}
+        sceneId={sceneId}
+        onRecordingSaved={handleRecordingSaved}
       />
     </>
   );

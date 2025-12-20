@@ -8,21 +8,25 @@ import { t } from "@excalidraw/excalidraw/i18n";
 import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 
 import {
-  getRecordings,
-  deleteRecording,
-  renameRecording,
   isKinescopeConfigured,
   getKinescopeEmbedUrl,
   checkVideoStatus,
-  updateRecordingStatus,
-  type TalktrackRecording,
 } from "./kinescopeApi";
+
+import {
+  listTalktracks,
+  updateTalktrack,
+  deleteTalktrack,
+  updateTalktrackStatus,
+  type TalktrackRecording,
+} from "../../auth/workspaceApi";
 
 import "./TalktrackPanel.scss";
 
 interface TalktrackPanelProps {
   excalidrawAPI: ExcalidrawImperativeAPI | null;
   onStartRecording: () => void;
+  sceneId: string | null;
 }
 
 interface RecordingItemProps {
@@ -108,6 +112,7 @@ const RecordingItem: React.FC<RecordingItemProps> = ({
   }, [isMenuOpen]);
 
   const isProcessing = recording.processingStatus === "processing" || recording.processingStatus === "uploading";
+  const isOwner = recording.isOwner;
 
   return (
     <div className="talktrack-panel__recording">
@@ -195,81 +200,84 @@ const RecordingItem: React.FC<RecordingItemProps> = ({
           </svg>
         </button>
 
-        <div className="talktrack-panel__menu-container">
-          <button
-            className="talktrack-panel__action-button"
-            onClick={handleMenuClick}
-            title={t("talktrack.moreOptions")}
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="currentColor"
+        {/* Only show menu for owners */}
+        {isOwner && (
+          <div className="talktrack-panel__menu-container">
+            <button
+              className="talktrack-panel__action-button"
+              onClick={handleMenuClick}
+              title={t("talktrack.moreOptions")}
             >
-              <circle cx="12" cy="5" r="2" />
-              <circle cx="12" cy="12" r="2" />
-              <circle cx="12" cy="19" r="2" />
-            </svg>
-          </button>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <circle cx="12" cy="5" r="2" />
+                <circle cx="12" cy="12" r="2" />
+                <circle cx="12" cy="19" r="2" />
+              </svg>
+            </button>
 
-          {isMenuOpen && (
-            <div className="talktrack-panel__menu">
-              <button
-                className="talktrack-panel__menu-item"
-                onClick={() => {
-                  onAddToBoard(recording);
-                  setIsMenuOpen(false);
-                }}
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
+            {isMenuOpen && (
+              <div className="talktrack-panel__menu">
+                <button
+                  className="talktrack-panel__menu-item"
+                  onClick={() => {
+                    onAddToBoard(recording);
+                    setIsMenuOpen(false);
+                  }}
                 >
-                  <rect x="3" y="3" width="18" height="18" rx="2" />
-                  <line x1="12" y1="8" x2="12" y2="16" />
-                  <line x1="8" y1="12" x2="16" y2="12" />
-                </svg>
-                {t("talktrack.addToBoard")}
-              </button>
-              <button className="talktrack-panel__menu-item" onClick={handleRename}>
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <rect x="3" y="3" width="18" height="18" rx="2" />
+                    <line x1="12" y1="8" x2="12" y2="16" />
+                    <line x1="8" y1="12" x2="16" y2="12" />
+                  </svg>
+                  {t("talktrack.addToBoard")}
+                </button>
+                <button className="talktrack-panel__menu-item" onClick={handleRename}>
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                  </svg>
+                  {t("talktrack.rename")}
+                </button>
+                <button
+                  className="talktrack-panel__menu-item talktrack-panel__menu-item--danger"
+                  onClick={handleDelete}
                 >
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                </svg>
-                {t("talktrack.rename")}
-              </button>
-              <button
-                className="talktrack-panel__menu-item talktrack-panel__menu-item--danger"
-                onClick={handleDelete}
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <polyline points="3 6 5 6 21 6" />
-                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                </svg>
-                {t("talktrack.delete")}
-              </button>
-            </div>
-          )}
-        </div>
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                  </svg>
+                  {t("talktrack.delete")}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -321,24 +329,73 @@ const NotConfigured: React.FC = () => (
   </div>
 );
 
+const NoSceneState: React.FC = () => (
+  <div className="talktrack-panel__no-scene">
+    <div className="talktrack-panel__no-scene-icon">
+      <svg
+        width="48"
+        height="48"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      >
+        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+        <polyline points="17 21 17 13 7 13 7 21" />
+        <polyline points="7 3 7 8 15 8" />
+      </svg>
+    </div>
+    <h3 className="talktrack-panel__no-scene-title">
+      {t("talktrack.noSceneTitle") || "Save your scene first"}
+    </h3>
+    <p className="talktrack-panel__no-scene-description">
+      {t("talktrack.noSceneDescription") || "Talktrack recordings are saved with your scene. Save your scene to the workspace to start recording."}
+    </p>
+  </div>
+);
+
 export const TalktrackPanel: React.FC<TalktrackPanelProps> = ({
   excalidrawAPI,
   onStartRecording,
+  sceneId,
 }) => {
   const [recordings, setRecordings] = useState<TalktrackRecording[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Load recordings on mount
+  // Load recordings when sceneId changes
+  const loadRecordings = useCallback(async () => {
+    if (!sceneId) {
+      setRecordings([]);
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const data = await listTalktracks(sceneId);
+      setRecordings(data);
+    } catch (err) {
+      console.error("Failed to load recordings:", err);
+      setError("Failed to load recordings");
+      setRecordings([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [sceneId]);
+
+  // Load recordings on mount and when sceneId changes
   useEffect(() => {
-    setRecordings(getRecordings());
-  }, []);
-
-  // Refresh recordings when panel becomes visible
-  const refreshRecordings = useCallback(() => {
-    setRecordings(getRecordings());
-  }, []);
+    loadRecordings();
+  }, [loadRecordings]);
 
   // Poll for processing status updates
   useEffect(() => {
+    if (!sceneId) {
+      return;
+    }
+
     const processingRecordings = recordings.filter(
       (r) => r.processingStatus === "processing" || r.processingStatus === "uploading",
     );
@@ -353,8 +410,8 @@ export const TalktrackPanel: React.FC<TalktrackPanelProps> = ({
         try {
           const status = await checkVideoStatus(recording.kinescopeVideoId);
           if (status !== "processing") {
-            updateRecordingStatus(recording.id, status);
-            refreshRecordings();
+            await updateTalktrackStatus(sceneId, recording.id, status);
+            loadRecordings();
           }
         } catch (error) {
           console.error("Failed to check video status:", error);
@@ -368,8 +425,8 @@ export const TalktrackPanel: React.FC<TalktrackPanelProps> = ({
         try {
           const status = await checkVideoStatus(recording.kinescopeVideoId);
           if (status !== "processing") {
-            updateRecordingStatus(recording.id, status);
-            refreshRecordings();
+            await updateTalktrackStatus(sceneId, recording.id, status);
+            loadRecordings();
           }
         } catch (error) {
           console.error("Failed to check video status:", error);
@@ -378,7 +435,7 @@ export const TalktrackPanel: React.FC<TalktrackPanelProps> = ({
     })();
 
     return () => clearInterval(intervalId);
-  }, [recordings, refreshRecordings]);
+  }, [recordings, sceneId, loadRecordings]);
 
   const handleAddToBoard = useCallback(
     (recording: TalktrackRecording) => {
@@ -422,12 +479,29 @@ export const TalktrackPanel: React.FC<TalktrackPanelProps> = ({
     [excalidrawAPI],
   );
 
-  const handleRename = useCallback((id: string, newTitle: string) => {
-    renameRecording(id, newTitle);
-    refreshRecordings();
-  }, [refreshRecordings]);
+  const handleRename = useCallback(async (id: string, newTitle: string) => {
+    if (!sceneId) {
+      return;
+    }
+
+    try {
+      await updateTalktrack(sceneId, id, { title: newTitle });
+      loadRecordings();
+    } catch (err) {
+      console.error("Failed to rename recording:", err);
+      excalidrawAPI?.setToast({
+        message: t("talktrack.renameError") || "Failed to rename recording",
+        duration: 3000,
+        closable: true,
+      });
+    }
+  }, [sceneId, loadRecordings, excalidrawAPI]);
 
   const handleDelete = useCallback(async (id: string) => {
+    if (!sceneId) {
+      return;
+    }
+
     // Show deleting toast
     excalidrawAPI?.setToast({
       message: t("talktrack.deleting"),
@@ -436,8 +510,8 @@ export const TalktrackPanel: React.FC<TalktrackPanelProps> = ({
     });
 
     try {
-      await deleteRecording(id, true); // Also delete from Kinescope
-      refreshRecordings();
+      await deleteTalktrack(sceneId, id);
+      loadRecordings();
       excalidrawAPI?.setToast({
         message: t("talktrack.deleteSuccess"),
         duration: 2000,
@@ -451,7 +525,7 @@ export const TalktrackPanel: React.FC<TalktrackPanelProps> = ({
         closable: true,
       });
     }
-  }, [refreshRecordings, excalidrawAPI]);
+  }, [sceneId, loadRecordings, excalidrawAPI]);
 
   const handleCopyLink = useCallback((recording: TalktrackRecording) => {
     const url = getKinescopeEmbedUrl(recording.kinescopeVideoId);
@@ -469,6 +543,53 @@ export const TalktrackPanel: React.FC<TalktrackPanelProps> = ({
     return (
       <div className="talktrack-panel" onWheel={(e) => e.stopPropagation()}>
         <NotConfigured />
+      </div>
+    );
+  }
+
+  // Show "save scene first" message if no sceneId
+  if (!sceneId) {
+    return (
+      <div className="talktrack-panel" onWheel={(e) => e.stopPropagation()}>
+        <NoSceneState />
+      </div>
+    );
+  }
+
+  // Show loading state
+  if (isLoading && recordings.length === 0) {
+    return (
+      <div className="talktrack-panel" onWheel={(e) => e.stopPropagation()}>
+        <div className="talktrack-panel__loading">
+          <div className="talktrack-panel__processing-indicator">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10" opacity="0.25" />
+              <path d="M12 2 A 10 10 0 0 1 22 12" strokeLinecap="round">
+                <animateTransform
+                  attributeName="transform"
+                  type="rotate"
+                  from="0 12 12"
+                  to="360 12 12"
+                  dur="1s"
+                  repeatCount="indefinite"
+                />
+              </path>
+            </svg>
+          </div>
+          <span>{t("talktrack.loading") || "Loading recordings..."}</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="talktrack-panel" onWheel={(e) => e.stopPropagation()}>
+        <div className="talktrack-panel__error">
+          <span>{error}</span>
+          <button onClick={loadRecordings}>{t("talktrack.retry") || "Retry"}</button>
+        </div>
       </div>
     );
   }

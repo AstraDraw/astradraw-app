@@ -11,10 +11,9 @@ import {
 } from "./TalktrackRecorder";
 import {
   uploadToKinescope,
-  saveRecording,
-  createRecordingEntry,
   type UploadProgress,
 } from "./kinescopeApi";
+import { createTalktrack } from "../../auth/workspaceApi";
 import { TalktrackSetupDialog } from "./TalktrackSetupDialog";
 import { TalktrackToolbar } from "./TalktrackToolbar";
 
@@ -22,12 +21,16 @@ interface TalktrackManagerProps {
   excalidrawAPI: ExcalidrawImperativeAPI | null;
   isRecordingDialogOpen: boolean;
   onCloseRecordingDialog: () => void;
+  sceneId: string | null;
+  onRecordingSaved?: () => void;
 }
 
 export const TalktrackManager: React.FC<TalktrackManagerProps> = ({
   excalidrawAPI,
   isRecordingDialogOpen,
   onCloseRecordingDialog,
+  sceneId,
+  onRecordingSaved,
 }) => {
   const [recordingState, setRecordingState] = useState<RecordingState>({
     status: "idle",
@@ -55,6 +58,17 @@ export const TalktrackManager: React.FC<TalktrackManagerProps> = ({
   const startRecording = useCallback(
     async (videoDeviceId: string | null, audioDeviceId: string | null) => {
       if (!recorderRef.current) {
+        return;
+      }
+
+      // Check if scene is saved
+      if (!sceneId) {
+        excalidrawAPI?.setToast({
+          message: t("talktrack.saveSceneFirst") || "Please save your scene first to record a talktrack",
+          duration: 4000,
+          closable: true,
+        });
+        onCloseRecordingDialog();
         return;
       }
 
@@ -104,12 +118,12 @@ export const TalktrackManager: React.FC<TalktrackManagerProps> = ({
         });
       }
     },
-    [excalidrawAPI, onCloseRecordingDialog],
+    [excalidrawAPI, onCloseRecordingDialog, sceneId],
   );
 
   // Stop recording and upload
   const stopRecording = useCallback(async () => {
-    if (!recorderRef.current) {
+    if (!recorderRef.current || !sceneId) {
       return;
     }
 
@@ -136,10 +150,16 @@ export const TalktrackManager: React.FC<TalktrackManagerProps> = ({
         setUploadProgress(progress);
       });
 
-      // Save recording entry with "processing" status
-      const recording = createRecordingEntry(videoId, title, duration);
-      recording.processingStatus = "processing";
-      saveRecording(recording);
+      // Save recording to backend API (linked to scene)
+      await createTalktrack(sceneId, {
+        title,
+        kinescopeVideoId: videoId,
+        duration,
+        processingStatus: "processing",
+      });
+
+      // Notify parent to refresh recordings list
+      onRecordingSaved?.();
 
       // Show success
       excalidrawAPI?.setToast({
@@ -158,7 +178,7 @@ export const TalktrackManager: React.FC<TalktrackManagerProps> = ({
       setIsUploading(false);
       setUploadProgress(null);
     }
-  }, [excalidrawAPI, recordingState.duration]);
+  }, [excalidrawAPI, recordingState.duration, sceneId, onRecordingSaved]);
 
   // Delete (cancel) recording
   const deleteRecording = useCallback(() => {
