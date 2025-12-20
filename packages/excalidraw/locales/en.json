@@ -884,6 +884,8 @@
     "defaultCredentialsHint": "Default: admin / admin",
     "alreadyHaveAccount": "Already have an account?",
     "noAccount": "Don't have an account?",
-    "newSceneCreated": "New scene created"
+    "newSceneCreated": "New scene created",
+    "autoSaved": "Auto-saved",
+    "saving": "Saving..."
   }
 }

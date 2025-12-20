@@ -385,6 +385,10 @@ const ExcalidrawWrapper = () => {
   });
   const [currentSceneId, setCurrentSceneId] = useState<string | null>(null);
   const [currentSceneTitle, setCurrentSceneTitle] = useState<string>("Untitled");
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastSavedDataRef = useRef<string | null>(null);
 
   // Auto-open sidebar when user logs in
   useEffect(() => {
@@ -763,6 +767,11 @@ const ExcalidrawWrapper = () => {
       });
     }
 
+    // Mark as having unsaved changes for auto-save
+    if (currentSceneId && !collabAPI?.isCollaborating()) {
+      setHasUnsavedChanges(true);
+    }
+
     // Render the debug scene if the debug canvas is available
     if (debugCanvasRef.current && excalidrawAPI) {
       debugRenderer(
@@ -980,6 +989,102 @@ const ExcalidrawWrapper = () => {
       setErrorMessage("Failed to save scene to workspace");
     }
   }, [excalidrawAPI, currentSceneId, currentSceneTitle]);
+
+  // Auto-save effect - triggers 3 seconds after changes stop
+  useEffect(() => {
+    if (!hasUnsavedChanges || !currentSceneId || !excalidrawAPI) {
+      return;
+    }
+
+    // Clear any existing timeout
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+
+    // Schedule auto-save after 3 seconds of inactivity
+    autoSaveTimeoutRef.current = setTimeout(async () => {
+      try {
+        const elements = excalidrawAPI.getSceneElements();
+        const appState = excalidrawAPI.getAppState();
+        const files = excalidrawAPI.getFiles();
+
+        // Create scene data for comparison
+        const sceneData = {
+          type: "excalidraw",
+          version: 2,
+          source: window.location.href,
+          elements,
+          appState: {
+            viewBackgroundColor: appState.viewBackgroundColor,
+            gridSize: appState.gridSize,
+          },
+          files: files || {},
+        };
+
+        const dataString = JSON.stringify(sceneData);
+
+        // Skip if data hasn't changed
+        if (lastSavedDataRef.current === dataString) {
+          setHasUnsavedChanges(false);
+          return;
+        }
+
+        setIsAutoSaving(true);
+
+        const blob = new Blob([dataString], {
+          type: "application/json",
+        });
+
+        await updateSceneData(currentSceneId, blob);
+        lastSavedDataRef.current = dataString;
+        setHasUnsavedChanges(false);
+
+        // Show subtle auto-save indicator
+        excalidrawAPI.setToast({ 
+          message: t("workspace.autoSaved"),
+          duration: 1500,
+        });
+      } catch (error) {
+        console.error("Auto-save failed:", error);
+        // Don't show error toast for auto-save failures to avoid spam
+      } finally {
+        setIsAutoSaving(false);
+      }
+    }, 3000); // 3 second debounce
+
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, [hasUnsavedChanges, currentSceneId, excalidrawAPI]);
+
+  // Reset lastSavedDataRef when scene changes
+  useEffect(() => {
+    lastSavedDataRef.current = null;
+    setHasUnsavedChanges(false);
+  }, [currentSceneId]);
+
+  // Keyboard shortcut handler for Ctrl+S
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl+S or Cmd+S
+      if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+        // Only intercept if we have a workspace scene open
+        if (currentSceneId && excalidrawAPI) {
+          e.preventDefault();
+          e.stopPropagation();
+          handleSaveToWorkspace();
+        }
+      }
+    };
+
+    // Use capture phase to intercept before Excalidraw
+    window.addEventListener("keydown", handleKeyDown, { capture: true });
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown, { capture: true });
+    };
+  }, [currentSceneId, excalidrawAPI, handleSaveToWorkspace]);
 
   // browsers generally prevent infinite self-embedding, there are
   // cases where it still happens, and while we disallow self-embedding
