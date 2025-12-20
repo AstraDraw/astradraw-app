@@ -9,6 +9,25 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.34] - 2025-12-20
+
+### Added
+
+- **Auto-Save for Workspace Scenes**
+  - Scenes auto-save after 3 seconds of inactivity (like Miro)
+  - Shows "Auto-saved" toast notification after each save
+  - Smart save: skips if data hasn't changed
+
+- **Ctrl+S / Cmd+S Keyboard Shortcut**
+  - When a workspace scene is open, Ctrl+S saves to workspace
+  - No longer prompts to save locally when working on workspace scenes
+
+### Fixed
+
+- **Login Dialog Input Fields**
+  - Fixed issue where typing `@` or other special characters in email field affected the canvas
+  - All input fields now properly capture keyboard events
+
 ## [0.18.0-beta0.33] - 2025-12-20
 
 ### Added
