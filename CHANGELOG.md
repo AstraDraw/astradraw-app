@@ -9,6 +9,23 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.37] - 2025-12-21
+
+### Added
+
+- **Collaboration Profile Integration**
+  - Authenticated users now appear with their profile name in collaboration sessions
+  - Profile avatars are displayed in the collaborator list (top-right corner)
+  - New `authUserAtom` Jotai atom for cross-component user state access
+  - WebSocket messages now include `avatarUrl` field for collaborator display
+  - Profile data takes priority over localStorage/random names
+
+### Fixed
+
+- **Workspace Sidebar Font**
+  - Defined `--ui-font` CSS variable locally in WorkspaceSidebar
+  - Fixed section titles (e.g., "PRIVATE") showing in Times New Roman instead of Assistant font
+
 ## [0.18.0-beta0.36] - 2025-12-21
 
 ### Fixed

@@ -101,6 +101,7 @@ export type SocketUpdateDataSource = {
       button: "down" | "up";
       selectedElementIds: AppState["selectedElementIds"];
       username: string;
+      avatarUrl?: string | null;
     };
   };
   USER_VISIBLE_SCENE_BOUNDS: {
@@ -117,6 +118,7 @@ export type SocketUpdateDataSource = {
       socketId: SocketId;
       userState: UserIdleState;
       username: string;
+      avatarUrl?: string | null;
     };
   };
 };

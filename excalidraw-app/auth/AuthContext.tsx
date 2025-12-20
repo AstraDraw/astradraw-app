@@ -15,6 +15,7 @@ import {
   type User,
   type AuthStatus,
 } from "./authApi";
+import { appJotaiStore, authUserAtom } from "../app-jotai";
 
 interface AuthContextType {
   user: User | null;
@@ -52,6 +53,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(null);
     }
   }, []);
+
+  // Sync user state to Jotai atom for cross-component access (e.g., Collab class component)
+  useEffect(() => {
+    if (user) {
+      appJotaiStore.set(authUserAtom, {
+        id: user.id,
+        name: user.name,
+        avatarUrl: user.avatarUrl,
+      });
+    } else {
+      appJotaiStore.set(authUserAtom, null);
+    }
+  }, [user]);
 
   useEffect(() => {
     const initialize = async () => {

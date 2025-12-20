@@ -12,6 +12,18 @@ import { useLayoutEffect } from "react";
 
 export const appJotaiStore = createStore();
 
+/**
+ * Auth user data for cross-component access (especially for class components like Collab)
+ * This atom is updated by AuthContext when user state changes
+ */
+export interface AuthUser {
+  id: string;
+  name: string | null;
+  avatarUrl: string | null;
+}
+
+export const authUserAtom = atom<AuthUser | null>(null);
+
 export { atom, Provider, useAtom, useAtomValue, useSetAtom };
 
 export const useAtomWithInitialValue = <

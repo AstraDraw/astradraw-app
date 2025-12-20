@@ -51,7 +51,7 @@ import type { Mutable, ValueOf } from "@excalidraw/common/utility-types";
 
 import { ENV } from "../env";
 
-import { appJotaiStore, atom } from "../app-jotai";
+import { appJotaiStore, atom, authUserAtom } from "../app-jotai";
 import {
   CURSOR_SYNC_TIMEOUT,
   FILE_UPLOAD_MAX_BYTES,
@@ -97,6 +97,7 @@ interface CollabState {
   /** errors related to saving */
   dialogNotifiedErrors: Record<string, boolean>;
   username: string;
+  avatarUrl: string | null;
   activeRoomLink: string | null;
 }
 
@@ -135,10 +136,13 @@ class Collab extends PureComponent<CollabProps, CollabState> {
 
   constructor(props: CollabProps) {
     super(props);
+    // Try to get authenticated user's profile for username and avatar
+    const authUser = appJotaiStore.get(authUserAtom);
     this.state = {
       errorMessage: null,
       dialogNotifiedErrors: {},
-      username: importUsernameFromLocalStorage() || "",
+      username: authUser?.name || importUsernameFromLocalStorage() || "",
+      avatarUrl: authUser?.avatarUrl || null,
       activeRoomLink: null,
     };
     this.portal = new Portal(this);
@@ -491,6 +495,16 @@ class Collab extends PureComponent<CollabProps, CollabState> {
   startCollaboration = async (
     existingRoomLinkData: null | { roomId: string; roomKey: string },
   ) => {
+    // Check for authenticated user's profile data
+    // If user is authenticated, always prefer their profile name/avatar over localStorage
+    const authUser = appJotaiStore.get(authUserAtom);
+    if (authUser?.name) {
+      this.setUsername(authUser.name);
+    }
+    if (authUser?.avatarUrl) {
+      this.setAvatarUrl(authUser.avatarUrl);
+    }
+
     if (!this.state.username) {
       import("@excalidraw/random-username").then(({ getRandomUsername }) => {
         const username = getRandomUsername();
@@ -622,7 +636,7 @@ class Collab extends PureComponent<CollabProps, CollabState> {
             );
             break;
           case WS_SUBTYPES.MOUSE_LOCATION: {
-            const { pointer, button, username, selectedElementIds } =
+            const { pointer, button, username, selectedElementIds, avatarUrl } =
               decryptedData.payload;
 
             const socketId: SocketUpdateDataSource["MOUSE_LOCATION"]["payload"]["socketId"] =
@@ -635,6 +649,7 @@ class Collab extends PureComponent<CollabProps, CollabState> {
               button,
               selectedElementIds,
               username,
+              avatarUrl: avatarUrl || undefined,
             });
 
             break;
@@ -675,10 +690,12 @@ class Collab extends PureComponent<CollabProps, CollabState> {
           }
 
           case WS_SUBTYPES.IDLE_STATUS: {
-            const { userState, socketId, username } = decryptedData.payload;
+            const { userState, socketId, username, avatarUrl } =
+              decryptedData.payload;
             this.updateCollaborator(socketId, {
               userState,
               username,
+              avatarUrl: avatarUrl || undefined,
             });
             break;
           }
@@ -999,6 +1016,12 @@ class Collab extends PureComponent<CollabProps, CollabState> {
   };
 
   getUsername = () => this.state.username;
+
+  setAvatarUrl = (avatarUrl: string | null) => {
+    this.setState({ avatarUrl });
+  };
+
+  getAvatarUrl = () => this.state.avatarUrl;
 
   setActiveRoomLink = (activeRoomLink: string | null) => {
     this.setState({ activeRoomLink });
