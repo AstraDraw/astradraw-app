@@ -2,8 +2,10 @@ import {
   loginIcon,
   eyeIcon,
   GithubIcon,
+  save,
 } from "@excalidraw/excalidraw/components/icons";
 import { MainMenu } from "@excalidraw/excalidraw/index";
+import { t } from "@excalidraw/excalidraw/i18n";
 import React from "react";
 
 import { isDevEnv } from "@excalidraw/common";
@@ -12,8 +14,16 @@ import type { Theme } from "@excalidraw/element/types";
 
 import { LanguageList } from "../app-language/LanguageList";
 import { ASTRADRAW_GITHUB_URL } from "../app_constants";
+import { useAuth } from "../auth";
 
 import { saveDebugState } from "./DebugCanvas";
+
+// Folder icon for workspace
+const folderIcon = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+  </svg>
+);
 
 export const AppMainMenu: React.FC<{
   onCollabDialogOpen: () => any;
@@ -22,9 +32,32 @@ export const AppMainMenu: React.FC<{
   theme: Theme | "system";
   setTheme: (theme: Theme | "system") => void;
   refresh: () => void;
+  onWorkspaceOpen?: () => void;
+  onSaveToWorkspace?: () => void;
 }> = React.memo((props) => {
+  const { user, isAuthenticated, oidcConfigured, login, logout } = useAuth();
+
   return (
     <MainMenu>
+      {/* Workspace button at the top */}
+      {oidcConfigured && (
+        <MainMenu.Item
+          icon={folderIcon}
+          onClick={props.onWorkspaceOpen}
+        >
+          {t("workspace.title")}
+        </MainMenu.Item>
+      )}
+      {isAuthenticated && (
+        <MainMenu.Item
+          icon={save}
+          onClick={props.onSaveToWorkspace}
+        >
+          {t("workspace.saveScene")}
+        </MainMenu.Item>
+      )}
+      {oidcConfigured && <MainMenu.Separator />}
+      
       <MainMenu.DefaultItems.LoadScene />
       <MainMenu.DefaultItems.SaveToActiveFile />
       <MainMenu.DefaultItems.Export />
@@ -47,15 +80,27 @@ export const AppMainMenu: React.FC<{
       >
         GitHub
       </MainMenu.ItemLink>
-      <MainMenu.Item
-        icon={loginIcon}
-        onClick={() => {
-          // Sign in functionality - to be implemented later
-        }}
-        className="highlighted"
-      >
-        Sign in
-      </MainMenu.Item>
+      
+      {/* Auth section */}
+      {oidcConfigured && (
+        isAuthenticated ? (
+          <MainMenu.Item
+            icon={loginIcon}
+            onClick={logout}
+          >
+            {t("workspace.logout")} ({user?.name || user?.email})
+          </MainMenu.Item>
+        ) : (
+          <MainMenu.Item
+            icon={loginIcon}
+            onClick={() => login()}
+            className="highlighted"
+          >
+            {t("workspace.login")}
+          </MainMenu.Item>
+        )
+      )}
+      
       {isDevEnv() && (
         <MainMenu.Item
           icon={eyeIcon}

@@ -1,0 +1,130 @@
+.scene-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  background: var(--default-bg-color, #f8f8f8);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s;
+
+  &:hover {
+    background: var(--button-hover-bg, rgba(0, 0, 0, 0.05));
+    border-color: var(--default-border-color, #e5e5e5);
+  }
+
+  &--active {
+    background: var(--color-primary-light, #f0f0ff);
+    border-color: var(--color-primary, #6965db);
+  }
+
+  &__thumbnail {
+    width: 48px;
+    height: 36px;
+    border-radius: 4px;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: var(--island-bg-color, #fff);
+    border: 1px solid var(--default-border-color, #e5e5e5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  &__thumbnail-placeholder {
+    color: var(--icon-fill-color, #a0a0a0);
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  &__info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary-color, #1b1b1f);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__date {
+    font-size: 11px;
+    color: var(--text-secondary-color, #6b6b6b);
+  }
+
+  &__actions {
+    flex-shrink: 0;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  &:hover &__actions {
+    opacity: 1;
+  }
+
+  &__delete {
+    background: none;
+    border: none;
+    padding: 6px;
+    cursor: pointer;
+    color: var(--color-danger, #e03131);
+    border-radius: 4px;
+    transition: background-color 0.15s;
+
+    &:hover {
+      background: rgba(224, 49, 49, 0.1);
+    }
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+}
+
+// Dark mode
+.excalidraw.theme--dark {
+  .scene-card {
+    background: var(--default-bg-color, #2d2d33);
+
+    &:hover {
+      background: var(--button-hover-bg, rgba(255, 255, 255, 0.05));
+    }
+
+    &--active {
+      background: var(--color-primary-dark, #3d3d5c);
+      border-color: var(--color-primary-light, #a5a1ff);
+    }
+
+    &__thumbnail {
+      background: var(--island-bg-color, #232329);
+      border-color: var(--default-border-color, #3d3d3d);
+    }
+
+    &__title {
+      color: var(--text-primary-color, #e1e1e1);
+    }
+
+    &__date {
+      color: var(--text-secondary-color, #9b9b9b);
+    }
+  }
+}

@@ -838,5 +838,20 @@
     "deleteSuccess": "Запись удалена",
     "deleteError": "Не удалось удалить запись",
     "processing": "Обработка..."
+  },
+  "workspace": {
+    "title": "Рабочее пространство",
+    "login": "Войти",
+    "logout": "Выйти",
+    "loginPrompt": "Войдите, чтобы сохранять и открывать свои сцены",
+    "notConfigured": "Аутентификация не настроена",
+    "notConfiguredHint": "Настройте OIDC для включения функций рабочего пространства",
+    "newScene": "Новая сцена",
+    "noScenes": "Сцен пока нет",
+    "noScenesHint": "Создайте первую сцену, чтобы начать",
+    "saveScene": "Сохранить в Workspace",
+    "openScene": "Открыть",
+    "deleteScene": "Удалить",
+    "untitled": "Без названия"
   }
 }

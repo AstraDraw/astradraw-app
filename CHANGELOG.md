@@ -9,6 +9,34 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.28] - 2025-12-20
+
+### Added
+
+- **Workspace Feature (MVP)**
+  - User authentication via OIDC (Authentik integration)
+  - Left sidebar with workspace panel for managing scenes
+  - Save scenes to personal workspace
+  - Load and open saved scenes
+  - Scene list with thumbnails and metadata
+  - User menu with login/logout functionality
+
+- **New Backend APIs**
+  - `/api/v2/auth/*` - OIDC authentication endpoints
+  - `/api/v2/workspace/scenes/*` - Scene CRUD operations
+  - PostgreSQL database for user/scene metadata
+  - JWT-based session management with HTTP-only cookies
+
+- **New Environment Variables**
+  - `OIDC_ISSUER_URL` - Authentik OIDC provider URL
+  - `OIDC_CLIENT_ID` - OIDC client ID
+  - `OIDC_CLIENT_SECRET` - OIDC client secret
+  - `JWT_SECRET` - Secret for signing JWT tokens
+  - `DATABASE_URL` - PostgreSQL connection string
+
+- **Translations**
+  - Added workspace translations (en, ru-RU)
+
 ## [0.18.0-beta0.27] - 2025-12-20
 
 ### Fixed

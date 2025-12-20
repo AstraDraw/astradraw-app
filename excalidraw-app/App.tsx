@@ -136,6 +136,15 @@ import { AppSidebar } from "./components/AppSidebar";
 import { PresentationMode } from "./components/Presentation";
 import { PenToolbar, getDefaultPenPresets } from "./pens";
 import { getBundledLibraries } from "./env";
+import { AuthProvider } from "./auth";
+import { WorkspaceSidebar } from "./components/Workspace";
+import type { WorkspaceScene } from "./auth/workspaceApi";
+import {
+  createScene,
+  updateScene,
+  updateSceneData,
+  getSceneData,
+} from "./auth/workspaceApi";
 
 import type { CollabAPI } from "./collab/Collab";
 
@@ -359,6 +368,11 @@ const ExcalidrawWrapper = () => {
   const [langCode, setLangCode] = useAppLangCode();
 
   const editorInterface = useEditorInterface();
+
+  // Workspace state
+  const [workspaceSidebarOpen, setWorkspaceSidebarOpen] = useState(false);
+  const [currentSceneId, setCurrentSceneId] = useState<string | null>(null);
+  const [currentSceneTitle, setCurrentSceneTitle] = useState<string>("Untitled");
 
   // initial state
   // ---------------------------------------------------------------------------
@@ -796,6 +810,109 @@ const ExcalidrawWrapper = () => {
     [setShareDialogState],
   );
 
+  // Workspace handlers
+  const handleNewScene = useCallback(() => {
+    if (excalidrawAPI) {
+      // Clear the canvas
+      excalidrawAPI.resetScene();
+      setCurrentSceneId(null);
+      setCurrentSceneTitle("Untitled");
+      setWorkspaceSidebarOpen(false);
+    }
+  }, [excalidrawAPI]);
+
+  const handleOpenScene = useCallback(
+    async (scene: WorkspaceScene) => {
+      if (!excalidrawAPI) {
+        return;
+      }
+
+      try {
+        const data = await getSceneData(scene.id);
+        const blob = new Blob([data]);
+        const sceneData = await loadFromBlob(blob, null, null);
+
+        excalidrawAPI.updateScene({
+          elements: sceneData.elements || [],
+          appState: {
+            ...sceneData.appState,
+            // Reset some state
+            collaborators: new Map(),
+          },
+          captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+        });
+
+        // Add files if present
+        if (sceneData.files) {
+          excalidrawAPI.addFiles(Object.values(sceneData.files));
+        }
+
+        setCurrentSceneId(scene.id);
+        setCurrentSceneTitle(scene.title);
+        setWorkspaceSidebarOpen(false);
+      } catch (error) {
+        console.error("Failed to open scene:", error);
+        setErrorMessage("Failed to open scene");
+      }
+    },
+    [excalidrawAPI],
+  );
+
+  const handleSaveToWorkspace = useCallback(async () => {
+    if (!excalidrawAPI) {
+      return;
+    }
+
+    try {
+      const elements = excalidrawAPI.getSceneElements();
+      const appState = excalidrawAPI.getAppState();
+      const files = excalidrawAPI.getFiles();
+
+      // Create blob from scene data
+      const sceneData = {
+        type: "excalidraw",
+        version: 2,
+        source: window.location.href,
+        elements,
+        appState: {
+          viewBackgroundColor: appState.viewBackgroundColor,
+          gridSize: appState.gridSize,
+        },
+        files: files || {},
+      };
+
+      const blob = new Blob([JSON.stringify(sceneData)], {
+        type: "application/json",
+      });
+
+      // Generate thumbnail (simplified - just use a placeholder for now)
+      const thumbnail = null; // TODO: Generate actual thumbnail
+
+      if (currentSceneId) {
+        // Update existing scene
+        await updateSceneData(currentSceneId, blob);
+        excalidrawAPI.setToast({ message: t("workspace.saveScene") + " ✓" });
+      } else {
+        // Create new scene
+        const title = prompt(t("workspace.untitled"), currentSceneTitle) || "Untitled";
+        const scene = await createScene({
+          title,
+          thumbnail: thumbnail || undefined,
+        });
+
+        // Save the data
+        await updateSceneData(scene.id, blob);
+
+        setCurrentSceneId(scene.id);
+        setCurrentSceneTitle(title);
+        excalidrawAPI.setToast({ message: t("workspace.saveScene") + " ✓" });
+      }
+    } catch (error) {
+      console.error("Failed to save scene:", error);
+      setErrorMessage("Failed to save scene to workspace");
+    }
+  }, [excalidrawAPI, currentSceneId, currentSceneTitle]);
+
   // browsers generally prevent infinite self-embedding, there are
   // cases where it still happens, and while we disallow self-embedding
   // by not whitelisting our own origin, this serves as an additional guard
@@ -824,6 +941,15 @@ const ExcalidrawWrapper = () => {
         "is-collaborating": isCollaborating,
       })}
     >
+      {/* Workspace Sidebar (Left) */}
+      <WorkspaceSidebar
+        isOpen={workspaceSidebarOpen}
+        onClose={() => setWorkspaceSidebarOpen(false)}
+        onNewScene={handleNewScene}
+        onOpenScene={handleOpenScene}
+        currentSceneId={currentSceneId}
+      />
+
       <Excalidraw
         excalidrawAPI={excalidrawRefCallback}
         onChange={onChange}
@@ -901,6 +1027,8 @@ const ExcalidrawWrapper = () => {
           theme={appTheme}
           setTheme={(theme) => setAppTheme(theme)}
           refresh={() => forceRefresh((prev) => !prev)}
+          onWorkspaceOpen={() => setWorkspaceSidebarOpen(true)}
+          onSaveToWorkspace={handleSaveToWorkspace}
         />
         <AppWelcomeScreen
           onCollabDialogOpen={onCollabDialogOpen}
@@ -1098,9 +1226,11 @@ const ExcalidrawApp = () => {
 
   return (
     <TopErrorBoundary>
-      <Provider store={appJotaiStore}>
-        <ExcalidrawWrapper />
-      </Provider>
+      <AuthProvider>
+        <Provider store={appJotaiStore}>
+          <ExcalidrawWrapper />
+        </Provider>
+      </AuthProvider>
     </TopErrorBoundary>
   );
 };

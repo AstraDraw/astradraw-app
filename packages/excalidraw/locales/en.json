@@ -838,5 +838,20 @@
     "deleteSuccess": "Recording deleted",
     "deleteError": "Failed to delete recording",
     "processing": "Processing..."
+  },
+  "workspace": {
+    "title": "Workspace",
+    "login": "Sign in",
+    "logout": "Sign out",
+    "loginPrompt": "Sign in to save and access your scenes",
+    "notConfigured": "Authentication not configured",
+    "notConfiguredHint": "Please configure OIDC settings to enable workspace features",
+    "newScene": "New Scene",
+    "noScenes": "No scenes yet",
+    "noScenesHint": "Create your first scene to get started",
+    "saveScene": "Save to Workspace",
+    "openScene": "Open",
+    "deleteScene": "Delete",
+    "untitled": "Untitled"
   }
 }
