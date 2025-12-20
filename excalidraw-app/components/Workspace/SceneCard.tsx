@@ -50,8 +50,8 @@ interface SceneCardProps {
   scene: WorkspaceScene;
   isActive: boolean;
   onOpen: () => void;
-  onDelete: () => void;
-  onRename: (newTitle: string) => void;
+  onDelete?: () => void;
+  onRename?: (newTitle: string) => void;
   onDuplicate: () => void;
   authorName?: string;
 }
@@ -138,7 +138,7 @@ export const SceneCard: React.FC<SceneCardProps> = ({
 
   const handleRenameSubmit = () => {
     const trimmedValue = renameValue.trim();
-    if (trimmedValue && trimmedValue !== scene.title) {
+    if (trimmedValue && trimmedValue !== scene.title && onRename) {
       onRename(trimmedValue);
     }
     setIsRenaming(false);
@@ -163,7 +163,9 @@ export const SceneCard: React.FC<SceneCardProps> = ({
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setMenuOpen(false);
-    onDelete();
+    if (onDelete) {
+      onDelete();
+    }
   };
 
   return (

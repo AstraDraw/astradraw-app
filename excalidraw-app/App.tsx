@@ -74,6 +74,7 @@ import {
   Provider,
   useAtom,
   useAtomValue,
+  useSetAtom,
   useAtomWithInitialValue,
   appJotaiStore,
 } from "./app-jotai";
@@ -140,6 +141,12 @@ import {
   WorkspaceSidebar,
   WorkspaceSidebarTrigger,
 } from "./components/Workspace";
+
+import {
+  SettingsView,
+  appModeAtom,
+  navigateToSettingsAtom,
+} from "./components/Settings";
 
 import {
   createScene,
@@ -373,6 +380,10 @@ const ExcalidrawWrapper = () => {
   const [langCode, setLangCode] = useAppLangCode();
 
   const editorInterface = useEditorInterface();
+
+  // App mode state (canvas or settings)
+  const appMode = useAtomValue(appModeAtom);
+  const navigateToSettings = useSetAtom(navigateToSettingsAtom);
 
   // Auth state for auto-open on login
   const { isAuthenticated } = useAuth();
@@ -1121,6 +1132,15 @@ const ExcalidrawWrapper = () => {
   }
 
   // AstraDraw: Removed Excalidraw+ commands - will be replaced with AstraDraw+ later
+
+  // If in settings mode, render the full-page settings view
+  if (appMode === "settings") {
+    return (
+      <div style={{ height: "100%" }} className="excalidraw-app">
+        <SettingsView />
+      </div>
+    );
+  }
 
   return (
     <div

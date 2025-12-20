@@ -9,6 +9,44 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.38] - 2025-12-21
+
+### Added
+
+- **Roles, Teams & Collections System**
+  - Multi-workspace support with workspace selector dropdown
+  - Role-based access control (ADMIN, MEMBER, VIEWER)
+  - Teams for organizing users with shared collection access
+  - Collections for organizing scenes with configurable visibility
+  - Private collections visible only to owner
+  - Team-based collection access control
+
+- **Full-Page Settings Views**
+  - Replaced modal dialogs with full-page settings layout
+  - New settings navigation sidebar
+  - Profile page (converted from UserProfileDialog)
+  - Workspace settings page
+  - Members page with invite links and role management
+  - Teams & Collections page with CRUD operations
+
+- **Workspace Sidebar Redesign**
+  - Workspace selector at top with dropdown
+  - Navigation items (Dashboard, Settings, Members) for admins
+  - Collections list with expand/collapse
+  - Scene list within selected collection
+  - User profile at bottom
+
+- **New Translation Keys**
+  - Added settings.* keys for all settings pages
+  - Added workspace.* keys for sidebar navigation
+  - Translations for both English and Russian
+
+### Changed
+
+- App now has two modes: Canvas mode and Settings mode
+- Settings accessed via full-page views instead of modals
+- SceneCard now has optional onDelete/onRename props
+
 ## [0.18.0-beta0.37] - 2025-12-21
 
 ### Added
