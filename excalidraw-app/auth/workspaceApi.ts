@@ -3,10 +3,17 @@
  */
 
 const getApiBaseUrl = (): string => {
+  // First check runtime env (Docker) - window.__ENV__ is set by env-config.js
+  const runtimeEnv = (window as { __ENV__?: Record<string, string> }).__ENV__;
+  if (runtimeEnv?.VITE_APP_HTTP_STORAGE_BACKEND_URL) {
+    return runtimeEnv.VITE_APP_HTTP_STORAGE_BACKEND_URL;
+  }
+  // Fallback to build-time env (development)
   const envUrl = import.meta.env.VITE_APP_HTTP_STORAGE_BACKEND_URL;
   if (envUrl) {
     return envUrl;
   }
+  // Fallback to same origin
   return `${window.location.origin}/api/v2`;
 };
 
@@ -225,6 +232,31 @@ export async function startCollaboration(
       throw new Error("Scene not found");
     }
     throw new Error("Failed to start collaboration");
+  }
+
+  return response.json();
+}
+
+/**
+ * Duplicate a scene
+ */
+export async function duplicateScene(id: string): Promise<WorkspaceScene> {
+  const response = await fetch(
+    `${getApiBaseUrl()}/workspace/scenes/${id}/duplicate`,
+    {
+      method: "POST",
+      credentials: "include",
+    },
+  );
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("Not authenticated");
+    }
+    if (response.status === 404) {
+      throw new Error("Scene not found");
+    }
+    throw new Error("Failed to duplicate scene");
   }
 
   return response.json();

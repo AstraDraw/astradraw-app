@@ -9,7 +9,9 @@ import {
   getAuthStatus,
   getCurrentUser,
   redirectToLogin,
+  loginLocal as loginLocalApi,
   logout as logoutApi,
+  register as registerApi,
   type User,
   type AuthStatus,
 } from "./authApi";
@@ -19,7 +21,11 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   oidcConfigured: boolean;
+  localAuthEnabled: boolean;
+  registrationEnabled: boolean;
   login: (redirectPath?: string) => void;
+  loginLocal: (username: string, password: string) => Promise<boolean>;
+  register: (email: string, password: string, name?: string) => Promise<boolean>;
   logout: () => void;
   refreshUser: () => Promise<void>;
 }
@@ -34,6 +40,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [oidcConfigured, setOidcConfigured] = useState(false);
+  const [localAuthEnabled, setLocalAuthEnabled] = useState(false);
+  const [registrationEnabled, setRegistrationEnabled] = useState(false);
 
   const refreshUser = useCallback(async () => {
     try {
@@ -48,15 +56,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const initialize = async () => {
       try {
-        // Check if OIDC is configured
+        // Check auth status
         const status = await getAuthStatus();
         setOidcConfigured(status.oidcConfigured);
+        setLocalAuthEnabled(status.localAuthEnabled);
+        setRegistrationEnabled(status.registrationEnabled);
 
-        if (status.oidcConfigured) {
-          // Try to get current user
-          const currentUser = await getCurrentUser();
-          setUser(currentUser);
-        }
+        // Try to get current user (might be already logged in via cookie)
+        const currentUser = await getCurrentUser();
+        setUser(currentUser);
 
         // Check for auth callback result in URL
         if (window.location.hash.includes("auth=success")) {
@@ -96,6 +104,34 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     redirectToLogin(redirectPath);
   }, []);
 
+  const loginLocal = useCallback(async (username: string, password: string): Promise<boolean> => {
+    try {
+      const result = await loginLocalApi(username, password);
+      if (result.success && result.user) {
+        setUser(result.user);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("Local login failed:", error);
+      return false;
+    }
+  }, []);
+
+  const register = useCallback(async (email: string, password: string, name?: string): Promise<boolean> => {
+    try {
+      const result = await registerApi(email, password, name);
+      if (result.success && result.user) {
+        setUser(result.user);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("Registration failed:", error);
+      throw error; // Re-throw to let the UI show the error message
+    }
+  }, []);
+
   const logout = useCallback(() => {
     logoutApi();
     setUser(null);
@@ -106,7 +142,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isLoading,
     isAuthenticated: !!user,
     oidcConfigured,
+    localAuthEnabled,
+    registrationEnabled,
     login,
+    loginLocal,
+    register,
     logout,
     refreshUser,
   };

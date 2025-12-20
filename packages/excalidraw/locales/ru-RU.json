@@ -845,13 +845,20 @@
     "logout": "Выйти",
     "loginPrompt": "Войдите, чтобы сохранять и открывать свои сцены",
     "notConfigured": "Аутентификация не настроена",
-    "notConfiguredHint": "Настройте OIDC для включения функций рабочего пространства",
+    "notConfiguredHint": "Настройте аутентификацию для включения функций рабочего пространства",
     "newScene": "Новая сцена",
     "noScenes": "Сцен пока нет",
     "noScenesHint": "Создайте первую сцену, чтобы начать",
     "saveScene": "Сохранить в Workspace",
     "openScene": "Открыть",
     "deleteScene": "Удалить",
-    "untitled": "Без названия"
+    "untitled": "Без названия",
+    "username": "Имя пользователя",
+    "password": "Пароль",
+    "loginError": "Неверное имя пользователя или пароль",
+    "loggingIn": "Вход...",
+    "or": "или",
+    "loginWithOIDC": "Войти через SSO",
+    "defaultCredentialsHint": "По умолчанию: admin / admin"
   }
 }

@@ -9,6 +9,52 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.29] - 2025-12-20
+
+### Added
+
+- **Workspace Left Sidebar (Excalidraw+ Style)**
+  - Toggle button next to hamburger menu (backtick ` shortcut)
+  - User/team selector dropdown at top
+  - Quick search with ⌘P keyboard shortcut
+  - "Private" and "Dashboard" section headers
+  - Auto-open sidebar when user logs in
+  - localStorage persistence for sidebar preference
+
+- **Scene Card Context Menu**
+  - Right-click or "..." button on scene cards
+  - Rename option with inline editing
+  - Duplicate scene functionality
+  - Delete option with confirmation
+  - Purple accent color for active/hover states
+
+- **User Registration System**
+  - New `/api/v2/auth/register` endpoint
+  - Sign-up form in login dialog (toggle between sign-in/sign-up)
+  - bcrypt password hashing (12 rounds)
+  - Enable with `ENABLE_REGISTRATION=true` env var
+  - Client-side validation (email format, password match, length)
+
+- **New Backend APIs**
+  - `POST /auth/register` - User registration
+  - `POST /workspace/scenes/:id/duplicate` - Duplicate scene
+  - `GET /auth/status` now includes `registrationEnabled` flag
+
+- **Database Changes**
+  - `oidcId` field now optional (supports local-only users)
+  - Added `passwordHash` field for bcrypt passwords
+  - Migration: `20251220100000_add_password_hash`
+
+### Changed
+
+- Scene cards now show author name ("by {username}")
+- Improved relative date formatting (minutes, hours, days)
+- Lock icon for private scenes
+
+### Fixed
+
+- TypeScript error in StickersPanel.tsx (TranslationKeys typing)
+
 ## [0.18.0-beta0.28] - 2025-12-20
 
 ### Added

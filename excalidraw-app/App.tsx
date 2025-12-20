@@ -136,8 +136,8 @@ import { AppSidebar } from "./components/AppSidebar";
 import { PresentationMode } from "./components/Presentation";
 import { PenToolbar, getDefaultPenPresets } from "./pens";
 import { getBundledLibraries } from "./env";
-import { AuthProvider } from "./auth";
-import { WorkspaceSidebar } from "./components/Workspace";
+import { AuthProvider, useAuth } from "./auth";
+import { WorkspaceSidebar, WorkspaceSidebarTrigger } from "./components/Workspace";
 import type { WorkspaceScene } from "./auth/workspaceApi";
 import {
   createScene,
@@ -359,6 +359,8 @@ const initializeScene = async (opts: {
   return { scene: null, isExternalScene: false };
 };
 
+const WORKSPACE_SIDEBAR_PREF_KEY = "astradraw_workspace_sidebar_open";
+
 const ExcalidrawWrapper = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const isCollabDisabled = isRunningInIframe();
@@ -369,10 +371,38 @@ const ExcalidrawWrapper = () => {
 
   const editorInterface = useEditorInterface();
 
-  // Workspace state
-  const [workspaceSidebarOpen, setWorkspaceSidebarOpen] = useState(false);
+  // Auth state for auto-open on login
+  const { isAuthenticated } = useAuth();
+  const wasAuthenticated = useRef(false);
+
+  // Workspace state - initialize from localStorage
+  const [workspaceSidebarOpen, setWorkspaceSidebarOpen] = useState(() => {
+    try {
+      return localStorage.getItem(WORKSPACE_SIDEBAR_PREF_KEY) === "true";
+    } catch {
+      return false;
+    }
+  });
   const [currentSceneId, setCurrentSceneId] = useState<string | null>(null);
   const [currentSceneTitle, setCurrentSceneTitle] = useState<string>("Untitled");
+
+  // Auto-open sidebar when user logs in
+  useEffect(() => {
+    if (isAuthenticated && !wasAuthenticated.current) {
+      // User just logged in, open sidebar
+      setWorkspaceSidebarOpen(true);
+    }
+    wasAuthenticated.current = isAuthenticated;
+  }, [isAuthenticated]);
+
+  // Save sidebar preference to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem(WORKSPACE_SIDEBAR_PREF_KEY, String(workspaceSidebarOpen));
+    } catch {
+      // Ignore localStorage errors
+    }
+  }, [workspaceSidebarOpen]);
 
   // initial state
   // ---------------------------------------------------------------------------
@@ -893,8 +923,9 @@ const ExcalidrawWrapper = () => {
         await updateSceneData(currentSceneId, blob);
         excalidrawAPI.setToast({ message: t("workspace.saveScene") + " ✓" });
       } else {
-        // Create new scene
-        const title = prompt(t("workspace.untitled"), currentSceneTitle) || "Untitled";
+        // Create new scene with auto-generated title
+        // Use current title or generate one with timestamp
+        const title = currentSceneTitle || `${t("workspace.untitled")} ${new Date().toLocaleString()}`;
         const scene = await createScene({
           title,
           thumbnail: thumbnail || undefined,
@@ -949,6 +980,14 @@ const ExcalidrawWrapper = () => {
         onOpenScene={handleOpenScene}
         currentSceneId={currentSceneId}
       />
+
+      {/* Workspace Sidebar Toggle Button */}
+      {!workspaceSidebarOpen && (
+        <WorkspaceSidebarTrigger
+          isOpen={workspaceSidebarOpen}
+          onToggle={() => setWorkspaceSidebarOpen(!workspaceSidebarOpen)}
+        />
+      )}
 
       <Excalidraw
         excalidrawAPI={excalidrawRefCallback}

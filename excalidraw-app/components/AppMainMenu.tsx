@@ -35,12 +35,15 @@ export const AppMainMenu: React.FC<{
   onWorkspaceOpen?: () => void;
   onSaveToWorkspace?: () => void;
 }> = React.memo((props) => {
-  const { user, isAuthenticated, oidcConfigured, login, logout } = useAuth();
+  const { user, isAuthenticated, oidcConfigured, localAuthEnabled, login, logout } = useAuth();
+
+  // Show workspace features if OIDC or local auth is available
+  const authAvailable = oidcConfigured || localAuthEnabled;
 
   return (
     <MainMenu>
       {/* Workspace button at the top */}
-      {oidcConfigured && (
+      {authAvailable && (
         <MainMenu.Item
           icon={folderIcon}
           onClick={props.onWorkspaceOpen}
@@ -56,7 +59,7 @@ export const AppMainMenu: React.FC<{
           {t("workspace.saveScene")}
         </MainMenu.Item>
       )}
-      {oidcConfigured && <MainMenu.Separator />}
+      {authAvailable && <MainMenu.Separator />}
       
       <MainMenu.DefaultItems.LoadScene />
       <MainMenu.DefaultItems.SaveToActiveFile />
@@ -82,7 +85,7 @@ export const AppMainMenu: React.FC<{
       </MainMenu.ItemLink>
       
       {/* Auth section */}
-      {oidcConfigured && (
+      {authAvailable && (
         isAuthenticated ? (
           <MainMenu.Item
             icon={loginIcon}
@@ -93,7 +96,15 @@ export const AppMainMenu: React.FC<{
         ) : (
           <MainMenu.Item
             icon={loginIcon}
-            onClick={() => login()}
+            onClick={() => {
+              // If only local auth is available, open workspace sidebar (which shows login dialog)
+              // If OIDC is available, redirect to OIDC login
+              if (localAuthEnabled && !oidcConfigured) {
+                props.onWorkspaceOpen?.();
+              } else {
+                login();
+              }
+            }}
             className="highlighted"
           >
             {t("workspace.login")}

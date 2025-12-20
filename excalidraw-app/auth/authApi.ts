@@ -3,7 +3,12 @@
  */
 
 const getApiBaseUrl = (): string => {
-  // Use the same base URL as storage backend
+  // First check runtime env (Docker) - window.__ENV__ is set by env-config.js
+  const runtimeEnv = (window as { __ENV__?: Record<string, string> }).__ENV__;
+  if (runtimeEnv?.VITE_APP_HTTP_STORAGE_BACKEND_URL) {
+    return runtimeEnv.VITE_APP_HTTP_STORAGE_BACKEND_URL;
+  }
+  // Fallback to build-time env (development)
   const envUrl = import.meta.env.VITE_APP_HTTP_STORAGE_BACKEND_URL;
   if (envUrl) {
     return envUrl;
@@ -14,6 +19,8 @@ const getApiBaseUrl = (): string => {
 
 export interface AuthStatus {
   oidcConfigured: boolean;
+  localAuthEnabled: boolean;
+  registrationEnabled: boolean;
 }
 
 export interface User {
@@ -23,13 +30,47 @@ export interface User {
   avatarUrl: string | null;
 }
 
+export interface LocalLoginResult {
+  success: boolean;
+  user: User;
+}
+
+export interface RegisterResult {
+  success: boolean;
+  user: User;
+}
+
 /**
- * Check if OIDC is configured on the backend
+ * Check auth status and available methods
  */
 export async function getAuthStatus(): Promise<AuthStatus> {
   const response = await fetch(`${getApiBaseUrl()}/auth/status`, {
     credentials: "include",
   });
+  return response.json();
+}
+
+/**
+ * Login with local username/password
+ */
+export async function loginLocal(
+  username: string,
+  password: string,
+): Promise<LocalLoginResult> {
+  const response = await fetch(`${getApiBaseUrl()}/auth/login/local`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ username, password }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || "Login failed");
+  }
+
   return response.json();
 }
 
@@ -84,4 +125,29 @@ export function redirectToLogin(redirectPath?: string): void {
  */
 export function logout(): void {
   window.location.href = getLogoutUrl();
+}
+
+/**
+ * Register a new user with email/password
+ */
+export async function register(
+  email: string,
+  password: string,
+  name?: string,
+): Promise<RegisterResult> {
+  const response = await fetch(`${getApiBaseUrl()}/auth/register`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ email, password, name }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || "Registration failed");
+  }
+
+  return response.json();
 }

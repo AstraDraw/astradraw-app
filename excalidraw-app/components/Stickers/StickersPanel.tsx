@@ -50,14 +50,14 @@ interface StickersPanelProps {
   excalidrawAPI: ExcalidrawImperativeAPI | null;
 }
 
-const CONTENT_TABS = [
-  { id: "all" as const, labelKey: "stickers.all" as const },
-  { id: "stickers" as const, labelKey: "stickers.stickersTab" as const },
+const CONTENT_TABS: ReadonlyArray<{ id: "all" | "stickers" | "gifs" | "static"; labelKey: TranslationKeys }> = [
+  { id: "all", labelKey: "stickers.all" },
+  { id: "stickers", labelKey: "stickers.stickersTab" },
   // GIPHY emojis commented out - using Twemoji instead (better quality, more complete)
   // { id: "emojis", labelKey: "stickers.emojis" },
-  { id: "gifs" as const, labelKey: "stickers.gifs" as const },
-  { id: "static" as const, labelKey: "stickers.emojis" as const }, // Renamed to "Emojis" for better UX
-] as const;
+  { id: "gifs", labelKey: "stickers.gifs" },
+  { id: "static", labelKey: "stickers.emojis" }, // Renamed to "Emojis" for better UX
+];
 
 const GiphyLogo = () => (
   <svg
