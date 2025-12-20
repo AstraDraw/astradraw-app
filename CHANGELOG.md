@@ -9,6 +9,42 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.18] - 2025-12-20
+
+### Added
+
+- **Animated GIF/Sticker Support**
+  - GIFs, stickers, and animated emojis from GIPHY are now inserted as embeddable elements
+  - Content plays animated on the canvas using iframes
+  - Transparent stroke for clean appearance (no border around embedded content)
+
+- **Static Emoji Support (Twemoji)**
+  - New "Static" tab in Stickers panel for Twitter Emoji (Twemoji)
+  - High-quality SVG format - scales without quality loss
+  - Categorized by emoji groups (Smileys, People, Animals, Food, etc.)
+  - Category navigation bar with emoji icons
+  - Search functionality across all emoji names
+  - Emojis are inserted as SVG images on canvas
+  - Attribution: Twemoji by Twitter (CC-BY 4.0)
+
+- **New Translation Keys**
+  - `stickers.staticEmojis` - "Static" tab label
+  - `stickers.popular` - "Popular" section header
+  - `stickers.poweredByTwemoji` - Twemoji attribution text
+
+### Changed
+
+- **Sidebar Hover Animation**
+  - Fixed hover preview animation for GIPHY content
+  - Changed from `pointer-events: none` to `-webkit-user-drag: none` to allow hover while preventing native drag
+
+### Technical
+
+- New `twemojiApi.ts` module for Twemoji integration
+  - Fetches emoji data from `unicode-emoji-json` dataset
+  - Converts emoji characters to Twemoji CDN URLs
+  - Uses jsdelivr CDN: `cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/`
+
 ## [0.18.0-beta0.17] - 2025-12-20
 
 ### Added

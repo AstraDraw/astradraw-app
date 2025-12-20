@@ -1,30 +1,43 @@
-# Stickers & GIFs Sidebar (GIPHY Integration)
+# Stickers & GIFs Sidebar
 
-This document describes the Stickers & GIFs sidebar feature in AstraDraw, powered by GIPHY API.
+This document describes the Stickers & GIFs sidebar feature in AstraDraw, powered by GIPHY API and Twemoji.
 
 ## Overview
 
-AstraDraw includes a sidebar tab for browsing and inserting GIFs, stickers, and emojis from GIPHY directly onto your canvas. The feature includes:
+AstraDraw includes a sidebar tab for browsing and inserting GIFs, stickers, and emojis directly onto your canvas. The feature includes:
 
-- **Search** - Search for GIFs, stickers, and emojis by keyword
-- **Trending content** - Browse popular content when not searching
-- **Content tabs** - Filter by All, Stickers, Emojis, or GIFs
-- **One-click insertion** - Click any item to add it to your canvas
+- **Animated Content (GIPHY)** - GIFs, stickers, and animated emojis play on the canvas
+- **Static Emojis (Twemoji)** - High-quality SVG emojis that scale without quality loss
+- **Search** - Search for content by keyword
+- **Drag & Drop** - Drag items directly onto the canvas
+- **Categories** - Browse by content type and emoji categories
 - **Localization** - Available in English and Russian
 
-> **Note:** GIFs are inserted as static images on the canvas. Excalidraw does not currently support animated images. Stickers and emojis work well as static visual elements.
+## Content Types
+
+### GIPHY Content (Animated)
+- **GIFs** - Animated GIF images
+- **Stickers** - Animated stickers with transparent backgrounds
+- **Animated Emojis** - GIPHY's animated emoji collection
+
+These are inserted as **embeddable elements** (iframes) that play animation on the canvas.
+
+### Twemoji (Static)
+- **Static Emojis** - Twitter's open-source emoji set
+- **SVG Format** - Vector graphics that scale infinitely without quality loss
+- **Categorized** - Smileys, People, Animals, Food, Travel, Activities, Objects, Symbols, Flags
+
+These are inserted as **SVG image elements** on the canvas.
 
 ## Setup
 
-### Getting a GIPHY API Key
+### GIPHY API Key
 
 1. Go to [developers.giphy.com](https://developers.giphy.com/)
 2. Create an account or sign in
 3. Click "Create an App"
 4. Select "API" (not SDK)
 5. Copy your API key
-
-### Configuration
 
 Add the GIPHY API key to your `.env` file:
 
@@ -38,64 +51,53 @@ The `docker-compose.yml` passes this to the container:
 - VITE_APP_GIPHY_API_KEY=${GIPHY_API_KEY:-}
 ```
 
-If no API key is configured, the sidebar will display a message indicating the API key is missing.
+> **Note:** Twemoji (static emojis) works without any API key.
 
 ## Architecture
 
 ```mermaid
 flowchart TB
-    subgraph SidebarButtons[Sidebar Tab Buttons]
-        SearchBtn[Search]
-        LibrariesBtn[Libraries]
-        StickersBtn[Stickers & GIFs]
-        CommentsBtn[Comments]
-        PresentationBtn[Presentation]
+    subgraph SidebarTabs[Content Tabs]
+        AllTab[All]
+        StickersTab[Stickers]
+        EmojisTab[Emojis]
+        GIFsTab[GIFs]
+        StaticTab[Static]
     end
 
-    subgraph StickersPanel[StickersPanel.tsx]
-        SearchInput[Search Input]
-        SubTabs[Sub-tabs: All / Stickers / Emojis / GIFs]
-        TrendingLabel[Trending Header]
-        MasonryGrid[Masonry Grid]
-        PoweredBy[Powered by GIPHY]
+    subgraph GIPHY[GIPHY API - Animated]
+        GiphyAPI[api.giphy.com]
+        GiphyEmbed[giphy.com/embed/ID]
     end
 
-    subgraph GiphyAPI[GIPHY API]
-        TrendingGifs[/v1/gifs/trending]
-        SearchGifs[/v1/gifs/search]
-        TrendingStickers[/v1/stickers/trending]
-        SearchStickers[/v1/stickers/search]
-        Emojis[/v2/emoji]
+    subgraph Twemoji[Twemoji - Static]
+        EmojiData[unicode-emoji-json]
+        TwemojiCDN[twitter/twemoji CDN]
     end
 
-    StickersBtn --> StickersPanel
-    StickersPanel --> GiphyAPI
-    MasonryGrid -->|onClick| InsertToCanvas[Insert to Canvas]
+    subgraph Canvas[Excalidraw Canvas]
+        Embeddable[Embeddable Element - iframe]
+        ImageElement[Image Element - SVG]
+    end
+
+    AllTab & StickersTab & EmojisTab & GIFsTab --> GiphyAPI
+    GiphyAPI --> GiphyEmbed --> Embeddable
+
+    StaticTab --> EmojiData
+    EmojiData --> TwemojiCDN --> ImageElement
 ```
 
 ## Files
 
-### New Files
-
 | File | Description |
 |------|-------------|
-| `excalidraw-app/components/Stickers/StickersPanel.tsx` | Main panel component with search, tabs, and grid |
-| `excalidraw-app/components/Stickers/StickersPanel.scss` | Styles for the panel UI |
+| `excalidraw-app/components/Stickers/StickersPanel.tsx` | Main panel component |
+| `excalidraw-app/components/Stickers/StickersPanel.scss` | Panel styles |
 | `excalidraw-app/components/Stickers/giphyApi.ts` | GIPHY API helper functions |
+| `excalidraw-app/components/Stickers/twemojiApi.ts` | Twemoji helper functions |
 | `excalidraw-app/components/Stickers/index.ts` | Module exports |
 
-### Modified Files
-
-| File | Changes |
-|------|---------|
-| `excalidraw-app/components/AppSidebar.tsx` | Added Stickers tab trigger and content |
-| `packages/excalidraw/components/icons.tsx` | Added `stickerIcon` |
-| `packages/excalidraw/locales/en.json` | Added English translations |
-| `packages/excalidraw/locales/ru-RU.json` | Added Russian translations |
-| `Dockerfile` | Added `VITE_APP_GIPHY_API_KEY` placeholder |
-| `docker-entrypoint.sh` | Added runtime injection for GIPHY API key |
-
-## API Endpoints Used
+## GIPHY API Endpoints
 
 | Endpoint | Purpose |
 |----------|---------|
@@ -103,7 +105,27 @@ flowchart TB
 | `GET /v1/gifs/search` | Search for GIFs |
 | `GET /v1/stickers/trending` | Fetch trending stickers |
 | `GET /v1/stickers/search` | Search for stickers |
-| `GET /v2/emoji` | Fetch emoji collection |
+| `GET /v2/emoji` | Fetch animated emoji collection |
+
+## Twemoji Resources
+
+| Resource | URL |
+|----------|-----|
+| Emoji Data | `cdn.jsdelivr.net/gh/muan/unicode-emoji-json@main/data-by-group.json` |
+| SVG Assets | `cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/{codepoint}.svg` |
+
+## Usage
+
+1. Open the sidebar by clicking the sticker icon
+2. Select a tab: All, Stickers, Emojis, GIFs, or Static
+3. For static emojis, use category buttons to browse different emoji groups
+4. Search using the search bar
+5. Click or drag an item to add it to the canvas
+
+### Insertion Methods
+
+- **Click** - Inserts at the center of the visible viewport
+- **Drag & Drop** - Inserts at the drop position on the canvas
 
 ## Translations
 
@@ -117,13 +139,17 @@ flowchart TB
   "stickersTab": "Stickers",
   "emojis": "Emojis",
   "gifs": "GIFs",
+  "staticEmojis": "Static",
   "trending": "Trending",
+  "popular": "Popular",
   "noResults": "No results found",
   "loading": "Loading...",
   "error": "Failed to load content",
   "apiKeyMissing": "GIPHY API key is not configured",
   "poweredBy": "Powered by GIPHY",
-  "clickToInsert": "Click to add to canvas"
+  "poweredByTwemoji": "Twemoji by Twitter (CC-BY 4.0)",
+  "clickToInsert": "Click to add to canvas",
+  "dragToInsert": "Drag to canvas or click to insert"
 }
 ```
 
@@ -137,30 +163,27 @@ flowchart TB
   "stickersTab": "Стикеры",
   "emojis": "Эмодзи",
   "gifs": "GIF",
+  "staticEmojis": "Статичные",
   "trending": "Популярное",
+  "popular": "Популярные",
   "noResults": "Ничего не найдено",
   "loading": "Загрузка...",
   "error": "Не удалось загрузить контент",
   "apiKeyMissing": "API ключ GIPHY не настроен",
   "poweredBy": "При поддержке GIPHY",
-  "clickToInsert": "Нажмите, чтобы добавить на холст"
+  "poweredByTwemoji": "Twemoji от Twitter (CC-BY 4.0)",
+  "clickToInsert": "Нажмите, чтобы добавить на холст",
+  "dragToInsert": "Перетащите на холст или нажмите"
 }
 ```
 
-## Usage
-
-1. Open the sidebar by clicking the sticker icon (between Libraries and Comments)
-2. Browse trending content or use the search bar
-3. Switch between tabs: All, Stickers, Emojis, GIFs
-4. Click any item to insert it at the center of your canvas
-5. The item appears as an image element that you can move, resize, and style
-
 ## Known Limitations
 
-- **Static images only**: GIFs are inserted as static images (first frame). Excalidraw does not support animated images.
-- **API rate limits**: GIPHY free API has rate limits. For high-traffic deployments, consider upgrading to a paid GIPHY plan.
-- **Internet required**: This feature requires internet access to fetch content from GIPHY.
+- **GIPHY API rate limits** - Free API has rate limits. Consider paid plan for high traffic.
+- **Internet required** - Both GIPHY and Twemoji require internet access.
+- **Export limitations** - Embeddable elements (animated GIFs) show as placeholders when exporting to PNG/SVG.
 
-## GIPHY Attribution
+## Attribution
 
-Per GIPHY's terms of service, the "Powered by GIPHY" attribution is displayed in the sidebar footer.
+- **GIPHY** - "Powered by GIPHY" attribution displayed per GIPHY terms
+- **Twemoji** - Graphics licensed under CC-BY 4.0 by Twitter

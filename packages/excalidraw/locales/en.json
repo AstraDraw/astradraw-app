@@ -783,12 +783,15 @@
     "stickersTab": "Stickers",
     "emojis": "Emojis",
     "gifs": "GIFs",
+    "staticEmojis": "Static",
     "trending": "Trending",
+    "popular": "Popular",
     "noResults": "No results found",
     "loading": "Loading...",
     "error": "Failed to load content",
     "apiKeyMissing": "GIPHY API key is not configured",
     "poweredBy": "Powered by GIPHY",
+    "poweredByTwemoji": "Twemoji by Twitter (CC-BY 4.0)",
     "clickToInsert": "Click to add to canvas",
     "dragToInsert": "Drag to canvas or click to insert"
   }

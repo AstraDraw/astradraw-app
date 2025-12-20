@@ -96,6 +96,52 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 6px;
+
+    // Static emoji grid uses more columns
+    &--static {
+      grid-template-columns: repeat(6, 1fr);
+      gap: 4px;
+    }
+  }
+
+  // Emoji category tabs (horizontal scrollable)
+  &__emoji-categories {
+    display: flex;
+    gap: 4px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--default-border-color, #e5e5e5);
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  &__emoji-category {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.15s ease;
+
+    &:hover {
+      background: var(--button-hover-bg, rgba(0, 0, 0, 0.05));
+    }
+
+    &--active {
+      background: var(--color-primary-light, rgba(101, 84, 192, 0.1));
+    }
   }
 
   // Individual GIF/sticker item
@@ -128,14 +174,33 @@
       opacity: 0.7;
     }
 
+    // Static emoji items
+    &--static {
+      aspect-ratio: 1;
+      background: transparent;
+      padding: 4px;
+
+      &:hover:not(:disabled) {
+        background: var(--button-hover-bg, rgba(0, 0, 0, 0.05));
+        transform: scale(1.1);
+        box-shadow: none;
+      }
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+    }
+
     img {
       display: block;
       width: 100%;
       height: auto;
       object-fit: cover;
-      // Prevent image from being dragged separately
-      pointer-events: none;
       user-select: none;
+      // Allow hover events on image, but prevent native drag
+      -webkit-user-drag: none;
     }
   }
 
@@ -231,6 +296,12 @@
 
     svg {
       color: var(--text-primary-color, #1b1b1f);
+    }
+
+    &--small {
+      font-size: 10px;
+      text-transform: none;
+      letter-spacing: 0;
     }
   }
 }
