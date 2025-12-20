@@ -17,7 +17,11 @@
     margin: 0 auto;
     border-radius: 50%;
     overflow: hidden;
-    background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-primary) 100%);
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-light) 0%,
+      var(--color-primary) 100%
+    );
     display: flex;
     align-items: center;
     justify-content: center;

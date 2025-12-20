@@ -1,15 +1,21 @@
 .workspace-sidebar {
-  position: fixed;
-  top: 0;
-  left: 0;
   width: 300px;
-  height: 100vh;
+  min-width: 300px;
+  height: 100%;
   background: var(--island-bg-color, #fff);
   border-right: 1px solid var(--default-border-color, #e5e5e5);
   display: flex;
   flex-direction: column;
   z-index: 100;
-  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.08);
+  flex-shrink: 0;
+
+  // Slide in/out animation
+  margin-left: -300px;
+  transition: margin-left 0.2s ease-out;
+
+  &--open {
+    margin-left: 0;
+  }
 
   &__header {
     display: flex;

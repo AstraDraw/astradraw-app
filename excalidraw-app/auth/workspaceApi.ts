@@ -107,7 +107,9 @@ export async function getSceneData(id: string): Promise<ArrayBuffer> {
 /**
  * Create a new scene
  */
-export async function createScene(dto: CreateSceneDto): Promise<WorkspaceScene> {
+export async function createScene(
+  dto: CreateSceneDto,
+): Promise<WorkspaceScene> {
   const response = await fetch(`${getApiBaseUrl()}/workspace/scenes`, {
     method: "POST",
     credentials: "include",
@@ -450,6 +452,113 @@ export async function updateTalktrackStatus(
       throw new Error("Recording not found");
     }
     throw new Error("Failed to update status");
+  }
+
+  return response.json();
+}
+
+// ============================================================================
+// User Profile API
+// ============================================================================
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  name: string | null;
+  avatarUrl: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UpdateProfileDto {
+  name?: string;
+  avatarUrl?: string | null;
+}
+
+/**
+ * Get current user's profile
+ */
+export async function getUserProfile(): Promise<UserProfile> {
+  const response = await fetch(`${getApiBaseUrl()}/users/me`, {
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("Not authenticated");
+    }
+    throw new Error("Failed to get profile");
+  }
+
+  return response.json();
+}
+
+/**
+ * Update current user's profile
+ */
+export async function updateUserProfile(
+  data: UpdateProfileDto,
+): Promise<UserProfile> {
+  const response = await fetch(`${getApiBaseUrl()}/users/me`, {
+    method: "PUT",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("Not authenticated");
+    }
+    throw new Error("Failed to update profile");
+  }
+
+  return response.json();
+}
+
+/**
+ * Upload avatar image
+ */
+export async function uploadAvatar(file: File): Promise<UserProfile> {
+  const formData = new FormData();
+  formData.append("avatar", file);
+
+  const response = await fetch(`${getApiBaseUrl()}/users/me/avatar`, {
+    method: "POST",
+    credentials: "include",
+    body: formData,
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("Not authenticated");
+    }
+    if (response.status === 400) {
+      const error = await response.json();
+      throw new Error(error.message || "Invalid file");
+    }
+    throw new Error("Failed to upload avatar");
+  }
+
+  return response.json();
+}
+
+/**
+ * Delete avatar (reset to default)
+ */
+export async function deleteAvatar(): Promise<UserProfile> {
+  const response = await fetch(`${getApiBaseUrl()}/users/me/avatar/delete`, {
+    method: "PUT",
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("Not authenticated");
+    }
+    throw new Error("Failed to delete avatar");
   }
 
   return response.json();

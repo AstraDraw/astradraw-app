@@ -886,6 +886,11 @@
     "noAccount": "Don't have an account?",
     "newSceneCreated": "New scene created",
     "autoSaved": "Auto-saved",
-    "saving": "Saving..."
+    "saving": "Saving...",
+    "myProfile": "My Profile",
+    "profilePicture": "Profile Picture",
+    "profileName": "Profile Name",
+    "changePhoto": "Change Photo",
+    "removePhoto": "Remove"
   }
 }

@@ -2,7 +2,7 @@
   // Position set via inline styles for draggability
   z-index: 1000;
   pointer-events: auto;
-  
+
   &--dragging {
     cursor: grabbing;
   }
@@ -47,7 +47,7 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     cursor: grab;
     user-select: none;
-    
+
     &:active {
       cursor: grabbing;
     }

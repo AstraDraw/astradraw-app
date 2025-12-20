@@ -35,7 +35,14 @@ export const AppMainMenu: React.FC<{
   onWorkspaceOpen?: () => void;
   onSaveToWorkspace?: () => void;
 }> = React.memo((props) => {
-  const { user, isAuthenticated, oidcConfigured, localAuthEnabled, login, logout } = useAuth();
+  const {
+    user,
+    isAuthenticated,
+    oidcConfigured,
+    localAuthEnabled,
+    login,
+    logout,
+  } = useAuth();
 
   // Show workspace features if OIDC or local auth is available
   const authAvailable = oidcConfigured || localAuthEnabled;
@@ -44,23 +51,17 @@ export const AppMainMenu: React.FC<{
     <MainMenu>
       {/* Workspace button at the top */}
       {authAvailable && (
-        <MainMenu.Item
-          icon={folderIcon}
-          onClick={props.onWorkspaceOpen}
-        >
+        <MainMenu.Item icon={folderIcon} onClick={props.onWorkspaceOpen}>
           {t("workspace.title")}
         </MainMenu.Item>
       )}
       {isAuthenticated && (
-        <MainMenu.Item
-          icon={save}
-          onClick={props.onSaveToWorkspace}
-        >
+        <MainMenu.Item icon={save} onClick={props.onSaveToWorkspace}>
           {t("workspace.saveScene")}
         </MainMenu.Item>
       )}
       {authAvailable && <MainMenu.Separator />}
-      
+
       <MainMenu.DefaultItems.LoadScene />
       <MainMenu.DefaultItems.SaveToActiveFile />
       <MainMenu.DefaultItems.Export />
@@ -83,35 +84,27 @@ export const AppMainMenu: React.FC<{
       >
         GitHub
       </MainMenu.ItemLink>
-      
+
       {/* Auth section */}
-      {authAvailable && (
-        isAuthenticated ? (
-          <MainMenu.Item
-            icon={loginIcon}
-            onClick={logout}
-          >
+      {authAvailable &&
+        (isAuthenticated ? (
+          <MainMenu.Item icon={loginIcon} onClick={logout}>
             {t("workspace.logout")} ({user?.name || user?.email})
           </MainMenu.Item>
         ) : (
           <MainMenu.Item
             icon={loginIcon}
             onClick={() => {
-              // If only local auth is available, open workspace sidebar (which shows login dialog)
-              // If OIDC is available, redirect to OIDC login
-              if (localAuthEnabled && !oidcConfigured) {
-                props.onWorkspaceOpen?.();
-              } else {
-                login();
-              }
+              // Always open workspace sidebar which shows the login dialog
+              // The dialog allows choosing between local auth and SSO
+              props.onWorkspaceOpen?.();
             }}
             className="highlighted"
           >
             {t("workspace.login")}
           </MainMenu.Item>
-        )
-      )}
-      
+        ))}
+
       {isDevEnv() && (
         <MainMenu.Item
           icon={eyeIcon}

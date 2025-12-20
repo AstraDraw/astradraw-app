@@ -48,7 +48,7 @@
     overflow: hidden;
     flex-shrink: 0;
     background: var(--color-surface-high);
-    
+
     &--processing {
       opacity: 0.8;
     }
@@ -61,7 +61,11 @@
     align-items: center;
     justify-content: center;
     color: var(--color-on-surface-variant);
-    background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-primary) 100%);
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-light) 0%,
+      var(--color-primary) 100%
+    );
 
     svg {
       opacity: 0.8;
@@ -71,7 +75,7 @@
 
   &__processing-indicator {
     animation: spin 1s linear infinite;
-    
+
     @keyframes spin {
       from {
         transform: rotate(0deg);

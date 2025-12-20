@@ -16,6 +16,7 @@ AstraDraw includes a sidebar tab for browsing and inserting GIFs, stickers, and 
 ## Content Types
 
 ### GIPHY Content (Animated)
+
 - **GIFs** - Animated GIF images
 - **Stickers** - Animated stickers with transparent backgrounds
 - **Animated Emojis** - GIPHY's animated emoji collection
@@ -23,6 +24,7 @@ AstraDraw includes a sidebar tab for browsing and inserting GIFs, stickers, and 
 These are inserted as **embeddable elements** (iframes) that play animation on the canvas.
 
 ### Twemoji (Static)
+
 - **Static Emojis** - Twitter's open-source emoji set
 - **SVG Format** - Vector graphics that scale infinitely without quality loss
 - **Categorized** - Smileys, People, Animals, Food, Travel, Activities, Objects, Symbols, Flags
@@ -90,7 +92,7 @@ flowchart TB
 ## Files
 
 | File | Description |
-|------|-------------|
+| --- | --- |
 | `excalidraw-app/components/Stickers/StickersPanel.tsx` | Main panel component |
 | `excalidraw-app/components/Stickers/StickersPanel.scss` | Panel styles |
 | `excalidraw-app/components/Stickers/giphyApi.ts` | GIPHY API helper functions |
@@ -99,18 +101,18 @@ flowchart TB
 
 ## GIPHY API Endpoints
 
-| Endpoint | Purpose |
-|----------|---------|
-| `GET /v1/gifs/trending` | Fetch trending GIFs |
-| `GET /v1/gifs/search` | Search for GIFs |
-| `GET /v1/stickers/trending` | Fetch trending stickers |
-| `GET /v1/stickers/search` | Search for stickers |
-| `GET /v2/emoji` | Fetch animated emoji collection |
+| Endpoint                    | Purpose                         |
+| --------------------------- | ------------------------------- |
+| `GET /v1/gifs/trending`     | Fetch trending GIFs             |
+| `GET /v1/gifs/search`       | Search for GIFs                 |
+| `GET /v1/stickers/trending` | Fetch trending stickers         |
+| `GET /v1/stickers/search`   | Search for stickers             |
+| `GET /v2/emoji`             | Fetch animated emoji collection |
 
 ## Twemoji Resources
 
 | Resource | URL |
-|----------|-----|
+| --- | --- |
 | Emoji Data | `cdn.jsdelivr.net/gh/muan/unicode-emoji-json@main/data-by-group.json` |
 | SVG Assets | `cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/{codepoint}.svg` |
 

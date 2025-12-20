@@ -868,6 +868,11 @@
     "defaultCredentialsHint": "По умолчанию: admin / admin",
     "newSceneCreated": "Новая сцена создана",
     "autoSaved": "Автосохранено",
-    "saving": "Сохранение..."
+    "saving": "Сохранение...",
+    "myProfile": "Мой профиль",
+    "profilePicture": "Фото профиля",
+    "profileName": "Имя",
+    "changePhoto": "Изменить фото",
+    "removePhoto": "Удалить"
   }
 }

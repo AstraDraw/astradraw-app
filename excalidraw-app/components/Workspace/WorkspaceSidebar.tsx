@@ -1,4 +1,10 @@
-import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
+import React, {
+  useEffect,
+  useState,
+  useCallback,
+  useMemo,
+  useRef,
+} from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 import { useAuth } from "../../auth";
 import {
@@ -10,6 +16,7 @@ import {
 } from "../../auth/workspaceApi";
 import { SceneCard } from "./SceneCard";
 import { LoginDialog } from "./LoginDialog";
+import { UserProfileDialog } from "./UserProfileDialog";
 import "./WorkspaceSidebar.scss";
 
 // Icons
@@ -59,11 +66,19 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
   onOpenScene,
   currentSceneId,
 }) => {
-  const { user, isLoading: authLoading, isAuthenticated, login, oidcConfigured, localAuthEnabled } = useAuth();
+  const {
+    user,
+    isLoading: authLoading,
+    isAuthenticated,
+    login,
+    oidcConfigured,
+    localAuthEnabled,
+  } = useAuth();
   const [scenes, setScenes] = useState<WorkspaceScene[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showLoginDialog, setShowLoginDialog] = useState(false);
+  const [showProfileDialog, setShowProfileDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -100,7 +115,10 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
   // Close user menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+      if (
+        userMenuRef.current &&
+        !userMenuRef.current.contains(event.target as Node)
+      ) {
         setUserMenuOpen(false);
       }
     };
@@ -145,17 +163,20 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
     }
   }, []);
 
-  const handleRenameScene = useCallback(async (sceneId: string, newTitle: string) => {
-    try {
-      const updatedScene = await updateSceneApi(sceneId, { title: newTitle });
-      setScenes((prev) =>
-        prev.map((s) => (s.id === sceneId ? updatedScene : s))
-      );
-    } catch (err) {
-      console.error("Failed to rename scene:", err);
-      alert("Failed to rename scene");
-    }
-  }, []);
+  const handleRenameScene = useCallback(
+    async (sceneId: string, newTitle: string) => {
+      try {
+        const updatedScene = await updateSceneApi(sceneId, { title: newTitle });
+        setScenes((prev) =>
+          prev.map((s) => (s.id === sceneId ? updatedScene : s)),
+        );
+      } catch (err) {
+        console.error("Failed to rename scene:", err);
+        alert("Failed to rename scene");
+      }
+    },
+    [],
+  );
 
   const handleDuplicateScene = useCallback(async (sceneId: string) => {
     try {
@@ -187,9 +208,7 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
       return scenes;
     }
     const query = searchQuery.toLowerCase();
-    return scenes.filter((scene) =>
-      scene.title.toLowerCase().includes(query)
-    );
+    return scenes.filter((scene) => scene.title.toLowerCase().includes(query));
   }, [scenes, searchQuery]);
 
   // Separate scenes into private and public
@@ -213,12 +232,10 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
     return email[0].toUpperCase();
   };
 
-  if (!isOpen) {
-    return null;
-  }
-
   return (
-    <div className="workspace-sidebar">
+    <div
+      className={`workspace-sidebar ${isOpen ? "workspace-sidebar--open" : ""}`}
+    >
       {/* Header with user info */}
       <div className="workspace-sidebar__header">
         {isAuthenticated && user ? (
@@ -242,7 +259,11 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
               <span className="workspace-sidebar__user-name">
                 {user.name || "My Workspace"}
               </span>
-              <span className={`workspace-sidebar__chevron ${userMenuOpen ? "workspace-sidebar__chevron--open" : ""}`}>
+              <span
+                className={`workspace-sidebar__chevron ${
+                  userMenuOpen ? "workspace-sidebar__chevron--open" : ""
+                }`}
+              >
                 {chevronIcon}
               </span>
             </button>
@@ -250,11 +271,39 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
             {userMenuOpen && (
               <div className="workspace-sidebar__user-menu">
                 <div className="workspace-sidebar__user-info">
-                  <span className="workspace-sidebar__user-email">{user.email}</span>
+                  <span className="workspace-sidebar__user-email">
+                    {user.email}
+                  </span>
                 </div>
                 <div className="workspace-sidebar__menu-divider" />
-                <button className="workspace-sidebar__menu-item" onClick={logout}>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <button
+                  className="workspace-sidebar__menu-item"
+                  onClick={() => {
+                    setUserMenuOpen(false);
+                    setShowProfileDialog(true);
+                  }}
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                  <span>{t("workspace.myProfile")}</span>
+                </button>
+                <button
+                  className="workspace-sidebar__menu-item"
+                  onClick={logout}
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
                     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
                   </svg>
                   <span>{t("workspace.logout")}</span>
@@ -303,7 +352,9 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
           <>
             {/* Search bar */}
             <div className="workspace-sidebar__search">
-              <span className="workspace-sidebar__search-icon">{searchIcon}</span>
+              <span className="workspace-sidebar__search-icon">
+                {searchIcon}
+              </span>
               <input
                 ref={searchInputRef}
                 type="text"
@@ -363,7 +414,9 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
                           isActive={scene.id === currentSceneId}
                           onOpen={() => onOpenScene(scene)}
                           onDelete={() => handleDeleteScene(scene.id)}
-                          onRename={(newTitle) => handleRenameScene(scene.id, newTitle)}
+                          onRename={(newTitle) =>
+                            handleRenameScene(scene.id, newTitle)
+                          }
                           onDuplicate={() => handleDuplicateScene(scene.id)}
                           authorName={user?.name || undefined}
                         />
@@ -384,7 +437,9 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
                           isActive={scene.id === currentSceneId}
                           onOpen={() => onOpenScene(scene)}
                           onDelete={() => handleDeleteScene(scene.id)}
-                          onRename={(newTitle) => handleRenameScene(scene.id, newTitle)}
+                          onRename={(newTitle) =>
+                            handleRenameScene(scene.id, newTitle)
+                          }
                           onDuplicate={() => handleDuplicateScene(scene.id)}
                           authorName={user?.name || undefined}
                         />
@@ -393,7 +448,9 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
                   )}
 
                   {/* If all scenes are in one category, show them without section headers */}
-                  {privateScenes.length === 0 && publicScenes.length === 0 && filteredScenes.length > 0 && (
+                  {privateScenes.length === 0 &&
+                    publicScenes.length === 0 &&
+                    filteredScenes.length > 0 &&
                     filteredScenes.map((scene) => (
                       <SceneCard
                         key={scene.id}
@@ -401,12 +458,13 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
                         isActive={scene.id === currentSceneId}
                         onOpen={() => onOpenScene(scene)}
                         onDelete={() => handleDeleteScene(scene.id)}
-                        onRename={(newTitle) => handleRenameScene(scene.id, newTitle)}
+                        onRename={(newTitle) =>
+                          handleRenameScene(scene.id, newTitle)
+                        }
                         onDuplicate={() => handleDuplicateScene(scene.id)}
                         authorName={user?.name || undefined}
                       />
-                    ))
-                  )}
+                    ))}
                 </div>
               )}
             </div>
@@ -419,6 +477,12 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
         isOpen={showLoginDialog}
         onClose={() => setShowLoginDialog(false)}
         onSuccess={handleLoginSuccess}
+      />
+
+      {/* User Profile Dialog */}
+      <UserProfileDialog
+        isOpen={showProfileDialog}
+        onClose={() => setShowProfileDialog(false)}
       />
     </div>
   );

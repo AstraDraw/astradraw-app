@@ -9,11 +9,36 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.35] - 2025-12-20
+
+### Added
+
+- **User Profile Management**
+  - New "My Profile" option in workspace user menu
+  - Profile dialog with avatar upload, name editing, and sign out
+  - Profile picture upload (supports JPEG, PNG, GIF, WebP up to 2MB)
+  - Edit display name with inline editing
+  - View email (read-only)
+  - Dark mode support for profile dialog
+
+- **Profile API Integration**
+  - New API functions in `workspaceApi.ts`:
+    - `getUserProfile()` - Get current user's profile
+    - `updateUserProfile(data)` - Update name/avatar
+    - `uploadAvatar(file)` - Upload profile picture
+    - `deleteAvatar()` - Remove profile picture
+
+### Changed
+
+- User menu in workspace sidebar now shows "My Profile" option
+- Profile pictures stored as base64 data URLs for simplicity
+
 ## [0.18.0-beta0.34] - 2025-12-20
 
 ### Added
 
 - **Auto-Save for Workspace Scenes**
+
   - Scenes auto-save after 3 seconds of inactivity (like Miro)
   - Shows "Auto-saved" toast notification after each save
   - Smart save: skips if data hasn't changed
@@ -33,12 +58,14 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 ### Added
 
 - **Scene-Specific Talktrack Storage**
+
   - Recordings now linked to workspace scenes (stored in PostgreSQL)
   - Recordings sync across devices and browsers
   - Shared viewers can see recordings on public scenes
   - New "Save scene first" message when recording without a saved scene
 
 - **Talktrack API Integration**
+
   - New API functions in `workspaceApi.ts`:
     - `listTalktracks(sceneId)` - Get recordings for a scene
     - `createTalktrack(sceneId, dto)` - Save recording to scene
@@ -85,6 +112,7 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 ### Changed
 
 - **Backend Service Renamed**
+
   - Renamed from `excalidraw-storage-backend` to `astradraw-api`
   - Docker service renamed from `storage` to `api`
   - New image: `ghcr.io/astrateam-net/astradraw-api:0.5`
@@ -100,6 +128,7 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 ### Added
 
 - **Workspace Left Sidebar (Excalidraw+ Style)**
+
   - Toggle button next to hamburger menu (backtick ` shortcut)
   - User/team selector dropdown at top
   - Quick search with ⌘P keyboard shortcut
@@ -108,6 +137,7 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
   - localStorage persistence for sidebar preference
 
 - **Scene Card Context Menu**
+
   - Right-click or "..." button on scene cards
   - Rename option with inline editing
   - Duplicate scene functionality
@@ -115,6 +145,7 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
   - Purple accent color for active/hover states
 
 - **User Registration System**
+
   - New `/api/v2/auth/register` endpoint
   - Sign-up form in login dialog (toggle between sign-in/sign-up)
   - bcrypt password hashing (12 rounds)
@@ -122,6 +153,7 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
   - Client-side validation (email format, password match, length)
 
 - **New Backend APIs**
+
   - `POST /auth/register` - User registration
   - `POST /workspace/scenes/:id/duplicate` - Duplicate scene
   - `GET /auth/status` now includes `registrationEnabled` flag
@@ -146,6 +178,7 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 ### Added
 
 - **Workspace Feature (MVP)**
+
   - User authentication via OIDC (Authentik integration)
   - Left sidebar with workspace panel for managing scenes
   - Save scenes to personal workspace
@@ -154,12 +187,14 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
   - User menu with login/logout functionality
 
 - **New Backend APIs**
+
   - `/api/v2/auth/*` - OIDC authentication endpoints
   - `/api/v2/workspace/scenes/*` - Scene CRUD operations
   - PostgreSQL database for user/scene metadata
   - JWT-based session management with HTTP-only cookies
 
 - **New Environment Variables**
+
   - `OIDC_ISSUER_URL` - Authentik OIDC provider URL
   - `OIDC_CLIENT_ID` - OIDC client ID
   - `OIDC_CLIENT_SECRET` - OIDC client secret
@@ -206,6 +241,7 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 ### Fixed
 
 - **TypeScript Build Errors**
+
   - Fixed `FileId` branded type import in `StickersPanel.tsx`
   - Fixed `CONTENT_TABS` const type assertions for proper literal type inference
   - All TypeScript checks now pass without errors
@@ -220,6 +256,7 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 ### Added
 
 - **Talktrack UI Improvements**
+
   - Recording controls and camera bubble are now independently draggable
   - Recording controls start at bottom-left with offset from hamburger menu (80px)
   - Camera bubble defaults to viewport top-right position
@@ -279,7 +316,7 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
   - API keys now only configured in storage backend (proxy-only approach)
   - Prevents API key exposure in browser (Network tab, `window.__ENV__`)
   - Frontend automatically uses storage backend proxy for all Talktrack operations
-  
+
 ### Changed
 
 - Updated `isKinescopeConfigured()` to check for storage backend URL availability
@@ -318,6 +355,7 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 ### Added
 
 - **Talktrack Board Recordings** (Miro-like feature)
+
   - Record canvas walkthroughs with camera and microphone
   - Picture-in-picture camera preview during recording (draggable, 120px bubble)
   - Recording controls: pause/resume, restart, delete, stop
@@ -329,12 +367,14 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
   - Copy embed link to clipboard
 
 - **Kinescope Integration**
+
   - Direct browser-to-Kinescope video upload
   - Environment variable configuration: `KINESCOPE_API_KEY`, `KINESCOPE_PROJECT_ID`
   - Docker secrets support via `_FILE` suffix for secure deployments
   - Video names prefixed with "AstraDraw" for easy identification
 
 - **New Sidebar Tab**
+
   - Video camera icon in sidebar for Talktrack panel
   - Recording library showing all previous recordings
   - Empty state with call-to-action when no recordings exist
@@ -355,6 +395,7 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 ### Changed
 
 - **Improved Emoji Tab UX**
+
   - Replaced GIPHY animated emojis with Twemoji static emojis (better quality, more complete set)
   - Renamed "Static" tab to "Emojis" for clearer navigation
   - GIPHY emojis tab is commented out (can be re-enabled if needed)
@@ -374,11 +415,13 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 ### Added
 
 - **Animated GIF/Sticker Support**
+
   - GIFs, stickers, and animated emojis from GIPHY are now inserted as embeddable elements
   - Content plays animated on the canvas using iframes
   - Transparent stroke for clean appearance (no border around embedded content)
 
 - **Static Emoji Support (Twemoji)**
+
   - New "Static" tab in Stickers panel for Twitter Emoji (Twemoji)
   - High-quality SVG format - scales without quality loss
   - Categorized by emoji groups (Smileys, People, Animals, Food, etc.)
@@ -431,6 +474,7 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 ### Added
 
 - **Stickers & GIFs Sidebar (GIPHY Integration)**
+
   - New sidebar tab for browsing and inserting GIFs, stickers, and emojis from GIPHY
   - Search functionality with debounced queries
   - Content tabs: All, Stickers, Emojis, GIFs
@@ -447,13 +491,16 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 ### Changed
 
 - **Dockerfile**
+
   - Added `VITE_APP_GIPHY_API_KEY` environment variable placeholder
 
 - **docker-entrypoint.sh**
+
   - Added runtime injection for `VITE_APP_GIPHY_API_KEY`
   - API key is read from environment and injected into `window.__ENV__`
 
 - **docker-compose.yml** (parent repo)
+
   - Added `VITE_APP_GIPHY_API_KEY=${GIPHY_API_KEY:-}` to app service
 
 - **env.example** (parent repo)
@@ -469,6 +516,7 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 ### Added
 
 - **Localized Library Names (i18n)**
+
   - Library section titles now support multiple languages
   - Add `"names"` object in `.excalidrawlib` files with language codes as keys (e.g., `"ru-RU": "Архитектура ПО"`)
   - Automatically displays localized name based on user's UI language
@@ -483,6 +531,7 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 ### Changed
 
 - **LibraryItem Type**
+
   - Added `libraryNames?: Record<string, string>` field for localized names
   - Added `LibraryLocalizedNames` type alias
 
@@ -514,6 +563,7 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 ### Added
 
 - **Pre-bundled Libraries Support**
+
   - Docker volume mount for pre-installed libraries (`/app/libraries/*.excalidrawlib`)
   - Libraries are automatically parsed at container startup and loaded into the app
   - New `getBundledLibraries()` helper in `env.ts` for accessing bundled libraries
