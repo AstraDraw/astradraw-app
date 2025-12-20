@@ -775,5 +775,20 @@
     "capStart": "Закругление начала",
     "capEnd": "Закругление конца",
     "taper": "Сужение:"
+  },
+  "stickers": {
+    "title": "Стикеры и GIF",
+    "search": "Поиск",
+    "all": "Все",
+    "stickersTab": "Стикеры",
+    "emojis": "Эмодзи",
+    "gifs": "GIF",
+    "trending": "Популярное",
+    "noResults": "Ничего не найдено",
+    "loading": "Загрузка...",
+    "error": "Не удалось загрузить контент",
+    "apiKeyMissing": "API ключ GIPHY не настроен",
+    "poweredBy": "При поддержке GIPHY",
+    "clickToInsert": "Нажмите, чтобы добавить на холст"
   }
 }

@@ -2373,3 +2373,15 @@ export const presentationIcon = createIcon(
   </g>,
   tablerIconProps,
 );
+
+// tabler-icons: sticker (for Stickers & GIFs sidebar tab)
+export const stickerIcon = createIcon(
+  <g strokeWidth="1.25">
+    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+    <path d="M20 12l-2 .5a6 6 0 0 1 -6.84 -6.84l.5 -2" />
+    <path d="M4 4l7.5 7.5" />
+    <path d="M20 12a8 8 0 1 1 -8 -8" />
+    <path d="M9 15l-1.5 1.5" />
+  </g>,
+  tablerIconProps,
+);

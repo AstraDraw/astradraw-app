@@ -9,6 +9,44 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.16] - 2025-12-20
+
+### Added
+
+- **Stickers & GIFs Sidebar (GIPHY Integration)**
+  - New sidebar tab for browsing and inserting GIFs, stickers, and emojis from GIPHY
+  - Search functionality with debounced queries
+  - Content tabs: All, Stickers, Emojis, GIFs
+  - Trending content display when not searching
+  - One-click insertion to canvas center
+  - Masonry grid layout matching GIPHY UI design
+  - "Powered by GIPHY" attribution footer
+  - Support for runtime API key injection via Docker environment variables
+  - English and Russian translations
+
+- **New Icon**
+  - Added `stickerIcon` to icons.tsx for the new sidebar tab
+
+### Changed
+
+- **Dockerfile**
+  - Added `VITE_APP_GIPHY_API_KEY` environment variable placeholder
+
+- **docker-entrypoint.sh**
+  - Added runtime injection for `VITE_APP_GIPHY_API_KEY`
+  - API key is read from environment and injected into `window.__ENV__`
+
+- **docker-compose.yml** (parent repo)
+  - Added `VITE_APP_GIPHY_API_KEY=${GIPHY_API_KEY:-}` to app service
+
+- **env.example** (parent repo)
+  - Documented `GIPHY_API_KEY` configuration
+
+### Notes
+
+- GIFs are inserted as static images (Excalidraw does not support animated images)
+- Requires GIPHY API key - get one free at https://developers.giphy.com/
+
 ## [0.18.0-beta0.15] - 2025-12-20
 
 ### Added

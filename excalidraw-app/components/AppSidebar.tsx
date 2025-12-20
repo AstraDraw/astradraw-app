@@ -2,6 +2,7 @@ import { DefaultSidebar, Sidebar, THEME } from "@excalidraw/excalidraw";
 import {
   messageCircleIcon,
   presentationIcon,
+  stickerIcon,
 } from "@excalidraw/excalidraw/components/icons";
 import { LinkButton } from "@excalidraw/excalidraw/components/LinkButton";
 import { useUIAppState } from "@excalidraw/excalidraw/context/ui-appState";
@@ -9,6 +10,7 @@ import { useUIAppState } from "@excalidraw/excalidraw/context/ui-appState";
 import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 
 import { PresentationPanel } from "./Presentation";
+import { StickersPanel } from "./Stickers";
 
 import "./AppSidebar.scss";
 
@@ -22,6 +24,12 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ excalidrawAPI }) => {
   return (
     <DefaultSidebar>
       <DefaultSidebar.TabTriggers>
+        <Sidebar.TabTrigger
+          tab="stickers"
+          style={{ opacity: openSidebar?.tab === "stickers" ? 1 : 0.4 }}
+        >
+          {stickerIcon}
+        </Sidebar.TabTrigger>
         <Sidebar.TabTrigger
           tab="comments"
           style={{ opacity: openSidebar?.tab === "comments" ? 1 : 0.4 }}
@@ -54,6 +62,9 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ excalidrawAPI }) => {
       </Sidebar.Tab>
       <Sidebar.Tab tab="presentation">
         <PresentationPanel excalidrawAPI={excalidrawAPI} />
+      </Sidebar.Tab>
+      <Sidebar.Tab tab="stickers">
+        <StickersPanel excalidrawAPI={excalidrawAPI} />
       </Sidebar.Tab>
     </DefaultSidebar>
   );

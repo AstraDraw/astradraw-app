@@ -775,5 +775,20 @@
     "capStart": "Cap Start",
     "capEnd": "Cap End",
     "taper": "Taper:"
+  },
+  "stickers": {
+    "title": "Stickers & GIFs",
+    "search": "Search",
+    "all": "All",
+    "stickersTab": "Stickers",
+    "emojis": "Emojis",
+    "gifs": "GIFs",
+    "trending": "Trending",
+    "noResults": "No results found",
+    "loading": "Loading...",
+    "error": "Failed to load content",
+    "apiKeyMissing": "GIPHY API key is not configured",
+    "poweredBy": "Powered by GIPHY",
+    "clickToInsert": "Click to add to canvas"
   }
 }

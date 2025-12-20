@@ -1,0 +1,247 @@
+.stickers-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+
+  // Search input container
+  &__search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--default-border-color, #e5e5e5);
+  }
+
+  &__search-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary-color, #6b6b6b);
+
+    svg {
+      width: 18px;
+      height: 18px;
+    }
+  }
+
+  &__search-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    color: var(--text-primary-color, #1b1b1f);
+    outline: none;
+
+    &::placeholder {
+      color: var(--text-secondary-color, #6b6b6b);
+    }
+  }
+
+  // Content type tabs
+  &__tabs {
+    display: flex;
+    gap: 4px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--default-border-color, #e5e5e5);
+  }
+
+  &__tab {
+    padding: 6px 12px;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary-color, #6b6b6b);
+    transition: background-color 0.15s ease, color 0.15s ease;
+
+    &:hover {
+      background: var(--button-hover-bg, rgba(0, 0, 0, 0.05));
+      color: var(--text-primary-color, #1b1b1f);
+    }
+
+    &--active {
+      background: var(--color-primary-light, rgba(101, 84, 192, 0.1));
+      color: var(--color-primary, #6554c0);
+    }
+  }
+
+  // Section header (Trending / Search query)
+  &__section-header {
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary-color, #1b1b1f);
+  }
+
+  // Grid container (scrollable)
+  &__grid-container {
+    flex: 1;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    min-height: 0;
+    padding: 0 12px 12px;
+
+    * {
+      pointer-events: auto;
+    }
+  }
+
+  // Masonry-style grid
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+
+  // Individual GIF/sticker item
+  &__item {
+    position: relative;
+    padding: 0;
+    border: none;
+    background: var(--button-hover-bg, rgba(0, 0, 0, 0.03));
+    border-radius: 6px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    aspect-ratio: auto;
+
+    &:hover:not(:disabled) {
+      transform: scale(1.02);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+
+    &--inserting {
+      opacity: 0.7;
+    }
+
+    img {
+      display: block;
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+    }
+  }
+
+  &__item-loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.7);
+  }
+
+  // Loading state
+  &__loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 32px;
+    color: var(--text-secondary-color, #6b6b6b);
+    font-size: 13px;
+  }
+
+  &__spinner {
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--default-border-color, #e5e5e5);
+    border-top-color: var(--color-primary, #6554c0);
+    border-radius: 50%;
+    animation: stickers-spin 0.8s linear infinite;
+
+    &--small {
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  @keyframes stickers-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  // Error state
+  &__error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 32px;
+    text-align: center;
+    color: var(--text-secondary-color, #6b6b6b);
+    font-size: 13px;
+  }
+
+  &__error-icon {
+    font-size: 32px;
+  }
+
+  // Empty state
+  &__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+    text-align: center;
+    color: var(--text-secondary-color, #6b6b6b);
+    font-size: 13px;
+  }
+
+  // Footer with GIPHY attribution
+  &__footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 16px;
+    border-top: 1px solid var(--default-border-color, #e5e5e5);
+    background: var(--island-bg-color, #fff);
+  }
+
+  &__powered-by {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-secondary-color, #6b6b6b);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+
+    svg {
+      color: var(--text-primary-color, #1b1b1f);
+    }
+  }
+}
+
+// Dark theme adjustments
+.excalidraw.theme--dark {
+  .stickers-panel {
+    &__item {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    &__item-loading {
+      background: rgba(0, 0, 0, 0.7);
+    }
+
+    &__tab--active {
+      background: rgba(101, 84, 192, 0.2);
+    }
+  }
+}
+
