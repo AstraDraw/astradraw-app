@@ -2,12 +2,24 @@ FROM --platform=${BUILDPLATFORM} node:18 AS build
 
 WORKDIR /opt/node_app
 
-COPY . .
+# Copy package files first for better layer caching
+COPY package.json yarn.lock ./
+COPY excalidraw-app/package.json ./excalidraw-app/
+COPY packages/excalidraw/package.json ./packages/excalidraw/
+COPY packages/utils/package.json ./packages/utils/
+COPY packages/math/package.json ./packages/math/
+COPY packages/common/package.json ./packages/common/
+COPY packages/element/package.json ./packages/element/
 
+# Install dependencies with cache mount
 # do not ignore optional dependencies:
 # Error: Cannot find module @rollup/rollup-linux-x64-gnu
 RUN --mount=type=cache,target=/root/.cache/yarn \
-    npm_config_target_arch=${TARGETARCH} yarn --network-timeout 600000
+    npm_config_target_arch=${TARGETARCH} yarn --network-timeout 600000 --frozen-lockfile
+
+# Now copy the rest of the source code
+# This ensures code changes don't invalidate the dependency layer
+COPY . .
 
 ARG NODE_ENV=production
 

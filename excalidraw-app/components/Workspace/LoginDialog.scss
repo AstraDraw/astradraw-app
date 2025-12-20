@@ -1,4 +1,6 @@
 .login-dialog {
+  font-family: var(--ui-font);
+
   &__overlay {
     position: fixed;
     top: 0;

@@ -9,6 +9,7 @@
   cursor: pointer;
   transition: background-color 0.15s, border-color 0.15s, box-shadow 0.15s;
   position: relative;
+  font-family: var(--ui-font);
 
   &:hover {
     background: var(--button-hover-bg, rgba(0, 0, 0, 0.05));

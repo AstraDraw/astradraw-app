@@ -9,6 +9,22 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.36] - 2025-12-21
+
+### Fixed
+
+- **Font Consistency**
+  - Added `font-family: var(--ui-font)` to Workspace components
+  - Fixed inconsistent fonts in sidebar, scene cards, login and profile dialogs
+
+### Added
+
+- **Russian Translations for Workspace**
+  - Added missing translations: signUp, noResults, search, privateScenes, publicScenes
+  - Added: rename, duplicate, email, confirmPassword, name, namePlaceholder
+  - Added: registrationError, passwordMismatch, passwordTooShort, invalidEmail
+  - Added: signingUp, alreadyHaveAccount, noAccount
+
 ## [0.18.0-beta0.35] - 2025-12-20
 
 ### Added
