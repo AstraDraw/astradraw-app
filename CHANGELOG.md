@@ -9,6 +9,28 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.22] - 2025-12-20
+
+### Security
+
+- **Enhanced Talktrack Security**
+  - Removed Kinescope API keys from frontend environment variables
+  - API keys now only configured in storage backend (proxy-only approach)
+  - Prevents API key exposure in browser (Network tab, `window.__ENV__`)
+  - Frontend automatically uses storage backend proxy for all Talktrack operations
+  
+### Changed
+
+- Updated `isKinescopeConfigured()` to check for storage backend URL availability
+- Simplified environment variable documentation in `env.example`
+- Removed `VITE_APP_KINESCOPE_API_KEY` and `VITE_APP_KINESCOPE_PROJECT_ID` from Docker Compose
+
+### Technical
+
+- Talktrack now requires storage backend to be configured
+- Fallback to direct upload still supported if API keys are provided (not recommended)
+- Better security posture for production deployments
+
 ## [0.18.0-beta0.21] - 2025-12-20
 
 ### Added
