@@ -9,6 +9,32 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.23] - 2025-12-20
+
+### Added
+
+- **Laser Pointer Capture in Talktrack**
+  - Recordings now capture both static and interactive canvas layers
+  - Laser pointer drawings are now visible in recorded videos
+  - Selection boxes and other interactive overlays also captured
+
+### Changed
+
+- **Improved Talktrack UI**
+  - Recording controls moved from top-right to bottom-left for better visibility
+  - Camera bubble now defaults to top-right position (instead of top-left)
+  - Controls no longer overlap with common workspace areas
+
+### Fixed
+
+- Interactive canvas elements (laser, selections) now properly recorded in Talktrack videos
+
+### Technical
+
+- `TalktrackRecorder` now finds and composites both `.static` and `.interactive` canvas layers
+- Drawing order: static canvas → interactive canvas → camera PIP
+- Improved default positioning for better UX during recording
+
 ## [0.18.0-beta0.22] - 2025-12-20
 
 ### Security

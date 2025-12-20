@@ -30,7 +30,14 @@ export const TalktrackToolbar: React.FC<TalktrackToolbarProps> = ({
   const cameraPreviewRef = useRef<HTMLVideoElement>(null);
   const cameraStreamRef = useRef<MediaStream | null>(null);
   const cameraBubbleRef = useRef<HTMLDivElement>(null);
-  const [bubblePosition, setBubblePosition] = useState({ x: 0, y: 0 });
+  // Initialize camera bubble at top-right position
+  const [bubblePosition, setBubblePosition] = useState(() => {
+    const viewportWidth = window.innerWidth;
+    return {
+      x: viewportWidth - 140, // 120px bubble + 20px margin
+      y: 20,
+    };
+  });
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef({ x: 0, y: 0, bubbleX: 0, bubbleY: 0 });
 

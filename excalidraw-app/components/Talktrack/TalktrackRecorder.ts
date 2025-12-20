@@ -94,7 +94,8 @@ function getSupportedMimeType(): string {
 }
 
 export class TalktrackRecorder {
-  private canvas: HTMLCanvasElement | null = null;
+  private staticCanvas: HTMLCanvasElement | null = null;
+  private interactiveCanvas: HTMLCanvasElement | null = null;
   private compositorCanvas: HTMLCanvasElement | null = null;
   private compositorCtx: CanvasRenderingContext2D | null = null;
   private cameraVideo: HTMLVideoElement | null = null;
@@ -157,29 +158,20 @@ export class TalktrackRecorder {
   }
 
   /**
-   * Find and return the Excalidraw static canvas element
+   * Find and return both Excalidraw canvas elements (static and interactive)
    */
-  private findExcalidrawCanvas(): HTMLCanvasElement | null {
-    // Try to find the static canvas first (main drawing canvas)
+  private findExcalidrawCanvases(): {
+    static: HTMLCanvasElement | null;
+    interactive: HTMLCanvasElement | null;
+  } {
     const staticCanvas = document.querySelector(
       ".excalidraw__canvas.static",
     ) as HTMLCanvasElement;
-    if (staticCanvas) {
-      return staticCanvas;
-    }
-
-    // Fallback to interactive canvas
     const interactiveCanvas = document.querySelector(
       ".excalidraw__canvas.interactive",
     ) as HTMLCanvasElement;
-    if (interactiveCanvas) {
-      return interactiveCanvas;
-    }
 
-    // Last resort: any excalidraw canvas
-    return document.querySelector(
-      ".excalidraw__canvas",
-    ) as HTMLCanvasElement | null;
+    return { static: staticCanvas, interactive: interactiveCanvas };
   }
 
   /**
@@ -230,7 +222,7 @@ export class TalktrackRecorder {
     if (
       !this.compositorCtx ||
       !this.compositorCanvas ||
-      !this.canvas ||
+      !this.staticCanvas ||
       this.state.status !== "recording"
     ) {
       return;
@@ -243,8 +235,13 @@ export class TalktrackRecorder {
     // Clear canvas
     ctx.clearRect(0, 0, width, height);
 
-    // Draw the Excalidraw canvas
-    ctx.drawImage(this.canvas, 0, 0, width, height);
+    // 1. Draw the static canvas (main drawing)
+    ctx.drawImage(this.staticCanvas, 0, 0, width, height);
+
+    // 2. Draw the interactive canvas (laser pointer, selections) if available
+    if (this.interactiveCanvas) {
+      ctx.drawImage(this.interactiveCanvas, 0, 0, width, height);
+    }
 
     // Draw camera PIP if available
     if (
@@ -333,16 +330,19 @@ export class TalktrackRecorder {
     this.updateState({ status: "preparing", duration: 0, error: undefined });
 
     try {
-      // Find the Excalidraw canvas
-      this.canvas = this.findExcalidrawCanvas();
-      if (!this.canvas) {
+      // Find the Excalidraw canvases (static and interactive)
+      const canvases = this.findExcalidrawCanvases();
+      this.staticCanvas = canvases.static;
+      this.interactiveCanvas = canvases.interactive;
+
+      if (!this.staticCanvas) {
         throw new Error("Could not find Excalidraw canvas");
       }
 
       // Set up compositor canvas to match source canvas
       if (this.compositorCanvas) {
-        this.compositorCanvas.width = this.canvas.width;
-        this.compositorCanvas.height = this.canvas.height;
+        this.compositorCanvas.width = this.staticCanvas.width;
+        this.compositorCanvas.height = this.staticCanvas.height;
       }
 
       // Initialize camera if selected

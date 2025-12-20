@@ -55,9 +55,14 @@ const getStorageBackendUrl = (): string => {
 
 /**
  * Check if Kinescope is configured
+ * Returns true if either:
+ * - Storage backend proxy is available (secure, recommended)
+ * - API keys are available for direct upload (fallback)
  */
 export function isKinescopeConfigured(): boolean {
-  return Boolean(getKinescopeApiKey() && getKinescopeProjectId());
+  const hasStorageBackend = Boolean(getStorageBackendUrl());
+  const hasApiKeys = Boolean(getKinescopeApiKey() && getKinescopeProjectId());
+  return hasStorageBackend || hasApiKeys;
 }
 
 /**
