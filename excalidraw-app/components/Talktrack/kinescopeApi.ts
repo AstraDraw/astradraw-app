@@ -68,14 +68,22 @@ function generateRecordingId(): string {
 }
 
 /**
- * Upload a video blob directly to Kinescope
- * (For personal use where API key exposure is acceptable)
+ * Upload a video blob to Kinescope
+ * Uses storage backend proxy if available (more secure), otherwise direct upload
  */
 export async function uploadToKinescope(
   blob: Blob,
   title: string,
   onProgress?: UploadProgressCallback,
 ): Promise<string> {
+  const storageUrl = getStorageBackendUrl();
+  
+  // Use proxy if storage backend is configured (keeps API key server-side)
+  if (storageUrl) {
+    return uploadViaProxy(blob, title, onProgress);
+  }
+  
+  // Direct upload (API key exposed in browser, suitable for personal use)
   if (!isKinescopeConfigured()) {
     throw new Error("Kinescope is not configured. Please set KINESCOPE_API_KEY and KINESCOPE_PROJECT_ID.");
   }
@@ -184,7 +192,7 @@ export async function uploadViaProxy(
     });
 
     xhr.open("POST", url);
-    xhr.setRequestHeader("X-Video-Title", encodeURIComponent(title));
+    xhr.setRequestHeader("X-Video-Title", title);
 
     xhr.send(blob);
   });
@@ -251,8 +259,24 @@ export async function deleteRecording(id: string, alsoDeleteFromKinescope = true
 
 /**
  * Delete a video from Kinescope
+ * Uses storage backend proxy if available, otherwise direct API call
  */
 export async function deleteFromKinescope(videoId: string): Promise<void> {
+  const storageUrl = getStorageBackendUrl();
+  
+  // Use proxy if available (keeps API key server-side)
+  if (storageUrl) {
+    const response = await fetch(`${storageUrl}/talktrack/${videoId}`, {
+      method: "DELETE",
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to delete video: ${response.status}`);
+    }
+    return;
+  }
+  
+  // Direct API call (API key exposed in browser)
   if (!isKinescopeConfigured()) {
     throw new Error("Kinescope is not configured");
   }
