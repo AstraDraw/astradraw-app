@@ -106,13 +106,17 @@
     background: var(--button-hover-bg, rgba(0, 0, 0, 0.03));
     border-radius: 6px;
     overflow: hidden;
-    cursor: pointer;
+    cursor: grab;
     transition: transform 0.15s ease, box-shadow 0.15s ease;
     aspect-ratio: auto;
 
     &:hover:not(:disabled) {
       transform: scale(1.02);
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    &:active:not(:disabled) {
+      cursor: grabbing;
     }
 
     &:disabled {
@@ -129,6 +133,9 @@
       width: 100%;
       height: auto;
       object-fit: cover;
+      // Prevent image from being dragged separately
+      pointer-events: none;
+      user-select: none;
     }
   }
 

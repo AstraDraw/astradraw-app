@@ -789,6 +789,7 @@
     "error": "Failed to load content",
     "apiKeyMissing": "GIPHY API key is not configured",
     "poweredBy": "Powered by GIPHY",
-    "clickToInsert": "Click to add to canvas"
+    "clickToInsert": "Click to add to canvas",
+    "dragToInsert": "Drag to canvas or click to insert"
   }
 }

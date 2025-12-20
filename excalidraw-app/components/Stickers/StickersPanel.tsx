@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import { useCallback, useEffect, useState, useRef } from "react";
 
-import { randomId } from "@excalidraw/common";
+import { randomId, viewportCoordsToSceneCoords } from "@excalidraw/common";
 import { newImageElement } from "@excalidraw/element";
 import { t, type TranslationKeys } from "@excalidraw/excalidraw/i18n";
 import { searchIcon } from "@excalidraw/excalidraw/components/icons";
@@ -19,6 +19,13 @@ import {
 } from "./giphyApi";
 
 import "./StickersPanel.scss";
+
+// Store dragging item data for drop handling
+interface DragData {
+  item: GiphyItem;
+  width: number;
+  height: number;
+}
 
 interface StickersPanelProps {
   excalidrawAPI: ExcalidrawImperativeAPI | null;
@@ -124,8 +131,12 @@ export const StickersPanel: React.FC<StickersPanelProps> = ({ excalidrawAPI }) =
     };
   }, []);
 
-  // Insert GIF/sticker to canvas
-  const handleItemClick = useCallback(async (item: GiphyItem) => {
+  // Insert image to canvas at specified scene coordinates or viewport center
+  const insertItemToCanvas = useCallback(async (
+    item: GiphyItem, 
+    sceneX?: number, 
+    sceneY?: number
+  ) => {
     if (!excalidrawAPI || insertingId) {
       return;
     }
@@ -156,15 +167,25 @@ export const StickersPanel: React.FC<StickersPanelProps> = ({ excalidrawAPI }) =
       const appState = excalidrawAPI.getAppState();
       const elements = excalidrawAPI.getSceneElements();
 
-      // Calculate center position in canvas coordinates
-      const centerX = appState.scrollX + appState.width / 2 / appState.zoom.value - width / 2;
-      const centerY = appState.scrollY + appState.height / 2 / appState.zoom.value - height / 2;
+      let x: number;
+      let y: number;
+
+      if (sceneX !== undefined && sceneY !== undefined) {
+        // Position at drop location, centered on cursor
+        x = sceneX - width / 2;
+        y = sceneY - height / 2;
+      } else {
+        // Calculate center of visible viewport in scene coordinates
+        // Viewport spans from -scrollX to -scrollX + width/zoom in scene coords
+        x = -appState.scrollX + appState.width / (2 * appState.zoom.value) - width / 2;
+        y = -appState.scrollY + appState.height / (2 * appState.zoom.value) - height / 2;
+      }
 
       // Create image element
       const imageElement = newImageElement({
         type: "image",
-        x: centerX,
-        y: centerY,
+        x,
+        y,
         width,
         height,
         fileId,
@@ -174,13 +195,6 @@ export const StickersPanel: React.FC<StickersPanelProps> = ({ excalidrawAPI }) =
       // Update scene with new element
       excalidrawAPI.updateScene({
         elements: [...elements, imageElement],
-      });
-
-      // Show success toast
-      excalidrawAPI.setToast({
-        message: t("stickers.clickToInsert"),
-        duration: 1500,
-        closable: true,
       });
     } catch (err) {
       console.error("Failed to insert GIF:", err);
@@ -193,6 +207,78 @@ export const StickersPanel: React.FC<StickersPanelProps> = ({ excalidrawAPI }) =
       setInsertingId(null);
     }
   }, [excalidrawAPI, insertingId]);
+
+  // Handle click to insert at viewport center
+  const handleItemClick = useCallback((item: GiphyItem) => {
+    insertItemToCanvas(item);
+  }, [insertItemToCanvas]);
+
+  // Handle drag start - prepare data for drop
+  const handleDragStart = useCallback((e: React.DragEvent<HTMLButtonElement>, item: GiphyItem) => {
+    const width = parseInt(item.images.fixed_width.width, 10);
+    const height = parseInt(item.images.fixed_width.height, 10);
+    
+    // Store drag data as JSON
+    const dragData: DragData = { item, width, height };
+    e.dataTransfer.setData("application/x-excalidraw-sticker", JSON.stringify(dragData));
+    e.dataTransfer.effectAllowed = "copy";
+    
+    // Use the preview image as drag image
+    const img = e.currentTarget.querySelector("img");
+    if (img) {
+      e.dataTransfer.setDragImage(img, width / 2, height / 2);
+    }
+  }, []);
+
+  // Set up global drop handler when panel mounts
+  useEffect(() => {
+    if (!excalidrawAPI) return;
+
+    const handleDrop = async (e: DragEvent) => {
+      const data = e.dataTransfer?.getData("application/x-excalidraw-sticker");
+      if (!data) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      try {
+        const dragData: DragData = JSON.parse(data);
+        const appState = excalidrawAPI.getAppState();
+        
+        // Convert drop coordinates to scene coordinates
+        const { x: sceneX, y: sceneY } = viewportCoordsToSceneCoords(
+          { clientX: e.clientX, clientY: e.clientY },
+          {
+            zoom: appState.zoom,
+            offsetLeft: appState.offsetLeft,
+            offsetTop: appState.offsetTop,
+            scrollX: appState.scrollX,
+            scrollY: appState.scrollY,
+          }
+        );
+
+        await insertItemToCanvas(dragData.item, sceneX, sceneY);
+      } catch (err) {
+        console.error("Failed to handle drop:", err);
+      }
+    };
+
+    const handleDragOver = (e: DragEvent) => {
+      if (e.dataTransfer?.types.includes("application/x-excalidraw-sticker")) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "copy";
+      }
+    };
+
+    // Add listeners to the document to catch drops on the canvas
+    document.addEventListener("drop", handleDrop);
+    document.addEventListener("dragover", handleDragOver);
+
+    return () => {
+      document.removeEventListener("drop", handleDrop);
+      document.removeEventListener("dragover", handleDragOver);
+    };
+  }, [excalidrawAPI, insertItemToCanvas]);
 
   // Render API key missing state
   if (apiKeyMissing) {
@@ -274,13 +360,16 @@ export const StickersPanel: React.FC<StickersPanelProps> = ({ excalidrawAPI }) =
                   "stickers-panel__item--inserting": insertingId === item.id,
                 })}
                 onClick={() => handleItemClick(item)}
-                title={item.title || t("stickers.clickToInsert")}
+                onDragStart={(e) => handleDragStart(e, item)}
+                draggable
+                title={item.title ? `${item.title} - ${t("stickers.dragToInsert")}` : t("stickers.dragToInsert")}
                 disabled={insertingId !== null}
               >
                 <img
                   src={item.images.fixed_width_still?.url || item.images.fixed_width.url}
                   alt={item.title}
                   loading="lazy"
+                  draggable={false}
                   onMouseEnter={(e) => {
                     // Show animated version on hover
                     (e.target as HTMLImageElement).src = item.images.fixed_width.url;

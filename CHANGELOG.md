@@ -9,6 +9,27 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.17] - 2025-12-20
+
+### Added
+
+- **Drag and Drop for Stickers & GIFs**
+  - Items can now be dragged from sidebar directly onto the canvas
+  - Drop position determines where the image is placed
+  - Grab cursor indicates draggable items
+
+### Fixed
+
+- **Viewport Centering**
+  - Fixed calculation so click-to-insert places images at visible viewport center
+  - Previously images were inserted outside the visible area
+
+### Changed
+
+- **Removed Toast Notification**
+  - Removed unnecessary "Click to add to canvas" toast after insertion
+  - The action is self-evident and the toast was redundant
+
 ## [0.18.0-beta0.16] - 2025-12-20
 
 ### Added
