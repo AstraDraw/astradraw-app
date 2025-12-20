@@ -9,6 +9,20 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.25] - 2025-12-20
+
+### Fixed
+
+- **TypeScript Build Errors**
+  - Fixed `FileId` branded type import in `StickersPanel.tsx`
+  - Fixed `CONTENT_TABS` const type assertions for proper literal type inference
+  - All TypeScript checks now pass without errors
+
+- **Talktrack Verification**
+  - Confirmed dual canvas capture (static + interactive) working correctly
+  - Verified laser pointer capture functionality
+  - Validated console logging for canvas detection
+
 ## [0.18.0-beta0.24] - 2025-12-20
 
 ### Added

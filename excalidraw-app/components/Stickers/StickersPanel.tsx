@@ -3,11 +3,11 @@ import { useCallback, useEffect, useState, useRef } from "react";
 
 import { randomId, viewportCoordsToSceneCoords } from "@excalidraw/common";
 import { newEmbeddableElement, newImageElement } from "@excalidraw/element";
+import type { FileId } from "@excalidraw/element/types";
 import { t, type TranslationKeys } from "@excalidraw/excalidraw/i18n";
 import { searchIcon } from "@excalidraw/excalidraw/components/icons";
 
 import type { ExcalidrawImperativeAPI, DataURL } from "@excalidraw/excalidraw/types";
-import type { FileId } from "@excalidraw/element/types";
 
 import {
   fetchTrending,
@@ -50,14 +50,14 @@ interface StickersPanelProps {
   excalidrawAPI: ExcalidrawImperativeAPI | null;
 }
 
-const CONTENT_TABS: { id: ExtendedContentType; labelKey: TranslationKeys }[] = [
-  { id: "all", labelKey: "stickers.all" },
-  { id: "stickers", labelKey: "stickers.stickersTab" },
+const CONTENT_TABS = [
+  { id: "all" as const, labelKey: "stickers.all" as const },
+  { id: "stickers" as const, labelKey: "stickers.stickersTab" as const },
   // GIPHY emojis commented out - using Twemoji instead (better quality, more complete)
   // { id: "emojis", labelKey: "stickers.emojis" },
-  { id: "gifs", labelKey: "stickers.gifs" },
-  { id: "static", labelKey: "stickers.emojis" }, // Renamed to "Emojis" for better UX
-];
+  { id: "gifs" as const, labelKey: "stickers.gifs" as const },
+  { id: "static" as const, labelKey: "stickers.emojis" as const }, // Renamed to "Emojis" for better UX
+] as const;
 
 const GiphyLogo = () => (
   <svg
