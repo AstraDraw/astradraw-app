@@ -9,6 +9,35 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.24] - 2025-12-20
+
+### Added
+
+- **Talktrack UI Improvements**
+  - Recording controls and camera bubble are now independently draggable
+  - Recording controls start at bottom-left with offset from hamburger menu (80px)
+  - Camera bubble defaults to viewport top-right position
+  - Users can reposition both elements to their preferred locations
+
+- **Video Processing Status Tracking**
+  - Show "Processing..." indicator on videos being processed by Kinescope
+  - Automatic polling every 10 seconds for processing videos
+  - Visual spinner and overlay on thumbnails during processing
+  - Auto-update when video becomes ready
+  - Console logging for debugging status checks
+
+### Fixed
+
+- Corrected Kinescope status mapping: API returns `"done"` not `"ready"`
+- Processing indicator now properly disappears when videos are ready
+- Improved status check reliability with better error handling
+
+### Changed
+
+- Enhanced drag UX with grab/grabbing cursor feedback
+- Button clicks don't trigger toolbar dragging
+- Added debug console logging for status checks and canvas detection
+
 ## [0.18.0-beta0.23] - 2025-12-20
 
 ### Added
