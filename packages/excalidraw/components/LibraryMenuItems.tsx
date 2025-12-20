@@ -13,11 +13,10 @@ import { duplicateElements } from "@excalidraw/element";
 import clsx from "clsx";
 
 import { deburr } from "../deburr";
-import { getLocalizedLibraryName } from "../data/libraryUtils";
 
 import { useLibraryCache } from "../hooks/useLibraryItemSvg";
 import { useScrollPosition } from "../hooks/useScrollPosition";
-import { t, useI18n } from "../i18n";
+import { t } from "../i18n";
 
 import { LibraryMenuControlButtons } from "./LibraryMenuControlButtons";
 import { LibraryDropdownMenu } from "./LibraryMenuHeaderContent";
@@ -108,20 +107,29 @@ export default function LibraryMenuItems({
     return libraryItems.filter((item) => {
       // Search in item name
       const itemName = item.name || "";
-      if (itemName.trim() && deburr(itemName.toLowerCase()).includes(searchQuery)) {
+      if (
+        itemName.trim() &&
+        deburr(itemName.toLowerCase()).includes(searchQuery)
+      ) {
         return true;
       }
 
       // Search in library name (group name)
       const libraryName = item.libraryName || "";
-      if (libraryName.trim() && deburr(libraryName.toLowerCase()).includes(searchQuery)) {
+      if (
+        libraryName.trim() &&
+        deburr(libraryName.toLowerCase()).includes(searchQuery)
+      ) {
         return true;
       }
 
       // Search in localized library names
       if (item.libraryNames) {
         for (const localizedName of Object.values(item.libraryNames)) {
-          if (localizedName && deburr(localizedName.toLowerCase()).includes(searchQuery)) {
+          if (
+            localizedName &&
+            deburr(localizedName.toLowerCase()).includes(searchQuery)
+          ) {
             return true;
           }
         }

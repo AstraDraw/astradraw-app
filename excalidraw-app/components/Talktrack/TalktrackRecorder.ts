@@ -299,7 +299,9 @@ export class TalktrackRecorder {
     this.durationInterval = window.setInterval(() => {
       if (this.state.status === "recording") {
         const now = Date.now();
-        const elapsed = Math.floor((now - this.startTime - this.pausedTime) / 1000);
+        const elapsed = Math.floor(
+          (now - this.startTime - this.pausedTime) / 1000,
+        );
         this.updateState({ duration: elapsed });
       }
     }, 1000);
@@ -335,11 +337,16 @@ export class TalktrackRecorder {
       this.staticCanvas = canvases.static;
       this.interactiveCanvas = canvases.interactive;
 
+      // eslint-disable-next-line no-console
       console.log("[Talktrack] Found canvases:", {
         static: !!this.staticCanvas,
         interactive: !!this.interactiveCanvas,
-        staticSize: this.staticCanvas ? `${this.staticCanvas.width}x${this.staticCanvas.height}` : "N/A",
-        interactiveSize: this.interactiveCanvas ? `${this.interactiveCanvas.width}x${this.interactiveCanvas.height}` : "N/A",
+        staticSize: this.staticCanvas
+          ? `${this.staticCanvas.width}x${this.staticCanvas.height}`
+          : "N/A",
+        interactiveSize: this.interactiveCanvas
+          ? `${this.interactiveCanvas.width}x${this.interactiveCanvas.height}`
+          : "N/A",
       });
 
       if (!this.staticCanvas) {
@@ -432,7 +439,8 @@ export class TalktrackRecorder {
     } catch (error) {
       this.updateState({
         status: "error",
-        error: error instanceof Error ? error.message : "Failed to start recording",
+        error:
+          error instanceof Error ? error.message : "Failed to start recording",
       });
       throw error;
     }
@@ -588,5 +596,7 @@ export function getTalktrackRecorder(): TalktrackRecorder {
 export function formatDuration(seconds: number): string {
   const mins = Math.floor(seconds / 60);
   const secs = seconds % 60;
-  return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  return `${mins.toString().padStart(2, "0")}:${secs
+    .toString()
+    .padStart(2, "0")}`;
 }

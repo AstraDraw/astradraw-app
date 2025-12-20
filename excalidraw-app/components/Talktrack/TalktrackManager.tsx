@@ -4,16 +4,14 @@ import { t } from "@excalidraw/excalidraw/i18n";
 
 import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 
+import { createTalktrack } from "../../auth/workspaceApi";
+
 import {
   getTalktrackRecorder,
   type RecordingState,
   type TalktrackRecorder,
 } from "./TalktrackRecorder";
-import {
-  uploadToKinescope,
-  type UploadProgress,
-} from "./kinescopeApi";
-import { createTalktrack } from "../../auth/workspaceApi";
+import { uploadToKinescope, type UploadProgress } from "./kinescopeApi";
 import { TalktrackSetupDialog } from "./TalktrackSetupDialog";
 import { TalktrackToolbar } from "./TalktrackToolbar";
 
@@ -38,7 +36,9 @@ export const TalktrackManager: React.FC<TalktrackManagerProps> = ({
   });
   const [cameraEnabled, setCameraEnabled] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(
+    null,
+  );
   const [countdown, setCountdown] = useState<number | null>(null);
 
   const recorderRef = useRef<TalktrackRecorder | null>(null);
@@ -64,7 +64,9 @@ export const TalktrackManager: React.FC<TalktrackManagerProps> = ({
       // Check if scene is saved
       if (!sceneId) {
         excalidrawAPI?.setToast({
-          message: t("talktrack.saveSceneFirst") || "Please save your scene first to record a talktrack",
+          message:
+            t("talktrack.saveSceneFirst") ||
+            "Please save your scene first to record a talktrack",
           duration: 4000,
           closable: true,
         });
@@ -112,7 +114,8 @@ export const TalktrackManager: React.FC<TalktrackManagerProps> = ({
       } catch (err) {
         console.error("Failed to prepare recording:", err);
         excalidrawAPI?.setToast({
-          message: err instanceof Error ? err.message : t("talktrack.recordingError"),
+          message:
+            err instanceof Error ? err.message : t("talktrack.recordingError"),
           duration: 3000,
           closable: true,
         });
@@ -170,7 +173,8 @@ export const TalktrackManager: React.FC<TalktrackManagerProps> = ({
     } catch (err) {
       console.error("Failed to stop/upload recording:", err);
       excalidrawAPI?.setToast({
-        message: err instanceof Error ? err.message : t("talktrack.uploadError"),
+        message:
+          err instanceof Error ? err.message : t("talktrack.uploadError"),
         duration: 5000,
         closable: true,
       });
@@ -243,7 +247,9 @@ export const TalktrackManager: React.FC<TalktrackManagerProps> = ({
 
   // Format bytes to human readable
   const formatBytes = (bytes: number): string => {
-    if (bytes === 0) return "0 B";
+    if (bytes === 0) {
+      return "0 B";
+    }
     const k = 1024;
     const sizes = ["B", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
@@ -297,12 +303,16 @@ export const TalktrackManager: React.FC<TalktrackManagerProps> = ({
                 <line x1="12" y1="3" x2="12" y2="15" />
               </svg>
             </div>
-            <h3 className="talktrack-upload-modal__title">{t("talktrack.uploadingTitle")}</h3>
-            <p className="talktrack-upload-modal__subtitle">{t("talktrack.uploadingSubtitle")}</p>
-            
+            <h3 className="talktrack-upload-modal__title">
+              {t("talktrack.uploadingTitle")}
+            </h3>
+            <p className="talktrack-upload-modal__subtitle">
+              {t("talktrack.uploadingSubtitle")}
+            </p>
+
             <div className="talktrack-upload-modal__progress-container">
               <div className="talktrack-upload-modal__progress-bar">
-                <div 
+                <div
                   className="talktrack-upload-modal__progress-fill"
                   style={{ width: `${uploadProgress.percentage}%` }}
                 />
@@ -312,7 +322,8 @@ export const TalktrackManager: React.FC<TalktrackManagerProps> = ({
                   {uploadProgress.percentage}%
                 </span>
                 <span className="talktrack-upload-modal__progress-size">
-                  {formatBytes(uploadProgress.loaded)} / {formatBytes(uploadProgress.total)}
+                  {formatBytes(uploadProgress.loaded)} /{" "}
+                  {formatBytes(uploadProgress.total)}
                 </span>
               </div>
             </div>

@@ -17,6 +17,7 @@ export const exportToExcalidrawPlus = async (
   _name: string,
 ) => {
   // To be implemented when AstraDraw+ user functionality is ready
+  // eslint-disable-next-line no-console
   console.log("AstraDraw+ export: Coming soon");
 };
 

@@ -8,18 +8,18 @@ import { t } from "@excalidraw/excalidraw/i18n";
 import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 
 import {
-  isKinescopeConfigured,
-  getKinescopeEmbedUrl,
-  checkVideoStatus,
-} from "./kinescopeApi";
-
-import {
   listTalktracks,
   updateTalktrack,
   deleteTalktrack,
   updateTalktrackStatus,
   type TalktrackRecording,
 } from "../../auth/workspaceApi";
+
+import {
+  isKinescopeConfigured,
+  getKinescopeEmbedUrl,
+  checkVideoStatus,
+} from "./kinescopeApi";
 
 import "./TalktrackPanel.scss";
 
@@ -111,19 +111,30 @@ const RecordingItem: React.FC<RecordingItemProps> = ({
     }
   }, [isMenuOpen]);
 
-  const isProcessing = recording.processingStatus === "processing" || recording.processingStatus === "uploading";
+  const isProcessing =
+    recording.processingStatus === "processing" ||
+    recording.processingStatus === "uploading";
   const isOwner = recording.isOwner;
 
   return (
     <div className="talktrack-panel__recording">
-      <div className={clsx("talktrack-panel__recording-thumbnail", {
-        "talktrack-panel__recording-thumbnail--processing": isProcessing,
-      })}>
+      <div
+        className={clsx("talktrack-panel__recording-thumbnail", {
+          "talktrack-panel__recording-thumbnail--processing": isProcessing,
+        })}
+      >
         {/* Placeholder thumbnail - Kinescope provides thumbnails after processing */}
         <div className="talktrack-panel__recording-thumbnail-placeholder">
           {isProcessing ? (
             <div className="talktrack-panel__processing-indicator">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
                 <circle cx="12" cy="12" r="10" opacity="0.25" />
                 <path d="M12 2 A 10 10 0 0 1 22 12" strokeLinecap="round">
                   <animateTransform
@@ -169,7 +180,9 @@ const RecordingItem: React.FC<RecordingItemProps> = ({
             autoFocus
           />
         ) : (
-          <div className="talktrack-panel__recording-title">{recording.title}</div>
+          <div className="talktrack-panel__recording-title">
+            {recording.title}
+          </div>
         )}
         <div className="talktrack-panel__recording-meta">
           <span className="talktrack-panel__recording-duration">
@@ -243,7 +256,10 @@ const RecordingItem: React.FC<RecordingItemProps> = ({
                   </svg>
                   {t("talktrack.addToBoard")}
                 </button>
-                <button className="talktrack-panel__menu-item" onClick={handleRename}>
+                <button
+                  className="talktrack-panel__menu-item"
+                  onClick={handleRename}
+                >
                   <svg
                     width="16"
                     height="16"
@@ -299,17 +315,14 @@ const EmptyState: React.FC<{ onRecord: () => void }> = ({ onRecord }) => (
         <circle cx="18" cy="7" r="1" fill="currentColor" />
       </svg>
     </div>
-    <h3 className="talktrack-panel__empty-title">{t("talktrack.emptyTitle")}</h3>
+    <h3 className="talktrack-panel__empty-title">
+      {t("talktrack.emptyTitle")}
+    </h3>
     <p className="talktrack-panel__empty-description">
       {t("talktrack.emptyDescription")}
     </p>
     <button className="talktrack-panel__record-button" onClick={onRecord}>
-      <svg
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="currentColor"
-      >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
         <circle cx="12" cy="12" r="10" />
       </svg>
       {t("talktrack.recordTalktrack")}
@@ -349,7 +362,8 @@ const NoSceneState: React.FC = () => (
       {t("talktrack.noSceneTitle") || "Save your scene first"}
     </h3>
     <p className="talktrack-panel__no-scene-description">
-      {t("talktrack.noSceneDescription") || "Talktrack recordings are saved with your scene. Save your scene to the workspace to start recording."}
+      {t("talktrack.noSceneDescription") ||
+        "Talktrack recordings are saved with your scene. Save your scene to the workspace to start recording."}
     </p>
   </div>
 );
@@ -397,7 +411,9 @@ export const TalktrackPanel: React.FC<TalktrackPanelProps> = ({
     }
 
     const processingRecordings = recordings.filter(
-      (r) => r.processingStatus === "processing" || r.processingStatus === "uploading",
+      (r) =>
+        r.processingStatus === "processing" ||
+        r.processingStatus === "uploading",
     );
 
     if (processingRecordings.length === 0) {
@@ -449,13 +465,9 @@ export const TalktrackPanel: React.FC<TalktrackPanelProps> = ({
 
       // Calculate center of viewport
       const x =
-        -appState.scrollX +
-        appState.width / (2 * appState.zoom.value) -
-        320;
+        -appState.scrollX + appState.width / (2 * appState.zoom.value) - 320;
       const y =
-        -appState.scrollY +
-        appState.height / (2 * appState.zoom.value) -
-        180;
+        -appState.scrollY + appState.height / (2 * appState.zoom.value) - 180;
 
       const embeddableElement = newEmbeddableElement({
         type: "embeddable",
@@ -479,64 +491,73 @@ export const TalktrackPanel: React.FC<TalktrackPanelProps> = ({
     [excalidrawAPI],
   );
 
-  const handleRename = useCallback(async (id: string, newTitle: string) => {
-    if (!sceneId) {
-      return;
-    }
+  const handleRename = useCallback(
+    async (id: string, newTitle: string) => {
+      if (!sceneId) {
+        return;
+      }
 
-    try {
-      await updateTalktrack(sceneId, id, { title: newTitle });
-      loadRecordings();
-    } catch (err) {
-      console.error("Failed to rename recording:", err);
+      try {
+        await updateTalktrack(sceneId, id, { title: newTitle });
+        loadRecordings();
+      } catch (err) {
+        console.error("Failed to rename recording:", err);
+        excalidrawAPI?.setToast({
+          message: t("talktrack.renameError") || "Failed to rename recording",
+          duration: 3000,
+          closable: true,
+        });
+      }
+    },
+    [sceneId, loadRecordings, excalidrawAPI],
+  );
+
+  const handleDelete = useCallback(
+    async (id: string) => {
+      if (!sceneId) {
+        return;
+      }
+
+      // Show deleting toast
       excalidrawAPI?.setToast({
-        message: t("talktrack.renameError") || "Failed to rename recording",
-        duration: 3000,
-        closable: true,
+        message: t("talktrack.deleting"),
+        duration: 0,
+        closable: false,
       });
-    }
-  }, [sceneId, loadRecordings, excalidrawAPI]);
 
-  const handleDelete = useCallback(async (id: string) => {
-    if (!sceneId) {
-      return;
-    }
+      try {
+        await deleteTalktrack(sceneId, id);
+        loadRecordings();
+        excalidrawAPI?.setToast({
+          message: t("talktrack.deleteSuccess"),
+          duration: 2000,
+          closable: true,
+        });
+      } catch (err) {
+        console.error("Failed to delete recording:", err);
+        excalidrawAPI?.setToast({
+          message: t("talktrack.deleteError"),
+          duration: 3000,
+          closable: true,
+        });
+      }
+    },
+    [sceneId, loadRecordings, excalidrawAPI],
+  );
 
-    // Show deleting toast
-    excalidrawAPI?.setToast({
-      message: t("talktrack.deleting"),
-      duration: 0,
-      closable: false,
-    });
-
-    try {
-      await deleteTalktrack(sceneId, id);
-      loadRecordings();
-      excalidrawAPI?.setToast({
-        message: t("talktrack.deleteSuccess"),
-        duration: 2000,
-        closable: true,
+  const handleCopyLink = useCallback(
+    (recording: TalktrackRecording) => {
+      const url = getKinescopeEmbedUrl(recording.kinescopeVideoId);
+      navigator.clipboard.writeText(url).then(() => {
+        excalidrawAPI?.setToast({
+          message: t("talktrack.linkCopied"),
+          duration: 2000,
+          closable: true,
+        });
       });
-    } catch (err) {
-      console.error("Failed to delete recording:", err);
-      excalidrawAPI?.setToast({
-        message: t("talktrack.deleteError"),
-        duration: 3000,
-        closable: true,
-      });
-    }
-  }, [sceneId, loadRecordings, excalidrawAPI]);
-
-  const handleCopyLink = useCallback((recording: TalktrackRecording) => {
-    const url = getKinescopeEmbedUrl(recording.kinescopeVideoId);
-    navigator.clipboard.writeText(url).then(() => {
-      excalidrawAPI?.setToast({
-        message: t("talktrack.linkCopied"),
-        duration: 2000,
-        closable: true,
-      });
-    });
-  }, [excalidrawAPI]);
+    },
+    [excalidrawAPI],
+  );
 
   // Check if Kinescope is configured
   if (!isKinescopeConfigured()) {
@@ -562,7 +583,14 @@ export const TalktrackPanel: React.FC<TalktrackPanelProps> = ({
       <div className="talktrack-panel" onWheel={(e) => e.stopPropagation()}>
         <div className="talktrack-panel__loading">
           <div className="talktrack-panel__processing-indicator">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
               <circle cx="12" cy="12" r="10" opacity="0.25" />
               <path d="M12 2 A 10 10 0 0 1 22 12" strokeLinecap="round">
                 <animateTransform
@@ -588,7 +616,9 @@ export const TalktrackPanel: React.FC<TalktrackPanelProps> = ({
       <div className="talktrack-panel" onWheel={(e) => e.stopPropagation()}>
         <div className="talktrack-panel__error">
           <span>{error}</span>
-          <button onClick={loadRecordings}>{t("talktrack.retry") || "Retry"}</button>
+          <button onClick={loadRecordings}>
+            {t("talktrack.retry") || "Retry"}
+          </button>
         </div>
       </div>
     );
@@ -602,7 +632,9 @@ export const TalktrackPanel: React.FC<TalktrackPanelProps> = ({
         <>
           {/* Header */}
           <div className="talktrack-panel__header">
-            <span className="talktrack-panel__title">{t("talktrack.title")}</span>
+            <span className="talktrack-panel__title">
+              {t("talktrack.title")}
+            </span>
           </div>
 
           {/* Recordings list */}

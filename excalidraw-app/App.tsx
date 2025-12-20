@@ -79,7 +79,6 @@ import {
 } from "./app-jotai";
 import {
   FIREBASE_STORAGE_PREFIXES,
-  isExcalidrawPlusSignedUser,
   STORAGE_KEYS,
   SYNC_BROWSER_TABS_TIMEOUT,
   ASTRADRAW_GITHUB_URL,
@@ -141,13 +140,14 @@ import {
   WorkspaceSidebar,
   WorkspaceSidebarTrigger,
 } from "./components/Workspace";
-import type { WorkspaceScene } from "./auth/workspaceApi";
+
 import {
   createScene,
-  updateScene,
   updateSceneData,
   getSceneData,
 } from "./auth/workspaceApi";
+
+import type { WorkspaceScene } from "./auth/workspaceApi";
 
 import type { CollabAPI } from "./collab/Collab";
 
@@ -389,7 +389,9 @@ const ExcalidrawWrapper = () => {
   const [currentSceneId, setCurrentSceneId] = useState<string | null>(null);
   const [currentSceneTitle, setCurrentSceneTitle] =
     useState<string>("Untitled");
-  const [isAutoSaving, setIsAutoSaving] = useState(false);
+  // isAutoSaving tracks auto-save state for potential UI feedback (saving indicator)
+  const [_isAutoSaving, setIsAutoSaving] = useState(false);
+  void _isAutoSaving; // Reserved for future UI indicator
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSavedDataRef = useRef<string | null>(null);
@@ -978,7 +980,7 @@ const ExcalidrawWrapper = () => {
       if (currentSceneId) {
         // Update existing scene
         await updateSceneData(currentSceneId, blob);
-        excalidrawAPI.setToast({ message: t("workspace.saveScene") + " ✓" });
+        excalidrawAPI.setToast({ message: `${t("workspace.saveScene")} ✓` });
       } else {
         // Create new scene with auto-generated title
         // Use current title or generate one with timestamp
@@ -995,7 +997,7 @@ const ExcalidrawWrapper = () => {
 
         setCurrentSceneId(scene.id);
         setCurrentSceneTitle(title);
-        excalidrawAPI.setToast({ message: t("workspace.saveScene") + " ✓" });
+        excalidrawAPI.setToast({ message: `${t("workspace.saveScene")} ✓` });
       }
     } catch (error) {
       console.error("Failed to save scene:", error);

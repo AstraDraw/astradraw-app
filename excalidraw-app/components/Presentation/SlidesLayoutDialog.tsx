@@ -288,8 +288,11 @@ export const applyLayoutToFrames = (
     if (newPos) {
       const frame = frames.find((f) => f.id === el.id);
       if (frame) {
-        const deltaX = newPos.x - frame.x;
-        const deltaY = newPos.y - frame.y;
+        // Delta values kept for potential future use (e.g., moving child elements)
+        const _deltaX = newPos.x - frame.x;
+        const _deltaY = newPos.y - frame.y;
+        void _deltaX;
+        void _deltaY;
         return {
           ...el,
           x: newPos.x,

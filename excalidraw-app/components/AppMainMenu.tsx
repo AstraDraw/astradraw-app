@@ -35,14 +35,8 @@ export const AppMainMenu: React.FC<{
   onWorkspaceOpen?: () => void;
   onSaveToWorkspace?: () => void;
 }> = React.memo((props) => {
-  const {
-    user,
-    isAuthenticated,
-    oidcConfigured,
-    localAuthEnabled,
-    login,
-    logout,
-  } = useAuth();
+  const { user, isAuthenticated, oidcConfigured, localAuthEnabled, logout } =
+    useAuth();
 
   // Show workspace features if OIDC or local auth is available
   const authAvailable = oidcConfigured || localAuthEnabled;

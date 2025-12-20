@@ -181,11 +181,16 @@ export const TalktrackSetupDialog: React.FC<TalktrackSetupDialogProps> = ({
           <button
             className={clsx("talktrack-setup-dialog__toggle", {
               "talktrack-setup-dialog__toggle--active": videoEnabled,
-              "talktrack-setup-dialog__toggle--disabled": videoDevices.length === 0,
+              "talktrack-setup-dialog__toggle--disabled":
+                videoDevices.length === 0,
             })}
             onClick={toggleVideo}
             disabled={videoDevices.length === 0}
-            title={videoEnabled ? t("talktrack.disableCamera") : t("talktrack.enableCamera")}
+            title={
+              videoEnabled
+                ? t("talktrack.disableCamera")
+                : t("talktrack.enableCamera")
+            }
           >
             {videoEnabled ? (
               <svg
@@ -218,11 +223,16 @@ export const TalktrackSetupDialog: React.FC<TalktrackSetupDialogProps> = ({
           <button
             className={clsx("talktrack-setup-dialog__toggle", {
               "talktrack-setup-dialog__toggle--active": audioEnabled,
-              "talktrack-setup-dialog__toggle--disabled": audioDevices.length === 0,
+              "talktrack-setup-dialog__toggle--disabled":
+                audioDevices.length === 0,
             })}
             onClick={toggleAudio}
             disabled={audioDevices.length === 0}
-            title={audioEnabled ? t("talktrack.disableMic") : t("talktrack.enableMic")}
+            title={
+              audioEnabled
+                ? t("talktrack.disableMic")
+                : t("talktrack.enableMic")
+            }
           >
             {audioEnabled ? (
               <svg
@@ -276,7 +286,9 @@ export const TalktrackSetupDialog: React.FC<TalktrackSetupDialogProps> = ({
                 className="talktrack-setup-dialog__select"
                 value={selectedVideo || "none"}
                 onChange={(e) =>
-                  setSelectedVideo(e.target.value === "none" ? null : e.target.value)
+                  setSelectedVideo(
+                    e.target.value === "none" ? null : e.target.value,
+                  )
                 }
                 disabled={!videoEnabled}
               >
@@ -298,7 +310,9 @@ export const TalktrackSetupDialog: React.FC<TalktrackSetupDialogProps> = ({
                 className="talktrack-setup-dialog__select"
                 value={selectedAudio || "none"}
                 onChange={(e) =>
-                  setSelectedAudio(e.target.value === "none" ? null : e.target.value)
+                  setSelectedAudio(
+                    e.target.value === "none" ? null : e.target.value,
+                  )
                 }
                 disabled={!audioEnabled}
               >

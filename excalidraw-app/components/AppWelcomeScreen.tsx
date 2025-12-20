@@ -3,8 +3,9 @@ import { useI18n } from "@excalidraw/excalidraw/i18n";
 import { WelcomeScreen } from "@excalidraw/excalidraw/index";
 import React, { useState } from "react";
 
-import { AstradrawLogo } from "./AstradrawLogo";
 import { useAuth } from "../auth";
+
+import { AstradrawLogo } from "./AstradrawLogo";
 import { LoginDialog } from "./Workspace/LoginDialog";
 
 export const AppWelcomeScreen: React.FC<{

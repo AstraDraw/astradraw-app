@@ -9,6 +9,7 @@ Self-hosted Excalidraw frontend with user workspaces, video recordings, presenta
 ## Features
 
 ### Core (from Excalidraw)
+
 - 🎨 **Infinite canvas** with hand-drawn style
 - 🔒 **End-to-end encryption** for collaboration
 - 🤝 **Real-time collaboration** via WebSocket
@@ -16,6 +17,7 @@ Self-hosted Excalidraw frontend with user workspaces, video recordings, presenta
 - 🌙 **Dark mode** support
 
 ### AstraDraw Extensions
+
 - 👤 **User Authentication** - Local accounts and OIDC/SSO support
 - 📁 **Personal Workspaces** - Save, organize, and sync scenes
 - 🎬 **Talktrack** - Record canvas walkthroughs with camera PIP
@@ -78,7 +80,7 @@ docker build -t astradraw-app .
 ## Environment Variables
 
 | Variable | Description | Example |
-|----------|-------------|---------|
+| --- | --- | --- |
 | `VITE_APP_WS_SERVER_URL` | WebSocket server for collaboration | `wss://draw.example.com` |
 | `VITE_APP_STORAGE_BACKEND` | Storage type | `http` or `firebase` |
 | `VITE_APP_HTTP_STORAGE_BACKEND_URL` | Storage API base URL | `https://draw.example.com` |
@@ -107,7 +109,7 @@ Environment variables are injected at container startup (not build time):
 ### AstraDraw Components
 
 | Component | Location | Purpose |
-|-----------|----------|---------|
+| --- | --- | --- |
 | Workspace | `excalidraw-app/components/Workspace/` | Scene management, auth |
 | Talktrack | `excalidraw-app/components/Talktrack/` | Video recording |
 | Presentation | `excalidraw-app/components/Presentation/` | Slideshow mode |

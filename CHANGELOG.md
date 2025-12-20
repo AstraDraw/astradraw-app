@@ -47,6 +47,7 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 ### Added
 
 - **User Profile Management**
+
   - New "My Profile" option in workspace user menu
   - Profile dialog with avatar upload, name editing, and sign out
   - Profile picture upload (supports JPEG, PNG, GIF, WebP up to 2MB)

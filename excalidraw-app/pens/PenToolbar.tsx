@@ -7,7 +7,6 @@ import { useUIAppState } from "@excalidraw/excalidraw/context/ui-appState";
 import type {
   ExcalidrawImperativeAPI,
   PenStyle,
-  PenType,
   AppState,
 } from "@excalidraw/excalidraw/types";
 
@@ -99,6 +98,13 @@ const getPens = (appState: AppState): PenStyle[] => {
   return Object.values(PENS);
 };
 
+/**
+ * PenToolbar - Custom pen presets toolbar
+ *
+ * IMPORTANT: All React hooks must be called before any conditional returns.
+ * The zen/view mode check is placed AFTER all hooks to comply with
+ * React's Rules of Hooks (hooks must be called in the same order every render).
+ */
 export const PenToolbar: React.FC<PenToolbarProps> = ({ excalidrawAPI }) => {
   // Use reactive UI state for sidebar and zen mode detection
   const uiAppState = useUIAppState();
@@ -110,12 +116,7 @@ export const PenToolbar: React.FC<PenToolbarProps> = ({ excalidrawAPI }) => {
   const currentPenType = appState.currentPenType;
   const pens = getPens(appState);
 
-  // Hide toolbar in zen mode or view mode (presentation mode uses both)
-  if (isZenMode || isViewMode) {
-    return null;
-  }
-
-  // State for pen settings modal
+  // State for pen settings modal - must be before any conditional returns
   const [editingPenIndex, setEditingPenIndex] = useState<number | null>(null);
 
   const setPen = useCallback(
@@ -220,6 +221,12 @@ export const PenToolbar: React.FC<PenToolbarProps> = ({ excalidrawAPI }) => {
   const isPenActive = (pen: PenStyle): boolean => {
     return currentPenType === pen.type;
   };
+
+  // Hide toolbar in zen mode or view mode (presentation mode uses both)
+  // This must be after all hooks are defined
+  if (isZenMode || isViewMode) {
+    return null;
+  }
 
   return (
     <>

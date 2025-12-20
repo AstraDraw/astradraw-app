@@ -5,6 +5,9 @@ import React, {
   useState,
   useCallback,
 } from "react";
+
+import { appJotaiStore, authUserAtom } from "../app-jotai";
+
 import {
   getAuthStatus,
   getCurrentUser,
@@ -13,9 +16,7 @@ import {
   logout as logoutApi,
   register as registerApi,
   type User,
-  type AuthStatus,
 } from "./authApi";
-import { appJotaiStore, authUserAtom } from "../app-jotai";
 
 interface AuthContextType {
   user: User | null;
@@ -26,7 +27,11 @@ interface AuthContextType {
   registrationEnabled: boolean;
   login: (redirectPath?: string) => void;
   loginLocal: (username: string, password: string) => Promise<boolean>;
-  register: (email: string, password: string, name?: string) => Promise<boolean>;
+  register: (
+    email: string,
+    password: string,
+    name?: string,
+  ) => Promise<boolean>;
   logout: () => void;
   refreshUser: () => Promise<void>;
 }
@@ -118,33 +123,43 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     redirectToLogin(redirectPath);
   }, []);
 
-  const loginLocal = useCallback(async (username: string, password: string): Promise<boolean> => {
-    try {
-      const result = await loginLocalApi(username, password);
-      if (result.success && result.user) {
-        setUser(result.user);
-        return true;
+  const loginLocal = useCallback(
+    async (username: string, password: string): Promise<boolean> => {
+      try {
+        const result = await loginLocalApi(username, password);
+        if (result.success && result.user) {
+          setUser(result.user);
+          return true;
+        }
+        return false;
+      } catch (error) {
+        console.error("Local login failed:", error);
+        return false;
       }
-      return false;
-    } catch (error) {
-      console.error("Local login failed:", error);
-      return false;
-    }
-  }, []);
+    },
+    [],
+  );
 
-  const register = useCallback(async (email: string, password: string, name?: string): Promise<boolean> => {
-    try {
-      const result = await registerApi(email, password, name);
-      if (result.success && result.user) {
-        setUser(result.user);
-        return true;
+  const register = useCallback(
+    async (
+      email: string,
+      password: string,
+      name?: string,
+    ): Promise<boolean> => {
+      try {
+        const result = await registerApi(email, password, name);
+        if (result.success && result.user) {
+          setUser(result.user);
+          return true;
+        }
+        return false;
+      } catch (error) {
+        console.error("Registration failed:", error);
+        throw error; // Re-throw to let the UI show the error message
       }
-      return false;
-    } catch (error) {
-      console.error("Registration failed:", error);
-      throw error; // Re-throw to let the UI show the error message
-    }
-  }, []);
+    },
+    [],
+  );
 
   const logout = useCallback(() => {
     logoutApi();

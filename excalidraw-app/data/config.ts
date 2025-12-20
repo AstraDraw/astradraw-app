@@ -89,8 +89,10 @@ export async function getStorageBackend(): Promise<StorageBackend> {
 
   if (storageBackends.has(storageBackendName)) {
     storageBackend = storageBackends.get(storageBackendName) as StorageBackend;
+    // eslint-disable-next-line no-console
     console.log(`Using ${storageBackendName} storage backend`);
   } else {
+    // eslint-disable-next-line no-console
     console.log("No storage backend specified, defaulting to Firebase");
     storageBackend = firebaseStorage;
   }

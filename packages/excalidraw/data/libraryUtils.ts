@@ -49,8 +49,8 @@ export const getLocalizedLibraryName = (
   }
 
   // 4. English fallback
-  if (libraryNames["en"]) {
-    return libraryNames["en"];
+  if (libraryNames.en) {
+    return libraryNames.en;
   }
 
   // 5. Any English variant fallback
@@ -100,8 +100,8 @@ export const resolveLocalizedName = (
   }
 
   // 4. English fallback
-  if (names["en"]) {
-    return names["en"];
+  if (names.en) {
+    return names.en;
   }
 
   // 5. Any English variant fallback

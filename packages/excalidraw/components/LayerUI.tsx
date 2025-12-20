@@ -227,7 +227,14 @@ const LayerUI = ({
   };
 
   const renderCanvasActions = () => (
-    <div style={{ position: "relative", display: "flex", gap: "0.5rem", alignItems: "center" }}>
+    <div
+      style={{
+        position: "relative",
+        display: "flex",
+        gap: "0.5rem",
+        alignItems: "center",
+      }}
+    >
       {/* AstraDraw: Workspace trigger tunnel (renders before hamburger menu) */}
       <tunnels.WorkspaceTriggerTunnel.Out />
       {/* wrapping to Fragment stops React from occasionally complaining

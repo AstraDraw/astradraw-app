@@ -31,7 +31,7 @@ export const TalktrackToolbar: React.FC<TalktrackToolbarProps> = ({
   const cameraStreamRef = useRef<MediaStream | null>(null);
   const cameraBubbleRef = useRef<HTMLDivElement>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
-  
+
   // Initialize camera bubble at viewport top-right position
   const [bubblePosition, setBubblePosition] = useState(() => {
     const viewportWidth = window.innerWidth;
@@ -40,7 +40,7 @@ export const TalktrackToolbar: React.FC<TalktrackToolbarProps> = ({
       y: 20, // 20px from top
     };
   });
-  
+
   // Initialize toolbar at bottom-left with margin from hamburger menu
   const [toolbarPosition, setToolbarPosition] = useState(() => {
     return {
@@ -48,7 +48,7 @@ export const TalktrackToolbar: React.FC<TalktrackToolbarProps> = ({
       y: window.innerHeight - 80, // 80px from bottom
     };
   });
-  
+
   const [isDraggingBubble, setIsDraggingBubble] = useState(false);
   const [isDraggingToolbar, setIsDraggingToolbar] = useState(false);
   const dragStartRef = useRef({ x: 0, y: 0, elementX: 0, elementY: 0 });
@@ -88,33 +88,39 @@ export const TalktrackToolbar: React.FC<TalktrackToolbarProps> = ({
   }, [cameraEnabled]);
 
   // Handle drag for camera bubble
-  const handleBubbleMouseDown = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingBubble(true);
-    dragStartRef.current = {
-      x: e.clientX,
-      y: e.clientY,
-      elementX: bubblePosition.x,
-      elementY: bubblePosition.y,
-    };
-  }, [bubblePosition]);
+  const handleBubbleMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDraggingBubble(true);
+      dragStartRef.current = {
+        x: e.clientX,
+        y: e.clientY,
+        elementX: bubblePosition.x,
+        elementY: bubblePosition.y,
+      };
+    },
+    [bubblePosition],
+  );
 
   // Handle drag for toolbar controls
-  const handleToolbarMouseDown = useCallback((e: React.MouseEvent) => {
-    // Only drag if clicking on the controls container, not buttons
-    if ((e.target as HTMLElement).closest('button')) {
-      return;
-    }
-    e.preventDefault();
-    setIsDraggingToolbar(true);
-    dragStartRef.current = {
-      x: e.clientX,
-      y: e.clientY,
-      elementX: toolbarPosition.x,
-      elementY: toolbarPosition.y,
-    };
-  }, [toolbarPosition]);
+  const handleToolbarMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      // Only drag if clicking on the controls container, not buttons
+      if ((e.target as HTMLElement).closest("button")) {
+        return;
+      }
+      e.preventDefault();
+      setIsDraggingToolbar(true);
+      dragStartRef.current = {
+        x: e.clientX,
+        y: e.clientY,
+        elementX: toolbarPosition.x,
+        elementY: toolbarPosition.y,
+      };
+    },
+    [toolbarPosition],
+  );
 
   // Handle bubble dragging
   useEffect(() => {
@@ -192,7 +198,10 @@ export const TalktrackToolbar: React.FC<TalktrackToolbarProps> = ({
   }, [isPaused, onPause, onResume]);
 
   // Don't render if not recording or paused
-  if (recordingState.status !== "recording" && recordingState.status !== "paused") {
+  if (
+    recordingState.status !== "recording" &&
+    recordingState.status !== "paused"
+  ) {
     return null;
   }
 
@@ -206,7 +215,7 @@ export const TalktrackToolbar: React.FC<TalktrackToolbarProps> = ({
             "talktrack-toolbar__camera-preview--dragging": isDraggingBubble,
           })}
           style={{
-            position: 'fixed',
+            position: "fixed",
             left: `${bubblePosition.x}px`,
             top: `${bubblePosition.y}px`,
             zIndex: 1001,
@@ -230,7 +239,7 @@ export const TalktrackToolbar: React.FC<TalktrackToolbarProps> = ({
           "talktrack-toolbar--dragging": isDraggingToolbar,
         })}
         style={{
-          position: 'fixed',
+          position: "fixed",
           left: `${toolbarPosition.x}px`,
           top: `${toolbarPosition.y}px`,
         }}
@@ -239,90 +248,91 @@ export const TalktrackToolbar: React.FC<TalktrackToolbarProps> = ({
           className="talktrack-toolbar__controls"
           onMouseDown={handleToolbarMouseDown}
         >
-        {/* Delete button */}
-        <button
-          className={clsx("talktrack-toolbar__button", {
-            "talktrack-toolbar__button--confirm": showConfirmDelete,
-          })}
-          onClick={handleDeleteClick}
-          title={showConfirmDelete ? t("talktrack.confirmDelete") : t("talktrack.delete")}
-        >
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
+          {/* Delete button */}
+          <button
+            className={clsx("talktrack-toolbar__button", {
+              "talktrack-toolbar__button--confirm": showConfirmDelete,
+            })}
+            onClick={handleDeleteClick}
+            title={
+              showConfirmDelete
+                ? t("talktrack.confirmDelete")
+                : t("talktrack.delete")
+            }
           >
-            <polyline points="3 6 5 6 21 6" />
-            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-          </svg>
-        </button>
-
-        {/* Restart button */}
-        <button
-          className="talktrack-toolbar__button"
-          onClick={onRestart}
-          title={t("talktrack.restart")}
-        >
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <polyline points="1 4 1 10 7 10" />
-            <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
-          </svg>
-        </button>
-
-        {/* Pause/Resume button */}
-        <button
-          className="talktrack-toolbar__button"
-          onClick={handlePauseResume}
-          title={isPaused ? t("talktrack.resume") : t("talktrack.pause")}
-        >
-          {isPaused ? (
             <svg
               width="18"
               height="18"
               viewBox="0 0 24 24"
-              fill="currentColor"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
             >
-              <polygon points="5 3 19 12 5 21 5 3" />
+              <polyline points="3 6 5 6 21 6" />
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
             </svg>
-          ) : (
+          </button>
+
+          {/* Restart button */}
+          <button
+            className="talktrack-toolbar__button"
+            onClick={onRestart}
+            title={t("talktrack.restart")}
+          >
             <svg
               width="18"
               height="18"
               viewBox="0 0 24 24"
-              fill="currentColor"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
             >
-              <rect x="6" y="4" width="4" height="16" />
-              <rect x="14" y="4" width="4" height="16" />
+              <polyline points="1 4 1 10 7 10" />
+              <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
             </svg>
-          )}
-        </button>
+          </button>
 
-        {/* Timer */}
-        <div
-          className={clsx("talktrack-toolbar__timer", {
-            "talktrack-toolbar__timer--paused": isPaused,
-          })}
-        >
-          {formatDuration(recordingState.duration)}
-        </div>
+          {/* Pause/Resume button */}
+          <button
+            className="talktrack-toolbar__button"
+            onClick={handlePauseResume}
+            title={isPaused ? t("talktrack.resume") : t("talktrack.pause")}
+          >
+            {isPaused ? (
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <polygon points="5 3 19 12 5 21 5 3" />
+              </svg>
+            ) : (
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <rect x="6" y="4" width="4" height="16" />
+                <rect x="14" y="4" width="4" height="16" />
+              </svg>
+            )}
+          </button>
 
-        {/* Stop button */}
-        <button
-          className="talktrack-toolbar__stop-button"
-          onClick={onStop}
-        >
-          {t("talktrack.stop")}
-        </button>
+          {/* Timer */}
+          <div
+            className={clsx("talktrack-toolbar__timer", {
+              "talktrack-toolbar__timer--paused": isPaused,
+            })}
+          >
+            {formatDuration(recordingState.duration)}
+          </div>
+
+          {/* Stop button */}
+          <button className="talktrack-toolbar__stop-button" onClick={onStop}>
+            {t("talktrack.stop")}
+          </button>
         </div>
       </div>
     </>

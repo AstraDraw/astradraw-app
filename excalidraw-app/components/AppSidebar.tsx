@@ -1,13 +1,11 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback } from "react";
 
 import { DefaultSidebar, Sidebar, THEME } from "@excalidraw/excalidraw";
 import {
-  messageCircleIcon,
   presentationIcon,
   stickerIcon,
   videoIcon,
 } from "@excalidraw/excalidraw/components/icons";
-import { LinkButton } from "@excalidraw/excalidraw/components/LinkButton";
 import { useUIAppState } from "@excalidraw/excalidraw/context/ui-appState";
 
 import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
@@ -23,7 +21,10 @@ interface AppSidebarProps {
   sceneId: string | null;
 }
 
-export const AppSidebar: React.FC<AppSidebarProps> = ({ excalidrawAPI, sceneId }) => {
+export const AppSidebar: React.FC<AppSidebarProps> = ({
+  excalidrawAPI,
+  sceneId,
+}) => {
   const { theme, openSidebar } = useUIAppState();
   const [isRecordingDialogOpen, setIsRecordingDialogOpen] = useState(false);
   const [recordingsRefreshKey, setRecordingsRefreshKey] = useState(0);
@@ -43,50 +44,50 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ excalidrawAPI, sceneId }
 
   return (
     <>
-    <DefaultSidebar>
-      <DefaultSidebar.TabTriggers>
-        <Sidebar.TabTrigger
-          tab="stickers"
-          style={{ opacity: openSidebar?.tab === "stickers" ? 1 : 0.4 }}
-        >
-          {stickerIcon}
-        </Sidebar.TabTrigger>
-        <Sidebar.TabTrigger
-          tab="talktrack"
-          style={{ opacity: openSidebar?.tab === "talktrack" ? 1 : 0.4 }}
-        >
-          {videoIcon}
-        </Sidebar.TabTrigger>
-        <Sidebar.TabTrigger
-          tab="presentation"
-          style={{ opacity: openSidebar?.tab === "presentation" ? 1 : 0.4 }}
-        >
-          {presentationIcon}
-        </Sidebar.TabTrigger>
-      </DefaultSidebar.TabTriggers>
-      <Sidebar.Tab tab="comments">
-        <div className="app-sidebar-promo-container">
-          <div
-            className="app-sidebar-promo-image"
-            style={{
-              ["--image-source" as any]: `url(/oss_promo_comments_${
-                theme === THEME.DARK ? "dark" : "light"
-              }.jpg)`,
-              opacity: 0.7,
-            }}
-          />
-          <div className="app-sidebar-promo-text">
-            Make comments with AstraDraw
+      <DefaultSidebar>
+        <DefaultSidebar.TabTriggers>
+          <Sidebar.TabTrigger
+            tab="stickers"
+            style={{ opacity: openSidebar?.tab === "stickers" ? 1 : 0.4 }}
+          >
+            {stickerIcon}
+          </Sidebar.TabTrigger>
+          <Sidebar.TabTrigger
+            tab="talktrack"
+            style={{ opacity: openSidebar?.tab === "talktrack" ? 1 : 0.4 }}
+          >
+            {videoIcon}
+          </Sidebar.TabTrigger>
+          <Sidebar.TabTrigger
+            tab="presentation"
+            style={{ opacity: openSidebar?.tab === "presentation" ? 1 : 0.4 }}
+          >
+            {presentationIcon}
+          </Sidebar.TabTrigger>
+        </DefaultSidebar.TabTriggers>
+        <Sidebar.Tab tab="comments">
+          <div className="app-sidebar-promo-container">
+            <div
+              className="app-sidebar-promo-image"
+              style={{
+                ["--image-source" as any]: `url(/oss_promo_comments_${
+                  theme === THEME.DARK ? "dark" : "light"
+                }.jpg)`,
+                opacity: 0.7,
+              }}
+            />
+            <div className="app-sidebar-promo-text">
+              Make comments with AstraDraw
+            </div>
+            <div className="app-sidebar-promo-coming-soon">Coming soon</div>
           </div>
-          <div className="app-sidebar-promo-coming-soon">Coming soon</div>
-        </div>
-      </Sidebar.Tab>
-      <Sidebar.Tab tab="presentation">
-        <PresentationPanel excalidrawAPI={excalidrawAPI} />
-      </Sidebar.Tab>
-      <Sidebar.Tab tab="stickers">
-        <StickersPanel excalidrawAPI={excalidrawAPI} />
-      </Sidebar.Tab>
+        </Sidebar.Tab>
+        <Sidebar.Tab tab="presentation">
+          <PresentationPanel excalidrawAPI={excalidrawAPI} />
+        </Sidebar.Tab>
+        <Sidebar.Tab tab="stickers">
+          <StickersPanel excalidrawAPI={excalidrawAPI} />
+        </Sidebar.Tab>
         <Sidebar.Tab tab="talktrack">
           <TalktrackPanel
             key={recordingsRefreshKey}
@@ -95,7 +96,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ excalidrawAPI, sceneId }
             sceneId={sceneId}
           />
         </Sidebar.Tab>
-    </DefaultSidebar>
+      </DefaultSidebar>
 
       {/* Talktrack recording manager (handles dialogs and recording toolbar) */}
       <TalktrackManager

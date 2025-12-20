@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
+
 import { useAuth } from "../../auth";
 import {
   getUserProfile,
@@ -8,6 +9,7 @@ import {
   deleteAvatar,
   type UserProfile,
 } from "../../auth/workspaceApi";
+
 import "./UserProfileDialog.scss";
 
 interface UserProfileDialogProps {
@@ -65,7 +67,9 @@ export const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
   };
 
   const handleSaveName = async () => {
-    if (!profile) return;
+    if (!profile) {
+      return;
+    }
 
     setIsSaving(true);
     setError(null);
@@ -89,7 +93,9 @@ export const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      return;
+    }
 
     // Validate file size (2MB max)
     if (file.size > 2 * 1024 * 1024) {
@@ -115,7 +121,9 @@ export const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
   };
 
   const handleDeleteAvatar = async () => {
-    if (!profile?.avatarUrl) return;
+    if (!profile?.avatarUrl) {
+      return;
+    }
 
     setIsSaving(true);
     setError(null);

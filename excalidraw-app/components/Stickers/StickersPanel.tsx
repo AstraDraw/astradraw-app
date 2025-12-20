@@ -3,11 +3,16 @@ import { useCallback, useEffect, useState, useRef } from "react";
 
 import { randomId, viewportCoordsToSceneCoords } from "@excalidraw/common";
 import { newEmbeddableElement, newImageElement } from "@excalidraw/element";
-import type { FileId } from "@excalidraw/element/types";
+
 import { t, type TranslationKeys } from "@excalidraw/excalidraw/i18n";
 import { searchIcon } from "@excalidraw/excalidraw/components/icons";
 
-import type { ExcalidrawImperativeAPI, DataURL } from "@excalidraw/excalidraw/types";
+import type { FileId } from "@excalidraw/element/types";
+
+import type {
+  ExcalidrawImperativeAPI,
+  DataURL,
+} from "@excalidraw/excalidraw/types";
 
 import {
   fetchTrending,
@@ -50,7 +55,10 @@ interface StickersPanelProps {
   excalidrawAPI: ExcalidrawImperativeAPI | null;
 }
 
-const CONTENT_TABS: ReadonlyArray<{ id: "all" | "stickers" | "gifs" | "static"; labelKey: TranslationKeys }> = [
+const CONTENT_TABS: ReadonlyArray<{
+  id: "all" | "stickers" | "gifs" | "static";
+  labelKey: TranslationKeys;
+}> = [
   { id: "all", labelKey: "stickers.all" },
   { id: "stickers", labelKey: "stickers.stickersTab" },
   // GIPHY emojis commented out - using Twemoji instead (better quality, more complete)
@@ -87,19 +95,23 @@ const GiphyLogo = () => (
 // Default size for static emoji images
 const STATIC_EMOJI_SIZE = 72;
 
-export const StickersPanel: React.FC<StickersPanelProps> = ({ excalidrawAPI }) => {
+export const StickersPanel: React.FC<StickersPanelProps> = ({
+  excalidrawAPI,
+}) => {
   const [activeTab, setActiveTab] = useState<ExtendedContentType>("gifs");
   const [searchQuery, setSearchQuery] = useState("");
   const [items, setItems] = useState<GiphyItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [insertingId, setInsertingId] = useState<string | null>(null);
-  
-  // Twemoji state
-  const [twemojiGroups, setTwemojiGroups] = useState<TwemojiGroup[]>([]);
+
+  // Twemoji state - groups stored for potential future UI (group tabs)
+  const [_twemojiGroups, setTwemojiGroups] = useState<TwemojiGroup[]>([]);
+  void _twemojiGroups; // Reserved for future use
   const [twemojiItems, setTwemojiItems] = useState<TwemojiItem[]>([]);
-  const [selectedEmojiGroup, setSelectedEmojiGroup] = useState<EmojiGroupSlug>("smileys_emotion");
-  
+  const [selectedEmojiGroup, setSelectedEmojiGroup] =
+    useState<EmojiGroupSlug>("smileys_emotion");
+
   const searchInputRef = useRef<HTMLInputElement>(null);
   const gridContainerRef = useRef<HTMLDivElement>(null);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -109,54 +121,60 @@ export const StickersPanel: React.FC<StickersPanelProps> = ({ excalidrawAPI }) =
   const isStaticTab = activeTab === "static";
 
   // Load GIPHY content when tab changes or search query changes
-  const loadGiphyContent = useCallback(async (query: string, type: ContentType) => {
-    if (apiKeyMissing) {
-      return;
-    }
+  const loadGiphyContent = useCallback(
+    async (query: string, type: ContentType) => {
+      if (apiKeyMissing) {
+        return;
+      }
 
-    setLoading(true);
-    setError(null);
+      setLoading(true);
+      setError(null);
 
-    try {
-      const response = query.trim()
-        ? await searchContent(type, query)
-        : await fetchTrending(type);
-      setItems(response.data);
-    } catch (err) {
-      console.error("Failed to load GIPHY content:", err);
-      setError(t("stickers.error"));
-      setItems([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [apiKeyMissing]);
+      try {
+        const response = query.trim()
+          ? await searchContent(type, query)
+          : await fetchTrending(type);
+        setItems(response.data);
+      } catch (err) {
+        console.error("Failed to load GIPHY content:", err);
+        setError(t("stickers.error"));
+        setItems([]);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [apiKeyMissing],
+  );
 
   // Load Twemoji data
-  const loadTwemojiContent = useCallback(async (query: string, groupSlug: EmojiGroupSlug) => {
-    setLoading(true);
-    setError(null);
+  const loadTwemojiContent = useCallback(
+    async (query: string, groupSlug: EmojiGroupSlug) => {
+      setLoading(true);
+      setError(null);
 
-    try {
-      const data = await fetchEmojiData();
-      setTwemojiGroups(data);
+      try {
+        const data = await fetchEmojiData();
+        setTwemojiGroups(data);
 
-      if (query.trim()) {
-        // Search across all emojis
-        const results = await searchTwemoji(query);
-        setTwemojiItems(results.slice(0, 100)); // Limit results
-      } else {
-        // Show emojis from selected group
-        const group = data.find((g) => g.slug === groupSlug);
-        setTwemojiItems(group?.emojis || []);
+        if (query.trim()) {
+          // Search across all emojis
+          const results = await searchTwemoji(query);
+          setTwemojiItems(results.slice(0, 100)); // Limit results
+        } else {
+          // Show emojis from selected group
+          const group = data.find((g) => g.slug === groupSlug);
+          setTwemojiItems(group?.emojis || []);
+        }
+      } catch (err) {
+        console.error("Failed to load Twemoji content:", err);
+        setError(t("stickers.error"));
+        setTwemojiItems([]);
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error("Failed to load Twemoji content:", err);
-      setError(t("stickers.error"));
-      setTwemojiItems([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    },
+    [],
+  );
 
   // Initial load and tab change
   useEffect(() => {
@@ -165,27 +183,43 @@ export const StickersPanel: React.FC<StickersPanelProps> = ({ excalidrawAPI }) =
     } else {
       loadGiphyContent(searchQuery, activeTab as ContentType);
     }
-  }, [activeTab, loadGiphyContent, loadTwemojiContent, searchQuery, selectedEmojiGroup, isStaticTab]);
+  }, [
+    activeTab,
+    loadGiphyContent,
+    loadTwemojiContent,
+    searchQuery,
+    selectedEmojiGroup,
+    isStaticTab,
+  ]);
 
   // Debounced search
-  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const query = e.target.value;
-    setSearchQuery(query);
+  const handleSearchChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const query = e.target.value;
+      setSearchQuery(query);
 
-    // Clear previous timeout
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-
-    // Debounce search
-    searchTimeoutRef.current = setTimeout(() => {
-      if (isStaticTab) {
-        loadTwemojiContent(query, selectedEmojiGroup);
-      } else {
-        loadGiphyContent(query, activeTab as ContentType);
+      // Clear previous timeout
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
       }
-    }, 300);
-  }, [activeTab, loadGiphyContent, loadTwemojiContent, selectedEmojiGroup, isStaticTab]);
+
+      // Debounce search
+      searchTimeoutRef.current = setTimeout(() => {
+        if (isStaticTab) {
+          loadTwemojiContent(query, selectedEmojiGroup);
+        } else {
+          loadGiphyContent(query, activeTab as ContentType);
+        }
+      }, 300);
+    },
+    [
+      activeTab,
+      loadGiphyContent,
+      loadTwemojiContent,
+      selectedEmojiGroup,
+      isStaticTab,
+    ],
+  );
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -199,195 +233,235 @@ export const StickersPanel: React.FC<StickersPanelProps> = ({ excalidrawAPI }) =
   // Insert item to canvas at specified scene coordinates or viewport center
   // GIFs and stickers are inserted as embeddable elements (animated iframes)
   // Emojis are inserted as static images
-  const insertItemToCanvas = useCallback(async (
-    item: GiphyItem, 
-    sceneX?: number, 
-    sceneY?: number
-  ) => {
-    if (!excalidrawAPI || insertingId) {
-      return;
-    }
+  const insertItemToCanvas = useCallback(
+    async (item: GiphyItem, sceneX?: number, sceneY?: number) => {
+      if (!excalidrawAPI || insertingId) {
+        return;
+      }
 
-    setInsertingId(item.id);
+      setInsertingId(item.id);
 
-    try {
-      // Get dimensions from fixed_width for consistent sizing
+      try {
+        // Get dimensions from fixed_width for consistent sizing
+        const width = parseInt(item.images.fixed_width.width, 10);
+        const height = parseInt(item.images.fixed_width.height, 10);
+
+        // Get current app state for positioning
+        const appState = excalidrawAPI.getAppState();
+        const elements = excalidrawAPI.getSceneElements();
+
+        let x: number;
+        let y: number;
+
+        if (sceneX !== undefined && sceneY !== undefined) {
+          // Position at drop location, centered on cursor
+          x = sceneX - width / 2;
+          y = sceneY - height / 2;
+        } else {
+          // Calculate center of visible viewport in scene coordinates
+          // Viewport spans from -scrollX to -scrollX + width/zoom in scene coords
+          x =
+            -appState.scrollX +
+            appState.width / (2 * appState.zoom.value) -
+            width / 2;
+          y =
+            -appState.scrollY +
+            appState.height / (2 * appState.zoom.value) -
+            height / 2;
+        }
+
+        // All GIPHY content (GIFs, stickers, emojis) is animated
+        // Create embeddable element with GIPHY embed URL
+        const embedUrl = `https://giphy.com/embed/${item.id}`;
+
+        const embeddableElement = newEmbeddableElement({
+          type: "embeddable",
+          x,
+          y,
+          width,
+          height,
+          link: embedUrl,
+          // Use transparent stroke so content doesn't have a border
+          strokeColor: "transparent",
+        });
+
+        // Update scene with new embeddable element
+        excalidrawAPI.updateScene({
+          elements: [...elements, embeddableElement],
+        });
+      } catch (err) {
+        console.error("Failed to insert item:", err);
+        excalidrawAPI.setToast({
+          message: t("stickers.error"),
+          duration: 3000,
+          closable: true,
+        });
+      } finally {
+        setInsertingId(null);
+      }
+    },
+    [excalidrawAPI, insertingId],
+  );
+
+  // Insert static emoji (Twemoji) as SVG image
+  const insertStaticEmoji = useCallback(
+    async (emoji: TwemojiItem, sceneX?: number, sceneY?: number) => {
+      if (!excalidrawAPI || insertingId) {
+        return;
+      }
+
+      setInsertingId(emoji.slug);
+
+      try {
+        const svgUrl = emojiToTwemojiUrl(emoji.emoji, "svg");
+        const size = STATIC_EMOJI_SIZE;
+
+        // Fetch SVG and convert to data URL
+        const response = await fetch(svgUrl);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch emoji: ${response.status}`);
+        }
+        const svgText = await response.text();
+        const dataUrl = `data:image/svg+xml;base64,${btoa(svgText)}`;
+
+        const fileId = randomId() as FileId;
+
+        // Add file to excalidraw
+        excalidrawAPI.addFiles([
+          {
+            id: fileId,
+            dataURL: dataUrl as DataURL,
+            mimeType: "image/svg+xml",
+            created: Date.now(),
+          },
+        ]);
+
+        // Get current app state for positioning
+        const appState = excalidrawAPI.getAppState();
+        const elements = excalidrawAPI.getSceneElements();
+
+        let x: number;
+        let y: number;
+
+        if (sceneX !== undefined && sceneY !== undefined) {
+          x = sceneX - size / 2;
+          y = sceneY - size / 2;
+        } else {
+          x =
+            -appState.scrollX +
+            appState.width / (2 * appState.zoom.value) -
+            size / 2;
+          y =
+            -appState.scrollY +
+            appState.height / (2 * appState.zoom.value) -
+            size / 2;
+        }
+
+        // Create image element
+        const imageElement = newImageElement({
+          type: "image",
+          x,
+          y,
+          width: size,
+          height: size,
+          fileId,
+          status: "saved",
+        });
+
+        excalidrawAPI.updateScene({
+          elements: [...elements, imageElement],
+        });
+      } catch (err) {
+        console.error("Failed to insert emoji:", err);
+        excalidrawAPI.setToast({
+          message: t("stickers.error"),
+          duration: 3000,
+          closable: true,
+        });
+      } finally {
+        setInsertingId(null);
+      }
+    },
+    [excalidrawAPI, insertingId],
+  );
+
+  // Handle click to insert at viewport center
+  const handleItemClick = useCallback(
+    (item: GiphyItem) => {
+      insertItemToCanvas(item);
+    },
+    [insertItemToCanvas],
+  );
+
+  // Handle click on static emoji
+  const handleStaticEmojiClick = useCallback(
+    (emoji: TwemojiItem) => {
+      insertStaticEmoji(emoji);
+    },
+    [insertStaticEmoji],
+  );
+
+  // Handle drag start - prepare data for drop (GIPHY)
+  const handleDragStart = useCallback(
+    (e: React.DragEvent<HTMLButtonElement>, item: GiphyItem) => {
       const width = parseInt(item.images.fixed_width.width, 10);
       const height = parseInt(item.images.fixed_width.height, 10);
 
-      // Get current app state for positioning
-      const appState = excalidrawAPI.getAppState();
-      const elements = excalidrawAPI.getSceneElements();
+      // Store drag data as JSON
+      const dragData: DragData = { item, width, height };
+      e.dataTransfer.setData(
+        "application/x-excalidraw-sticker",
+        JSON.stringify(dragData),
+      );
+      e.dataTransfer.effectAllowed = "copy";
 
-      let x: number;
-      let y: number;
-
-      if (sceneX !== undefined && sceneY !== undefined) {
-        // Position at drop location, centered on cursor
-        x = sceneX - width / 2;
-        y = sceneY - height / 2;
-      } else {
-        // Calculate center of visible viewport in scene coordinates
-        // Viewport spans from -scrollX to -scrollX + width/zoom in scene coords
-        x = -appState.scrollX + appState.width / (2 * appState.zoom.value) - width / 2;
-        y = -appState.scrollY + appState.height / (2 * appState.zoom.value) - height / 2;
+      // Use the preview image as drag image
+      const img = e.currentTarget.querySelector("img");
+      if (img) {
+        e.dataTransfer.setDragImage(img, width / 2, height / 2);
       }
-
-      // All GIPHY content (GIFs, stickers, emojis) is animated
-      // Create embeddable element with GIPHY embed URL
-      const embedUrl = `https://giphy.com/embed/${item.id}`;
-      
-      const embeddableElement = newEmbeddableElement({
-        type: "embeddable",
-        x,
-        y,
-        width,
-        height,
-        link: embedUrl,
-        // Use transparent stroke so content doesn't have a border
-        strokeColor: "transparent",
-      });
-
-      // Update scene with new embeddable element
-      excalidrawAPI.updateScene({
-        elements: [...elements, embeddableElement],
-      });
-    } catch (err) {
-      console.error("Failed to insert item:", err);
-      excalidrawAPI.setToast({
-        message: t("stickers.error"),
-        duration: 3000,
-        closable: true,
-      });
-    } finally {
-      setInsertingId(null);
-    }
-  }, [excalidrawAPI, insertingId]);
-
-  // Insert static emoji (Twemoji) as SVG image
-  const insertStaticEmoji = useCallback(async (
-    emoji: TwemojiItem,
-    sceneX?: number,
-    sceneY?: number
-  ) => {
-    if (!excalidrawAPI || insertingId) {
-      return;
-    }
-
-    setInsertingId(emoji.slug);
-
-    try {
-      const svgUrl = emojiToTwemojiUrl(emoji.emoji, "svg");
-      const size = STATIC_EMOJI_SIZE;
-
-      // Fetch SVG and convert to data URL
-      const response = await fetch(svgUrl);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch emoji: ${response.status}`);
-      }
-      const svgText = await response.text();
-      const dataUrl = `data:image/svg+xml;base64,${btoa(svgText)}`;
-
-      const fileId = randomId() as FileId;
-
-      // Add file to excalidraw
-      excalidrawAPI.addFiles([
-        {
-          id: fileId,
-          dataURL: dataUrl as DataURL,
-          mimeType: "image/svg+xml",
-          created: Date.now(),
-        },
-      ]);
-
-      // Get current app state for positioning
-      const appState = excalidrawAPI.getAppState();
-      const elements = excalidrawAPI.getSceneElements();
-
-      let x: number;
-      let y: number;
-
-      if (sceneX !== undefined && sceneY !== undefined) {
-        x = sceneX - size / 2;
-        y = sceneY - size / 2;
-      } else {
-        x = -appState.scrollX + appState.width / (2 * appState.zoom.value) - size / 2;
-        y = -appState.scrollY + appState.height / (2 * appState.zoom.value) - size / 2;
-      }
-
-      // Create image element
-      const imageElement = newImageElement({
-        type: "image",
-        x,
-        y,
-        width: size,
-        height: size,
-        fileId,
-        status: "saved",
-      });
-
-      excalidrawAPI.updateScene({
-        elements: [...elements, imageElement],
-      });
-    } catch (err) {
-      console.error("Failed to insert emoji:", err);
-      excalidrawAPI.setToast({
-        message: t("stickers.error"),
-        duration: 3000,
-        closable: true,
-      });
-    } finally {
-      setInsertingId(null);
-    }
-  }, [excalidrawAPI, insertingId]);
-
-  // Handle click to insert at viewport center
-  const handleItemClick = useCallback((item: GiphyItem) => {
-    insertItemToCanvas(item);
-  }, [insertItemToCanvas]);
-
-  // Handle click on static emoji
-  const handleStaticEmojiClick = useCallback((emoji: TwemojiItem) => {
-    insertStaticEmoji(emoji);
-  }, [insertStaticEmoji]);
-
-  // Handle drag start - prepare data for drop (GIPHY)
-  const handleDragStart = useCallback((e: React.DragEvent<HTMLButtonElement>, item: GiphyItem) => {
-    const width = parseInt(item.images.fixed_width.width, 10);
-    const height = parseInt(item.images.fixed_width.height, 10);
-    
-    // Store drag data as JSON
-    const dragData: DragData = { item, width, height };
-    e.dataTransfer.setData("application/x-excalidraw-sticker", JSON.stringify(dragData));
-    e.dataTransfer.effectAllowed = "copy";
-    
-    // Use the preview image as drag image
-    const img = e.currentTarget.querySelector("img");
-    if (img) {
-      e.dataTransfer.setDragImage(img, width / 2, height / 2);
-    }
-  }, []);
+    },
+    [],
+  );
 
   // Handle drag start for static emoji
-  const handleStaticEmojiDragStart = useCallback((e: React.DragEvent<HTMLButtonElement>, emoji: TwemojiItem) => {
-    const url = emojiToTwemojiUrl(emoji.emoji, "svg");
-    const dragData: StaticEmojiDragData = { type: "static-emoji", emoji, url };
-    e.dataTransfer.setData("application/x-excalidraw-static-emoji", JSON.stringify(dragData));
-    e.dataTransfer.effectAllowed = "copy";
-    
-    const img = e.currentTarget.querySelector("img");
-    if (img) {
-      e.dataTransfer.setDragImage(img, STATIC_EMOJI_SIZE / 2, STATIC_EMOJI_SIZE / 2);
-    }
-  }, []);
+  const handleStaticEmojiDragStart = useCallback(
+    (e: React.DragEvent<HTMLButtonElement>, emoji: TwemojiItem) => {
+      const url = emojiToTwemojiUrl(emoji.emoji, "svg");
+      const dragData: StaticEmojiDragData = {
+        type: "static-emoji",
+        emoji,
+        url,
+      };
+      e.dataTransfer.setData(
+        "application/x-excalidraw-static-emoji",
+        JSON.stringify(dragData),
+      );
+      e.dataTransfer.effectAllowed = "copy";
+
+      const img = e.currentTarget.querySelector("img");
+      if (img) {
+        e.dataTransfer.setDragImage(
+          img,
+          STATIC_EMOJI_SIZE / 2,
+          STATIC_EMOJI_SIZE / 2,
+        );
+      }
+    },
+    [],
+  );
 
   // Set up global drop handler when panel mounts
   useEffect(() => {
-    if (!excalidrawAPI) return;
+    if (!excalidrawAPI) {
+      return;
+    }
 
     const handleDrop = async (e: DragEvent) => {
       // Handle GIPHY content
-      const giphyData = e.dataTransfer?.getData("application/x-excalidraw-sticker");
+      const giphyData = e.dataTransfer?.getData(
+        "application/x-excalidraw-sticker",
+      );
       if (giphyData) {
         e.preventDefault();
         e.stopPropagation();
@@ -395,7 +469,7 @@ export const StickersPanel: React.FC<StickersPanelProps> = ({ excalidrawAPI }) =
         try {
           const dragData: DragData = JSON.parse(giphyData);
           const appState = excalidrawAPI.getAppState();
-          
+
           const { x: sceneX, y: sceneY } = viewportCoordsToSceneCoords(
             { clientX: e.clientX, clientY: e.clientY },
             {
@@ -404,7 +478,7 @@ export const StickersPanel: React.FC<StickersPanelProps> = ({ excalidrawAPI }) =
               offsetTop: appState.offsetTop,
               scrollX: appState.scrollX,
               scrollY: appState.scrollY,
-            }
+            },
           );
 
           await insertItemToCanvas(dragData.item, sceneX, sceneY);
@@ -415,7 +489,9 @@ export const StickersPanel: React.FC<StickersPanelProps> = ({ excalidrawAPI }) =
       }
 
       // Handle static emoji
-      const emojiData = e.dataTransfer?.getData("application/x-excalidraw-static-emoji");
+      const emojiData = e.dataTransfer?.getData(
+        "application/x-excalidraw-static-emoji",
+      );
       if (emojiData) {
         e.preventDefault();
         e.stopPropagation();
@@ -423,7 +499,7 @@ export const StickersPanel: React.FC<StickersPanelProps> = ({ excalidrawAPI }) =
         try {
           const dragData: StaticEmojiDragData = JSON.parse(emojiData);
           const appState = excalidrawAPI.getAppState();
-          
+
           const { x: sceneX, y: sceneY } = viewportCoordsToSceneCoords(
             { clientX: e.clientX, clientY: e.clientY },
             {
@@ -432,7 +508,7 @@ export const StickersPanel: React.FC<StickersPanelProps> = ({ excalidrawAPI }) =
               offsetTop: appState.offsetTop,
               scrollX: appState.scrollX,
               scrollY: appState.scrollY,
-            }
+            },
           );
 
           await insertStaticEmoji(dragData.emoji, sceneX, sceneY);
@@ -471,7 +547,8 @@ export const StickersPanel: React.FC<StickersPanelProps> = ({ excalidrawAPI }) =
             <button
               key={group.slug}
               className={clsx("stickers-panel__emoji-category", {
-                "stickers-panel__emoji-category--active": selectedEmojiGroup === group.slug,
+                "stickers-panel__emoji-category--active":
+                  selectedEmojiGroup === group.slug,
               })}
               onClick={() => setSelectedEmojiGroup(group.slug)}
               title={group.name}
@@ -484,15 +561,15 @@ export const StickersPanel: React.FC<StickersPanelProps> = ({ excalidrawAPI }) =
 
       {/* Section header */}
       <div className="stickers-panel__section-header">
-        {searchQuery.trim() 
-          ? searchQuery 
-          : EMOJI_GROUPS.find(g => g.slug === selectedEmojiGroup)?.name || t("stickers.popular")
-        }
+        {searchQuery.trim()
+          ? searchQuery
+          : EMOJI_GROUPS.find((g) => g.slug === selectedEmojiGroup)?.name ||
+            t("stickers.popular")}
       </div>
 
       {/* Static emoji grid */}
-      <div 
-        className="stickers-panel__grid-container" 
+      <div
+        className="stickers-panel__grid-container"
         ref={gridContainerRef}
         onWheel={(e) => e.stopPropagation()}
       >
@@ -514,13 +591,19 @@ export const StickersPanel: React.FC<StickersPanelProps> = ({ excalidrawAPI }) =
             {twemojiItems.map((emoji) => (
               <button
                 key={emoji.slug}
-                className={clsx("stickers-panel__item stickers-panel__item--static", {
-                  "stickers-panel__item--inserting": insertingId === emoji.slug,
-                })}
+                className={clsx(
+                  "stickers-panel__item stickers-panel__item--static",
+                  {
+                    "stickers-panel__item--inserting":
+                      insertingId === emoji.slug,
+                  },
+                )}
                 onClick={() => handleStaticEmojiClick(emoji)}
                 onDragStart={(e) => handleStaticEmojiDragStart(e, emoji)}
                 draggable
-                title={`${emoji.emoji} ${emoji.name} - ${t("stickers.dragToInsert")}`}
+                title={`${emoji.emoji} ${emoji.name} - ${t(
+                  "stickers.dragToInsert",
+                )}`}
                 disabled={insertingId !== null}
               >
                 <img
@@ -558,8 +641,8 @@ export const StickersPanel: React.FC<StickersPanelProps> = ({ excalidrawAPI }) =
       </div>
 
       {/* Content grid */}
-      <div 
-        className="stickers-panel__grid-container" 
+      <div
+        className="stickers-panel__grid-container"
         ref={gridContainerRef}
         onWheel={(e) => e.stopPropagation()}
       >
@@ -592,22 +675,31 @@ export const StickersPanel: React.FC<StickersPanelProps> = ({ excalidrawAPI }) =
                 onClick={() => handleItemClick(item)}
                 onDragStart={(e) => handleDragStart(e, item)}
                 draggable
-                title={item.title ? `${item.title} - ${t("stickers.dragToInsert")}` : t("stickers.dragToInsert")}
+                title={
+                  item.title
+                    ? `${item.title} - ${t("stickers.dragToInsert")}`
+                    : t("stickers.dragToInsert")
+                }
                 disabled={insertingId !== null}
               >
                 <img
-                  src={item.images.fixed_width_still?.url || item.images.fixed_width.url}
+                  src={
+                    item.images.fixed_width_still?.url ||
+                    item.images.fixed_width.url
+                  }
                   alt={item.title}
                   loading="lazy"
                   draggable={false}
                   onMouseEnter={(e) => {
                     // Show animated version on hover
-                    (e.target as HTMLImageElement).src = item.images.fixed_width.url;
+                    (e.target as HTMLImageElement).src =
+                      item.images.fixed_width.url;
                   }}
                   onMouseLeave={(e) => {
                     // Show still version when not hovering
                     if (item.images.fixed_width_still?.url) {
-                      (e.target as HTMLImageElement).src = item.images.fixed_width_still.url;
+                      (e.target as HTMLImageElement).src =
+                        item.images.fixed_width_still.url;
                     }
                   }}
                 />
@@ -666,4 +758,3 @@ export const StickersPanel: React.FC<StickersPanelProps> = ({ excalidrawAPI }) =
     </div>
   );
 };
-

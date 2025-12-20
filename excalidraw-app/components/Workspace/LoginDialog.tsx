@@ -1,6 +1,8 @@
-import React, { useState, useCallback } from "react";
+import React, { useState } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
+
 import { useAuth } from "../../auth";
+
 import "./LoginDialog.scss";
 
 // Stop keyboard events from propagating to Excalidraw canvas
@@ -21,7 +23,14 @@ export const LoginDialog: React.FC<LoginDialogProps> = ({
   onClose,
   onSuccess,
 }) => {
-  const { loginLocal, login, register, oidcConfigured, localAuthEnabled, registrationEnabled } = useAuth();
+  const {
+    loginLocal,
+    login,
+    register,
+    oidcConfigured,
+    localAuthEnabled,
+    registrationEnabled,
+  } = useAuth();
   const [mode, setMode] = useState<DialogMode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -125,7 +134,12 @@ export const LoginDialog: React.FC<LoginDialogProps> = ({
             onClick={onClose}
             aria-label="Close"
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
               <path d="M18 6L6 18M6 6l12 12" />
             </svg>
           </button>
@@ -134,7 +148,10 @@ export const LoginDialog: React.FC<LoginDialogProps> = ({
         <div className="login-dialog__content">
           {/* Local login/signup form */}
           {localAuthEnabled && (
-            <form onSubmit={isSignUp ? handleRegister : handleLocalLogin} className="login-dialog__form">
+            <form
+              onSubmit={isSignUp ? handleRegister : handleLocalLogin}
+              className="login-dialog__form"
+            >
               {isSignUp && (
                 <div className="login-dialog__field">
                   <label htmlFor="name">{t("workspace.name")}</label>
@@ -181,7 +198,9 @@ export const LoginDialog: React.FC<LoginDialogProps> = ({
 
               {isSignUp && (
                 <div className="login-dialog__field">
-                  <label htmlFor="confirmPassword">{t("workspace.confirmPassword")}</label>
+                  <label htmlFor="confirmPassword">
+                    {t("workspace.confirmPassword")}
+                  </label>
                   <input
                     id="confirmPassword"
                     type="password"
@@ -203,8 +222,12 @@ export const LoginDialog: React.FC<LoginDialogProps> = ({
                 disabled={isLoading}
               >
                 {isLoading
-                  ? (isSignUp ? t("workspace.signingUp") : t("workspace.loggingIn"))
-                  : (isSignUp ? t("workspace.signUp") : t("workspace.login"))}
+                  ? isSignUp
+                    ? t("workspace.signingUp")
+                    : t("workspace.loggingIn")
+                  : isSignUp
+                  ? t("workspace.signUp")
+                  : t("workspace.login")}
               </button>
             </form>
           )}
@@ -250,7 +273,12 @@ export const LoginDialog: React.FC<LoginDialogProps> = ({
               className="login-dialog__oidc-button"
               onClick={handleOidcLogin}
             >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
                 <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3" />
               </svg>
               <span>{t("workspace.loginWithOIDC")}</span>
@@ -258,11 +286,14 @@ export const LoginDialog: React.FC<LoginDialogProps> = ({
           )}
 
           {/* Hint for default credentials (only show for sign in when registration is disabled) */}
-          {localAuthEnabled && !oidcConfigured && !isSignUp && !registrationEnabled && (
-            <div className="login-dialog__hint">
-              {t("workspace.defaultCredentialsHint")}
-            </div>
-          )}
+          {localAuthEnabled &&
+            !oidcConfigured &&
+            !isSignUp &&
+            !registrationEnabled && (
+              <div className="login-dialog__hint">
+                {t("workspace.defaultCredentialsHint")}
+              </div>
+            )}
         </div>
       </div>
     </div>

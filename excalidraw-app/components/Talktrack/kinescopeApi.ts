@@ -27,7 +27,10 @@ export type UploadProgressCallback = (progress: UploadProgress) => void;
 // Get Kinescope API key from runtime env (Docker) or build-time env (local dev)
 const getKinescopeApiKey = (): string => {
   // Check runtime environment first (Docker container)
-  if (typeof window !== "undefined" && (window as any).__ENV__?.VITE_APP_KINESCOPE_API_KEY) {
+  if (
+    typeof window !== "undefined" &&
+    (window as any).__ENV__?.VITE_APP_KINESCOPE_API_KEY
+  ) {
     return (window as any).__ENV__.VITE_APP_KINESCOPE_API_KEY;
   }
   // Fall back to build-time environment (local development)
@@ -37,7 +40,10 @@ const getKinescopeApiKey = (): string => {
 // Get Kinescope project ID from runtime env (Docker) or build-time env (local dev)
 const getKinescopeProjectId = (): string => {
   // Check runtime environment first (Docker container)
-  if (typeof window !== "undefined" && (window as any).__ENV__?.VITE_APP_KINESCOPE_PROJECT_ID) {
+  if (
+    typeof window !== "undefined" &&
+    (window as any).__ENV__?.VITE_APP_KINESCOPE_PROJECT_ID
+  ) {
     return (window as any).__ENV__.VITE_APP_KINESCOPE_PROJECT_ID;
   }
   // Fall back to build-time environment (local development)
@@ -47,7 +53,10 @@ const getKinescopeProjectId = (): string => {
 // Get storage backend URL from runtime env (Docker) or build-time env (local dev)
 const getStorageBackendUrl = (): string => {
   // Check runtime environment first (Docker container)
-  if (typeof window !== "undefined" && (window as any).__ENV__?.VITE_APP_HTTP_STORAGE_BACKEND_URL) {
+  if (
+    typeof window !== "undefined" &&
+    (window as any).__ENV__?.VITE_APP_HTTP_STORAGE_BACKEND_URL
+  ) {
     return (window as any).__ENV__.VITE_APP_HTTP_STORAGE_BACKEND_URL;
   }
   // Fall back to build-time environment (local development)
@@ -83,15 +92,17 @@ export async function uploadToKinescope(
   onProgress?: UploadProgressCallback,
 ): Promise<string> {
   const storageUrl = getStorageBackendUrl();
-  
+
   // Use proxy if storage backend is configured (keeps API key server-side)
   if (storageUrl) {
     return uploadViaProxy(blob, title, onProgress);
   }
-  
+
   // Direct upload (API key exposed in browser, suitable for personal use)
   if (!isKinescopeConfigured()) {
-    throw new Error("Kinescope is not configured. Please set KINESCOPE_API_KEY and KINESCOPE_PROJECT_ID.");
+    throw new Error(
+      "Kinescope is not configured. Please set KINESCOPE_API_KEY and KINESCOPE_PROJECT_ID.",
+    );
   }
 
   const url = "https://uploader.kinescope.io/v2/video";
@@ -124,7 +135,11 @@ export async function uploadToKinescope(
           reject(new Error("Failed to parse upload response"));
         }
       } else {
-        reject(new Error(`Upload failed with status ${xhr.status}: ${xhr.statusText}`));
+        reject(
+          new Error(
+            `Upload failed with status ${xhr.status}: ${xhr.statusText}`,
+          ),
+        );
       }
     });
 
@@ -140,7 +155,10 @@ export async function uploadToKinescope(
     xhr.setRequestHeader("Authorization", `Bearer ${getKinescopeApiKey()}`);
     xhr.setRequestHeader("X-Parent-ID", getKinescopeProjectId());
     xhr.setRequestHeader("X-Video-Title", title);
-    xhr.setRequestHeader("X-File-Name", `${title.replace(/[^a-zA-Z0-9_-]/g, "_")}.webm`);
+    xhr.setRequestHeader(
+      "X-File-Name",
+      `${title.replace(/[^a-zA-Z0-9_-]/g, "_")}.webm`,
+    );
     xhr.setRequestHeader("Content-Type", "application/octet-stream");
 
     xhr.send(blob);
@@ -226,50 +244,57 @@ export async function checkVideoStatus(
   videoId: string,
 ): Promise<"processing" | "ready" | "error"> {
   const storageUrl = getStorageBackendUrl();
-  
+
   try {
     if (storageUrl) {
       // Use proxy if available
+      // eslint-disable-next-line no-console
       console.log(`[Talktrack] Checking video status via proxy: ${videoId}`);
       const response = await fetch(`${storageUrl}/talktrack/${videoId}/status`);
       if (!response.ok) {
+        // eslint-disable-next-line no-console
         console.error(`[Talktrack] Status check failed: ${response.status}`);
         return "error";
       }
       const data = await response.json();
+      // eslint-disable-next-line no-console
       console.log(`[Talktrack] Video ${videoId} status:`, data.status);
       return data.status === "ready" ? "ready" : "processing";
-    } else {
-      // Direct API call (fallback)
-      const apiKey = getKinescopeApiKey();
-      if (!apiKey) {
-        console.error("[Talktrack] No API key available");
-        return "error";
-      }
-      
-      console.log(`[Talktrack] Checking video status directly: ${videoId}`);
-      const response = await fetch(
-        `https://api.kinescope.io/v1/videos/${videoId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-          },
-        },
-      );
-      
-      if (!response.ok) {
-        console.error(`[Talktrack] Status check failed: ${response.status}`);
-        return "error";
-      }
-      
-      const data = await response.json();
-      // Kinescope returns status in data.data.status field
-      // Status values: pending, uploading, pre-processing, processing, aborted, done, error
-      const status = data.data?.status;
-      console.log(`[Talktrack] Video ${videoId} Kinescope status: ${status}`);
-      return status === "done" ? "ready" : "processing";
     }
+    // Direct API call (fallback)
+    const apiKey = getKinescopeApiKey();
+    if (!apiKey) {
+      // eslint-disable-next-line no-console
+      console.error("[Talktrack] No API key available");
+      return "error";
+    }
+
+    // eslint-disable-next-line no-console
+    console.log(`[Talktrack] Checking video status directly: ${videoId}`);
+    const response = await fetch(
+      `https://api.kinescope.io/v1/videos/${videoId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+        },
+      },
+    );
+
+    if (!response.ok) {
+      // eslint-disable-next-line no-console
+      console.error(`[Talktrack] Status check failed: ${response.status}`);
+      return "error";
+    }
+
+    const data = await response.json();
+    // Kinescope returns status in data.data.status field
+    // Status values: pending, uploading, pre-processing, processing, aborted, done, error
+    const status = data.data?.status;
+    // eslint-disable-next-line no-console
+    console.log(`[Talktrack] Video ${videoId} Kinescope status: ${status}`);
+    return status === "done" ? "ready" : "processing";
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error("[Talktrack] Failed to check video status:", error);
     return "error";
   }
@@ -302,10 +327,13 @@ export function getRecordings(): TalktrackRecording[] {
 /**
  * Delete a recording from local storage and optionally from Kinescope
  */
-export async function deleteRecording(id: string, alsoDeleteFromKinescope = true): Promise<void> {
+export async function deleteRecording(
+  id: string,
+  alsoDeleteFromKinescope = true,
+): Promise<void> {
   const recordings = getRecordings();
   const recording = recordings.find((r) => r.id === id);
-  
+
   // Delete from Kinescope if requested
   if (recording && alsoDeleteFromKinescope) {
     try {
@@ -315,7 +343,7 @@ export async function deleteRecording(id: string, alsoDeleteFromKinescope = true
       // Continue with local deletion even if Kinescope delete fails
     }
   }
-  
+
   const filtered = recordings.filter((r) => r.id !== id);
   localStorage.setItem(RECORDINGS_STORAGE_KEY, JSON.stringify(filtered));
 }
@@ -326,30 +354,33 @@ export async function deleteRecording(id: string, alsoDeleteFromKinescope = true
  */
 export async function deleteFromKinescope(videoId: string): Promise<void> {
   const storageUrl = getStorageBackendUrl();
-  
+
   // Use proxy if available (keeps API key server-side)
   if (storageUrl) {
     const response = await fetch(`${storageUrl}/talktrack/${videoId}`, {
       method: "DELETE",
     });
-    
+
     if (!response.ok) {
       throw new Error(`Failed to delete video: ${response.status}`);
     }
     return;
   }
-  
+
   // Direct API call (API key exposed in browser)
   if (!isKinescopeConfigured()) {
     throw new Error("Kinescope is not configured");
   }
 
-  const response = await fetch(`https://api.kinescope.io/v1/videos/${videoId}`, {
-    method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${getKinescopeApiKey()}`,
+  const response = await fetch(
+    `https://api.kinescope.io/v1/videos/${videoId}`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${getKinescopeApiKey()}`,
+      },
     },
-  });
+  );
 
   if (!response.ok) {
     throw new Error(`Failed to delete video: ${response.status}`);

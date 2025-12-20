@@ -1,7 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
-import type { WorkspaceScene } from "../../auth/workspaceApi";
+
 import "./SceneCard.scss";
+
+import type { WorkspaceScene } from "../../auth/workspaceApi";
 
 // Icons
 const playIcon = (
@@ -87,9 +89,8 @@ export const SceneCard: React.FC<SceneCardProps> = ({
       return "Yesterday";
     } else if (diffDays < 7) {
       return `${diffDays} days ago`;
-    } else {
-      return date.toLocaleDateString();
     }
+    return date.toLocaleDateString();
   };
 
   // Close menu when clicking outside
@@ -178,9 +179,7 @@ export const SceneCard: React.FC<SceneCardProps> = ({
         {scene.thumbnailUrl ? (
           <img src={scene.thumbnailUrl} alt={scene.title} />
         ) : (
-          <div className="scene-card__thumbnail-placeholder">
-            {playIcon}
-          </div>
+          <div className="scene-card__thumbnail-placeholder">{playIcon}</div>
         )}
       </div>
 
@@ -210,7 +209,9 @@ export const SceneCard: React.FC<SceneCardProps> = ({
           {authorName && (
             <span className="scene-card__author">by {authorName}</span>
           )}
-          <span className="scene-card__date">{formatDate(scene.updatedAt)}</span>
+          <span className="scene-card__date">
+            {formatDate(scene.updatedAt)}
+          </span>
         </div>
       </div>
 
@@ -226,16 +227,25 @@ export const SceneCard: React.FC<SceneCardProps> = ({
 
         {menuOpen && (
           <div className="scene-card__menu">
-            <button className="scene-card__menu-item" onClick={handleRenameClick}>
+            <button
+              className="scene-card__menu-item"
+              onClick={handleRenameClick}
+            >
               {renameIcon}
               <span>{t("workspace.rename")}</span>
             </button>
-            <button className="scene-card__menu-item" onClick={handleDuplicateClick}>
+            <button
+              className="scene-card__menu-item"
+              onClick={handleDuplicateClick}
+            >
               {duplicateIcon}
               <span>{t("workspace.duplicate")}</span>
             </button>
             <div className="scene-card__menu-divider" />
-            <button className="scene-card__menu-item scene-card__menu-item--danger" onClick={handleDeleteClick}>
+            <button
+              className="scene-card__menu-item scene-card__menu-item--danger"
+              onClick={handleDeleteClick}
+            >
               {trashIcon}
               <span>{t("workspace.deleteScene")}</span>
             </button>

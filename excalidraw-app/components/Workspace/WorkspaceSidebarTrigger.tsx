@@ -1,7 +1,9 @@
 import React, { useEffect, useCallback } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 import { useTunnels } from "@excalidraw/excalidraw";
+
 import { useAuth } from "../../auth";
+
 import "./WorkspaceSidebarTrigger.scss";
 
 // Sidebar panel icon (like Excalidraw+)
@@ -19,10 +21,9 @@ interface WorkspaceSidebarTriggerProps {
   onToggle: () => void;
 }
 
-export const WorkspaceSidebarTrigger: React.FC<WorkspaceSidebarTriggerProps> = ({
-  isOpen,
-  onToggle,
-}) => {
+export const WorkspaceSidebarTrigger: React.FC<
+  WorkspaceSidebarTriggerProps
+> = ({ isOpen, onToggle }) => {
   const { isAuthenticated } = useAuth();
   const { WorkspaceTriggerTunnel } = useTunnels();
 
@@ -60,7 +61,11 @@ export const WorkspaceSidebarTrigger: React.FC<WorkspaceSidebarTriggerProps> = (
           type="button"
           className={`workspace-sidebar-trigger__button ${
             isOpen ? "workspace-sidebar-trigger__button--active" : ""
-          } ${isAuthenticated ? "workspace-sidebar-trigger__button--authenticated" : ""}`}
+          } ${
+            isAuthenticated
+              ? "workspace-sidebar-trigger__button--authenticated"
+              : ""
+          }`}
           onClick={onToggle}
           aria-label={t("workspace.title")}
           aria-pressed={isOpen}

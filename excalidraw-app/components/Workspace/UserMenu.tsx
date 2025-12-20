@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
+
 import { useAuth, type User } from "../../auth";
+
 import "./UserMenu.scss";
 
 interface UserMenuProps {
@@ -61,12 +63,12 @@ export const UserMenu: React.FC<UserMenuProps> = ({ user }) => {
         )}
         <div className="user-menu__info">
           <span className="user-menu__name">{user.name || user.email}</span>
-          {user.name && (
-            <span className="user-menu__email">{user.email}</span>
-          )}
+          {user.name && <span className="user-menu__email">{user.email}</span>}
         </div>
         <svg
-          className={`user-menu__chevron ${isOpen ? "user-menu__chevron--open" : ""}`}
+          className={`user-menu__chevron ${
+            isOpen ? "user-menu__chevron--open" : ""
+          }`}
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -78,8 +80,16 @@ export const UserMenu: React.FC<UserMenuProps> = ({ user }) => {
 
       {isOpen && (
         <div className="user-menu__dropdown">
-          <button className="user-menu__item user-menu__item--logout" onClick={logout}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <button
+            className="user-menu__item user-menu__item--logout"
+            onClick={logout}
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
             </svg>
             <span>{t("workspace.logout")}</span>

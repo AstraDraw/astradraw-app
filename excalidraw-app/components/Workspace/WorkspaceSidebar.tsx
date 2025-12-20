@@ -6,6 +6,7 @@ import React, {
   useRef,
 } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
+
 import { useAuth } from "../../auth";
 import {
   listScenes,
@@ -14,6 +15,7 @@ import {
   duplicateScene as duplicateSceneApi,
   type WorkspaceScene,
 } from "../../auth/workspaceApi";
+
 import { SceneCard } from "./SceneCard";
 import { LoginDialog } from "./LoginDialog";
 import { UserProfileDialog } from "./UserProfileDialog";

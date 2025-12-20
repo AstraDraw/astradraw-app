@@ -19,7 +19,9 @@ This is a **monorepo** forked from Excalidraw with AstraDraw-specific additions:
 ## AstraDraw-Specific Patterns
 
 ### Input Fields
+
 Always stop keyboard event propagation to prevent canvas interference:
+
 ```typescript
 <input
   onKeyDown={(e) => e.stopPropagation()}
@@ -28,16 +30,21 @@ Always stop keyboard event propagation to prevent canvas interference:
 ```
 
 ### Translations
+
 Add keys to BOTH locale files:
+
 - `packages/excalidraw/locales/en.json`
 - `packages/excalidraw/locales/ru-RU.json`
 
 ### State Management
+
 - Use **Jotai** for shared state (see `excalidraw-app/` for examples)
 - Use React hooks for component-local state
 
 ### API Calls
+
 Use the workspace API client with credentials:
+
 ```typescript
 import { getApiBaseUrl } from "../auth/workspaceApi";
 
@@ -63,7 +70,7 @@ yarn fix               # Auto-fix formatting and linting
 ## Related Repositories
 
 | Repo | Purpose |
-|------|---------|
+| --- | --- |
 | [astradraw](https://github.com/astrateam-net/astradraw) | Main orchestration, Docker deployment |
 | [astradraw-api](https://github.com/astrateam-net/astradraw-api) | Backend API (NestJS) |
 | [astradraw-room](https://github.com/astrateam-net/astradraw-room) | WebSocket collaboration |
@@ -71,16 +78,20 @@ yarn fix               # Auto-fix formatting and linting
 ## Architecture Notes
 
 ### Storage Abstraction
+
 - `excalidraw-app/data/StorageBackend.ts` - Interface for storage providers
 - `excalidraw-app/data/httpStorage.ts` - HTTP storage implementation (AstraDraw)
 - `excalidraw-app/data/firebase.ts` - Firebase implementation (upstream)
 
 ### Runtime Environment
+
 Environment variables are injected at container startup (not build time):
+
 - `excalidraw-app/env.ts` - Runtime env helper using `window.__ENV__`
 - `docker-entrypoint.sh` - Injects config into `index.html`
 
 ### Package System
+
 - Uses Yarn workspaces for monorepo management
 - Internal packages use path aliases (see `vitest.config.mts`)
 - Build system uses esbuild for packages, Vite for the app

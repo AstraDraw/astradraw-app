@@ -1,5 +1,8 @@
 import { Footer, FooterLeftExtra } from "@excalidraw/excalidraw/index";
-import { presentationIcon, videoIcon } from "@excalidraw/excalidraw/components/icons";
+import {
+  presentationIcon,
+  videoIcon,
+} from "@excalidraw/excalidraw/components/icons";
 import { Tooltip } from "@excalidraw/excalidraw/components/Tooltip";
 import { t } from "@excalidraw/excalidraw/i18n";
 import React from "react";

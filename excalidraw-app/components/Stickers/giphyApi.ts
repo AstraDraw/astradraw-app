@@ -3,7 +3,10 @@
 // Get GIPHY API key from runtime env (Docker) or build-time env (local dev)
 const getGiphyApiKey = (): string => {
   // Check runtime environment first (Docker container)
-  if (typeof window !== "undefined" && (window as any).__ENV__?.VITE_APP_GIPHY_API_KEY) {
+  if (
+    typeof window !== "undefined" &&
+    (window as any).__ENV__?.VITE_APP_GIPHY_API_KEY
+  ) {
     return (window as any).__ENV__.VITE_APP_GIPHY_API_KEY;
   }
   // Fall back to build-time environment (local development)
@@ -43,7 +46,9 @@ export interface GiphyResponse {
 
 export const isApiKeyConfigured = (): boolean => {
   const apiKey = getGiphyApiKey();
-  return Boolean(apiKey && apiKey.length > 0 && apiKey !== "__VITE_APP_GIPHY_API_KEY__");
+  return Boolean(
+    apiKey && apiKey.length > 0 && apiKey !== "__VITE_APP_GIPHY_API_KEY__",
+  );
 };
 
 const buildUrl = (
@@ -78,7 +83,12 @@ export const searchGifs = async (
   limit = 25,
   offset = 0,
 ): Promise<GiphyResponse> => {
-  const url = buildUrl("/v1/gifs/search", { q: query, limit, offset, rating: "g" });
+  const url = buildUrl("/v1/gifs/search", {
+    q: query,
+    limit,
+    offset,
+    rating: "g",
+  });
   const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`GIPHY API error: ${response.status}`);
@@ -98,7 +108,10 @@ export const fetchTrendingStickers = async (
     throw new Error(`GIPHY API error: ${response.status}`);
   }
   const data = await response.json();
-  data.data = data.data.map((item: GiphyItem) => ({ ...item, type: "sticker" }));
+  data.data = data.data.map((item: GiphyItem) => ({
+    ...item,
+    type: "sticker",
+  }));
   return data;
 };
 
@@ -107,17 +120,28 @@ export const searchStickers = async (
   limit = 25,
   offset = 0,
 ): Promise<GiphyResponse> => {
-  const url = buildUrl("/v1/stickers/search", { q: query, limit, offset, rating: "g" });
+  const url = buildUrl("/v1/stickers/search", {
+    q: query,
+    limit,
+    offset,
+    rating: "g",
+  });
   const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`GIPHY API error: ${response.status}`);
   }
   const data = await response.json();
-  data.data = data.data.map((item: GiphyItem) => ({ ...item, type: "sticker" }));
+  data.data = data.data.map((item: GiphyItem) => ({
+    ...item,
+    type: "sticker",
+  }));
   return data;
 };
 
-export const fetchEmojis = async (limit = 25, offset = 0): Promise<GiphyResponse> => {
+export const fetchEmojis = async (
+  limit = 25,
+  offset = 0,
+): Promise<GiphyResponse> => {
   const url = buildUrl("/v2/emoji", { limit, offset });
   const response = await fetch(url);
   if (!response.ok) {
@@ -164,7 +188,11 @@ export const fetchTrending = async (
 
       // Interleave results for variety
       const combined: GiphyItem[] = [];
-      const maxLen = Math.max(gifs.data.length, stickers.data.length, emojis.data.length);
+      const maxLen = Math.max(
+        gifs.data.length,
+        stickers.data.length,
+        emojis.data.length,
+      );
       for (let i = 0; i < maxLen; i++) {
         if (gifs.data[i]) {
           combined.push(gifs.data[i]);
@@ -180,7 +208,10 @@ export const fetchTrending = async (
       return {
         data: combined.slice(0, limit),
         pagination: {
-          total_count: gifs.pagination.total_count + stickers.pagination.total_count + emojis.pagination.total_count,
+          total_count:
+            gifs.pagination.total_count +
+            stickers.pagination.total_count +
+            emojis.pagination.total_count,
           count: combined.length,
           offset,
         },
@@ -231,7 +262,8 @@ export const searchContent = async (
       return {
         data: combined.slice(0, limit),
         pagination: {
-          total_count: gifs.pagination.total_count + stickers.pagination.total_count,
+          total_count:
+            gifs.pagination.total_count + stickers.pagination.total_count,
           count: combined.length,
           offset,
         },
@@ -251,4 +283,3 @@ export const imageUrlToDataUrl = async (url: string): Promise<string> => {
     reader.readAsDataURL(blob);
   });
 };
-

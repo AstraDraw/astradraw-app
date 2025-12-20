@@ -1,2 +1,1 @@
 export { StickersPanel } from "./StickersPanel";
-
