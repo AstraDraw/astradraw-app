@@ -835,6 +835,7 @@
     "recordingError": "Recording failed. Please try again.",
     "deleting": "Deleting recording...",
     "deleteSuccess": "Recording deleted",
-    "deleteError": "Failed to delete recording"
+    "deleteError": "Failed to delete recording",
+    "processing": "Processing..."
   }
 }

@@ -13,6 +13,7 @@ export interface TalktrackRecording {
   duration: number; // in seconds
   createdAt: string;
   thumbnailUrl?: string;
+  processingStatus?: "uploading" | "processing" | "ready" | "error";
 }
 
 export interface UploadProgress {
@@ -217,6 +218,54 @@ export function getKinescopePlayerUrl(videoId: string): string {
   return `https://kinescope.io/${videoId}`;
 }
 
+/**
+ * Check video processing status from Kinescope
+ */
+export async function checkVideoStatus(
+  videoId: string,
+): Promise<"processing" | "ready" | "error"> {
+  const storageUrl = getStorageBackendUrl();
+  
+  try {
+    if (storageUrl) {
+      // Use proxy if available
+      const response = await fetch(`${storageUrl}/talktrack/${videoId}/status`);
+      if (!response.ok) {
+        return "error";
+      }
+      const data = await response.json();
+      return data.status === "ready" ? "ready" : "processing";
+    } else {
+      // Direct API call (fallback)
+      const apiKey = getKinescopeApiKey();
+      if (!apiKey) {
+        return "error";
+      }
+      
+      const response = await fetch(
+        `https://api.kinescope.io/v1/videos/${videoId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+          },
+        },
+      );
+      
+      if (!response.ok) {
+        return "error";
+      }
+      
+      const data = await response.json();
+      // Kinescope returns status in data.data.status field
+      const status = data.data?.status;
+      return status === "ready" ? "ready" : "processing";
+    }
+  } catch (error) {
+    console.error("Failed to check video status:", error);
+    return "error";
+  }
+}
+
 // Local storage key for recordings
 const RECORDINGS_STORAGE_KEY = "astradraw_talktrack_recordings";
 
@@ -306,6 +355,21 @@ export function renameRecording(id: string, newTitle: string): void {
   const recording = recordings.find((r) => r.id === id);
   if (recording) {
     recording.title = newTitle;
+    localStorage.setItem(RECORDINGS_STORAGE_KEY, JSON.stringify(recordings));
+  }
+}
+
+/**
+ * Update recording processing status in local storage
+ */
+export function updateRecordingStatus(
+  id: string,
+  status: "uploading" | "processing" | "ready" | "error",
+): void {
+  const recordings = getRecordings();
+  const recording = recordings.find((r) => r.id === id);
+  if (recording) {
+    recording.processingStatus = status;
     localStorage.setItem(RECORDINGS_STORAGE_KEY, JSON.stringify(recordings));
   }
 }

@@ -136,8 +136,9 @@ export const TalktrackManager: React.FC<TalktrackManagerProps> = ({
         setUploadProgress(progress);
       });
 
-      // Save recording entry
+      // Save recording entry with "processing" status
       const recording = createRecordingEntry(videoId, title, duration);
+      recording.processingStatus = "processing";
       saveRecording(recording);
 
       // Show success

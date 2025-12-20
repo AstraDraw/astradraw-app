@@ -13,6 +13,8 @@ import {
   renameRecording,
   isKinescopeConfigured,
   getKinescopeEmbedUrl,
+  checkVideoStatus,
+  updateRecordingStatus,
   type TalktrackRecording,
 } from "./kinescopeApi";
 
@@ -105,22 +107,49 @@ const RecordingItem: React.FC<RecordingItemProps> = ({
     }
   }, [isMenuOpen]);
 
+  const isProcessing = recording.processingStatus === "processing" || recording.processingStatus === "uploading";
+
   return (
     <div className="talktrack-panel__recording">
-      <div className="talktrack-panel__recording-thumbnail">
+      <div className={clsx("talktrack-panel__recording-thumbnail", {
+        "talktrack-panel__recording-thumbnail--processing": isProcessing,
+      })}>
         {/* Placeholder thumbnail - Kinescope provides thumbnails after processing */}
         <div className="talktrack-panel__recording-thumbnail-placeholder">
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <polygon points="5 3 19 12 5 21 5 3" />
-          </svg>
+          {isProcessing ? (
+            <div className="talktrack-panel__processing-indicator">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10" opacity="0.25" />
+                <path d="M12 2 A 10 10 0 0 1 22 12" strokeLinecap="round">
+                  <animateTransform
+                    attributeName="transform"
+                    type="rotate"
+                    from="0 12 12"
+                    to="360 12 12"
+                    dur="1s"
+                    repeatCount="indefinite"
+                  />
+                </path>
+              </svg>
+            </div>
+          ) : (
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <polygon points="5 3 19 12 5 21 5 3" />
+            </svg>
+          )}
         </div>
+        {isProcessing && (
+          <div className="talktrack-panel__processing-overlay">
+            <span>{t("talktrack.processing")}</span>
+          </div>
+        )}
       </div>
 
       <div className="talktrack-panel__recording-info">
@@ -307,6 +336,49 @@ export const TalktrackPanel: React.FC<TalktrackPanelProps> = ({
   const refreshRecordings = useCallback(() => {
     setRecordings(getRecordings());
   }, []);
+
+  // Poll for processing status updates
+  useEffect(() => {
+    const processingRecordings = recordings.filter(
+      (r) => r.processingStatus === "processing" || r.processingStatus === "uploading",
+    );
+
+    if (processingRecordings.length === 0) {
+      return;
+    }
+
+    // Check status every 10 seconds
+    const intervalId = setInterval(async () => {
+      for (const recording of processingRecordings) {
+        try {
+          const status = await checkVideoStatus(recording.kinescopeVideoId);
+          if (status !== "processing") {
+            updateRecordingStatus(recording.id, status);
+            refreshRecordings();
+          }
+        } catch (error) {
+          console.error("Failed to check video status:", error);
+        }
+      }
+    }, 10000); // 10 seconds
+
+    // Also check immediately
+    (async () => {
+      for (const recording of processingRecordings) {
+        try {
+          const status = await checkVideoStatus(recording.kinescopeVideoId);
+          if (status !== "processing") {
+            updateRecordingStatus(recording.id, status);
+            refreshRecordings();
+          }
+        } catch (error) {
+          console.error("Failed to check video status:", error);
+        }
+      }
+    })();
+
+    return () => clearInterval(intervalId);
+  }, [recordings, refreshRecordings]);
 
   const handleAddToBoard = useCallback(
     (recording: TalktrackRecording) => {
