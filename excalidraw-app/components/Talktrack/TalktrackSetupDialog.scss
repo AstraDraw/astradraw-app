@@ -1,0 +1,215 @@
+.talktrack-setup-dialog {
+  .Dialog__content {
+    max-width: 400px;
+    width: 100%;
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 8px 0;
+  }
+
+  &__preview {
+    width: 180px;
+    height: 180px;
+    margin: 0 auto;
+    border-radius: 50%;
+    overflow: hidden;
+    background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-primary) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scaleX(-1); // Mirror the preview
+  }
+
+  &__avatar {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    opacity: 0.9;
+
+    svg {
+      width: 80px;
+      height: 80px;
+    }
+  }
+
+  &__toggles {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  &__toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border: 1px solid var(--color-border-outline-variant);
+    border-radius: 50%;
+    background: var(--color-surface-low);
+    color: var(--color-on-surface-variant);
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover:not(:disabled) {
+      background: var(--color-surface-mid);
+      color: var(--color-on-surface);
+    }
+
+    &--active {
+      background: var(--color-surface-mid);
+      color: var(--color-on-surface);
+      border-color: var(--color-primary);
+    }
+
+    &--disabled,
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  &__loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 20px;
+    color: var(--color-on-surface-variant);
+  }
+
+  &__spinner {
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--color-border-outline-variant);
+    border-top-color: var(--color-primary);
+    border-radius: 50%;
+    animation: talktrack-spin 0.8s linear infinite;
+  }
+
+  &__error {
+    text-align: center;
+    padding: 16px;
+    color: var(--color-danger);
+    font-size: 13px;
+  }
+
+  &__devices {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  &__device-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  &__label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--color-on-surface-variant);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  &__select {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 14px;
+    border: 1px solid var(--color-border-outline-variant);
+    border-radius: 8px;
+    background: var(--color-surface-low);
+    color: var(--color-on-surface);
+    cursor: pointer;
+    transition: border-color 0.15s ease;
+
+    &:hover:not(:disabled) {
+      border-color: var(--color-primary);
+    }
+
+    &:focus {
+      outline: none;
+      border-color: var(--color-primary);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  &__start-button {
+    width: 100%;
+    padding: 14px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    background: var(--color-primary);
+    color: white;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover:not(:disabled) {
+      background: var(--color-primary-darker);
+      transform: translateY(-1px);
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  &__back-button {
+    width: 100%;
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    border: 1px solid var(--color-border-outline-variant);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--color-on-surface);
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover {
+      background: var(--color-surface-low);
+    }
+  }
+}
+
+@keyframes talktrack-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

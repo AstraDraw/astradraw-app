@@ -9,6 +9,43 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.20] - 2025-12-20
+
+### Added
+
+- **Talktrack Board Recordings** (Miro-like feature)
+  - Record canvas walkthroughs with camera and microphone
+  - Picture-in-picture camera preview during recording (draggable, 120px bubble)
+  - Recording controls: pause/resume, restart, delete, stop
+  - 3-second countdown before recording starts
+  - Upload progress modal with animated progress bar and file size display
+  - Recordings stored in Kinescope cloud video platform
+  - Add recordings to canvas as embeddable video elements
+  - Rename and delete recordings (also removes from Kinescope)
+  - Copy embed link to clipboard
+
+- **Kinescope Integration**
+  - Direct browser-to-Kinescope video upload
+  - Environment variable configuration: `KINESCOPE_API_KEY`, `KINESCOPE_PROJECT_ID`
+  - Docker secrets support via `_FILE` suffix for secure deployments
+  - Video names prefixed with "AstraDraw" for easy identification
+
+- **New Sidebar Tab**
+  - Video camera icon in sidebar for Talktrack panel
+  - Recording library showing all previous recordings
+  - Empty state with call-to-action when no recordings exist
+
+- **New Translation Keys** (English & Russian)
+  - Full i18n support for all Talktrack UI strings
+  - Setup dialog, recording toolbar, upload progress, error messages
+
+### Technical
+
+- New components: `TalktrackPanel`, `TalktrackSetupDialog`, `TalktrackToolbar`, `TalktrackManager`
+- `TalktrackRecorder` class using MediaRecorder API with canvas capture
+- `kinescopeApi.ts` for Kinescope REST API integration
+- Runtime environment variable injection via `window.__ENV__`
+
 ## [0.18.0-beta0.19] - 2025-12-20
 
 ### Changed

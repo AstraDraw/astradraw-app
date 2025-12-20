@@ -2385,3 +2385,13 @@ export const stickerIcon = createIcon(
   </g>,
   tablerIconProps,
 );
+
+// tabler-icons: video
+export const videoIcon = createIcon(
+  <g strokeWidth="1.25">
+    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+    <rect x="3" y="5" width="14" height="14" rx="2" />
+    <path d="M17 9l4 -2v10l-4 -2" />
+  </g>,
+  tablerIconProps,
+);
