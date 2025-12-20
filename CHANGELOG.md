@@ -9,6 +9,25 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.19] - 2025-12-20
+
+### Changed
+
+- **Improved Emoji Tab UX**
+  - Replaced GIPHY animated emojis with Twemoji static emojis (better quality, more complete set)
+  - Renamed "Static" tab to "Emojis" for clearer navigation
+  - GIPHY emojis tab is commented out (can be re-enabled if needed)
+
+- **Tab Overflow Scrolling**
+  - Added horizontal scroll to content tabs when they overflow
+  - Tabs no longer get cut off on narrow screens
+
+### Fixed
+
+- **Broken Emoji Images**
+  - Filter out emojis with version > 14.0 (Twemoji 14.0.2 only supports Emoji 14.0 and below)
+  - Prevents broken image icons for newer Unicode emojis
+
 ## [0.18.0-beta0.18] - 2025-12-20
 
 ### Added

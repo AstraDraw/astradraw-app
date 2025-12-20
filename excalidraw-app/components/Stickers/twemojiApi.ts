@@ -59,9 +59,20 @@ export const fetchEmojiData = async (): Promise<TwemojiGroup[]> => {
     throw new Error(`Failed to fetch emoji data: ${response.status}`);
   }
 
-  const data = await response.json();
-  emojiDataCache = data;
-  return data;
+  const data: TwemojiGroup[] = await response.json();
+  
+  // Filter out emojis with version > 14.0 (Twemoji 14.0.2 only supports up to Emoji 14.0)
+  // Newer emojis won't have images available and will show as broken
+  const filteredData = data.map((group) => ({
+    ...group,
+    emojis: group.emojis.filter((emoji) => {
+      const version = parseFloat(emoji.emoji_version);
+      return !isNaN(version) && version <= 14.0;
+    }),
+  }));
+  
+  emojiDataCache = filteredData;
+  return filteredData;
 };
 
 /**

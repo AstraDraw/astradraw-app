@@ -53,9 +53,10 @@ interface StickersPanelProps {
 const CONTENT_TABS: { id: ExtendedContentType; labelKey: TranslationKeys }[] = [
   { id: "all", labelKey: "stickers.all" },
   { id: "stickers", labelKey: "stickers.stickersTab" },
-  { id: "emojis", labelKey: "stickers.emojis" },
+  // GIPHY emojis commented out - using Twemoji instead (better quality, more complete)
+  // { id: "emojis", labelKey: "stickers.emojis" },
   { id: "gifs", labelKey: "stickers.gifs" },
-  { id: "static", labelKey: "stickers.staticEmojis" },
+  { id: "static", labelKey: "stickers.emojis" }, // Renamed to "Emojis" for better UX
 ];
 
 const GiphyLogo = () => (

@@ -46,9 +46,17 @@
     gap: 4px;
     padding: 8px 12px;
     border-bottom: 1px solid var(--default-border-color, #e5e5e5);
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
   }
 
   &__tab {
+    flex-shrink: 0;
     padding: 6px 12px;
     border: none;
     background: transparent;
@@ -58,6 +66,7 @@
     font-weight: 500;
     color: var(--text-secondary-color, #6b6b6b);
     transition: background-color 0.15s ease, color 0.15s ease;
+    white-space: nowrap;
 
     &:hover {
       background: var(--button-hover-bg, rgba(0, 0, 0, 0.05));
