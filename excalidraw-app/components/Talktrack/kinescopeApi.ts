@@ -220,6 +220,7 @@ export function getKinescopePlayerUrl(videoId: string): string {
 
 /**
  * Check video processing status from Kinescope
+ * Kinescope statuses: pending, uploading, pre-processing, processing, aborted, done, error
  */
 export async function checkVideoStatus(
   videoId: string,
@@ -229,19 +230,24 @@ export async function checkVideoStatus(
   try {
     if (storageUrl) {
       // Use proxy if available
+      console.log(`[Talktrack] Checking video status via proxy: ${videoId}`);
       const response = await fetch(`${storageUrl}/talktrack/${videoId}/status`);
       if (!response.ok) {
+        console.error(`[Talktrack] Status check failed: ${response.status}`);
         return "error";
       }
       const data = await response.json();
+      console.log(`[Talktrack] Video ${videoId} status:`, data.status);
       return data.status === "ready" ? "ready" : "processing";
     } else {
       // Direct API call (fallback)
       const apiKey = getKinescopeApiKey();
       if (!apiKey) {
+        console.error("[Talktrack] No API key available");
         return "error";
       }
       
+      console.log(`[Talktrack] Checking video status directly: ${videoId}`);
       const response = await fetch(
         `https://api.kinescope.io/v1/videos/${videoId}`,
         {
@@ -252,16 +258,19 @@ export async function checkVideoStatus(
       );
       
       if (!response.ok) {
+        console.error(`[Talktrack] Status check failed: ${response.status}`);
         return "error";
       }
       
       const data = await response.json();
       // Kinescope returns status in data.data.status field
+      // Status values: pending, uploading, pre-processing, processing, aborted, done, error
       const status = data.data?.status;
-      return status === "ready" ? "ready" : "processing";
+      console.log(`[Talktrack] Video ${videoId} Kinescope status: ${status}`);
+      return status === "done" ? "ready" : "processing";
     }
   } catch (error) {
-    console.error("Failed to check video status:", error);
+    console.error("[Talktrack] Failed to check video status:", error);
     return "error";
   }
 }
