@@ -9,6 +9,27 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.21] - 2025-12-20
+
+### Added
+
+- **Talktrack Storage Backend Proxy**
+  - Automatic proxy usage when `VITE_APP_HTTP_STORAGE_BACKEND_URL` is configured
+  - Keeps Kinescope API key secure on server-side
+  - Falls back to direct browser upload if proxy not available
+  - Backward compatible with existing direct upload approach
+
+### Changed
+
+- Updated `kinescopeApi.ts` to prefer storage backend proxy over direct API calls
+- Both upload and delete operations now support secure proxy routing
+
+### Technical
+
+- Frontend automatically detects storage backend URL and routes through proxy
+- No breaking changes - direct upload still works if backend URL not set
+- Improved security for production deployments
+
 ## [0.18.0-beta0.20] - 2025-12-20
 
 ### Added
