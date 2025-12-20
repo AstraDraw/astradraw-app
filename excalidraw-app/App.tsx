@@ -981,14 +981,6 @@ const ExcalidrawWrapper = () => {
         currentSceneId={currentSceneId}
       />
 
-      {/* Workspace Sidebar Toggle Button */}
-      {!workspaceSidebarOpen && (
-        <WorkspaceSidebarTrigger
-          isOpen={workspaceSidebarOpen}
-          onToggle={() => setWorkspaceSidebarOpen(!workspaceSidebarOpen)}
-        />
-      )}
-
       <Excalidraw
         excalidrawAPI={excalidrawRefCallback}
         onChange={onChange}
@@ -1059,6 +1051,11 @@ const ExcalidrawWrapper = () => {
           }
         }}
       >
+        {/* Workspace Sidebar Toggle Button - rendered via tunnel before hamburger menu */}
+        <WorkspaceSidebarTrigger
+          isOpen={workspaceSidebarOpen}
+          onToggle={() => setWorkspaceSidebarOpen(!workspaceSidebarOpen)}
+        />
         <AppMainMenu
           onCollabDialogOpen={onCollabDialogOpen}
           isCollaborating={isCollaborating}

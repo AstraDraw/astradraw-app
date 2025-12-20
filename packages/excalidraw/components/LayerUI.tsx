@@ -227,7 +227,9 @@ const LayerUI = ({
   };
 
   const renderCanvasActions = () => (
-    <div style={{ position: "relative" }}>
+    <div style={{ position: "relative", display: "flex", gap: "0.5rem", alignItems: "center" }}>
+      {/* AstraDraw: Workspace trigger tunnel (renders before hamburger menu) */}
+      <tunnels.WorkspaceTriggerTunnel.Out />
       {/* wrapping to Fragment stops React from occasionally complaining
                 about identical Keys */}
       <tunnels.MainMenuTunnel.Out />
