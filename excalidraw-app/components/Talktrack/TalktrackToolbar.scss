@@ -1,12 +1,11 @@
 .talktrack-toolbar {
-  position: fixed;
-  bottom: 20px;
-  left: 20px;
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
+  // Position set via inline styles for draggability
   z-index: 1000;
   pointer-events: auto;
+  
+  &--dragging {
+    cursor: grabbing;
+  }
 
   &__camera-preview {
     width: 120px;
@@ -46,6 +45,12 @@
     background: white;
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    cursor: grab;
+    user-select: none;
+    
+    &:active {
+      cursor: grabbing;
+    }
   }
 
   &__button {
@@ -116,11 +121,7 @@
 // Responsive adjustments
 @media (max-width: 600px) {
   .talktrack-toolbar {
-    bottom: 8px;
-    left: 8px;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
+    // Position adjusted via inline styles
 
     &__controls {
       padding: 4px;

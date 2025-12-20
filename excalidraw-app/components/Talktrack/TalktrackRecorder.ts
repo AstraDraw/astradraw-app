@@ -335,6 +335,13 @@ export class TalktrackRecorder {
       this.staticCanvas = canvases.static;
       this.interactiveCanvas = canvases.interactive;
 
+      console.log("[Talktrack] Found canvases:", {
+        static: !!this.staticCanvas,
+        interactive: !!this.interactiveCanvas,
+        staticSize: this.staticCanvas ? `${this.staticCanvas.width}x${this.staticCanvas.height}` : "N/A",
+        interactiveSize: this.interactiveCanvas ? `${this.interactiveCanvas.width}x${this.interactiveCanvas.height}` : "N/A",
+      });
+
       if (!this.staticCanvas) {
         throw new Error("Could not find Excalidraw canvas");
       }

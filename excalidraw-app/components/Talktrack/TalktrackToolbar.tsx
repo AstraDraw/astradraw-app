@@ -30,16 +30,28 @@ export const TalktrackToolbar: React.FC<TalktrackToolbarProps> = ({
   const cameraPreviewRef = useRef<HTMLVideoElement>(null);
   const cameraStreamRef = useRef<MediaStream | null>(null);
   const cameraBubbleRef = useRef<HTMLDivElement>(null);
-  // Initialize camera bubble at top-right position
+  const toolbarRef = useRef<HTMLDivElement>(null);
+  
+  // Initialize camera bubble at viewport top-right position
   const [bubblePosition, setBubblePosition] = useState(() => {
     const viewportWidth = window.innerWidth;
     return {
-      x: viewportWidth - 140, // 120px bubble + 20px margin
-      y: 20,
+      x: viewportWidth - 140, // 120px bubble + 20px margin from right
+      y: 20, // 20px from top
     };
   });
-  const [isDragging, setIsDragging] = useState(false);
-  const dragStartRef = useRef({ x: 0, y: 0, bubbleX: 0, bubbleY: 0 });
+  
+  // Initialize toolbar at bottom-left with margin from hamburger menu
+  const [toolbarPosition, setToolbarPosition] = useState(() => {
+    return {
+      x: 80, // 80px from left (away from hamburger menu)
+      y: window.innerHeight - 80, // 80px from bottom
+    };
+  });
+  
+  const [isDraggingBubble, setIsDraggingBubble] = useState(false);
+  const [isDraggingToolbar, setIsDraggingToolbar] = useState(false);
+  const dragStartRef = useRef({ x: 0, y: 0, elementX: 0, elementY: 0 });
 
   const isPaused = recordingState.status === "paused";
 
@@ -76,19 +88,37 @@ export const TalktrackToolbar: React.FC<TalktrackToolbarProps> = ({
   }, [cameraEnabled]);
 
   // Handle drag for camera bubble
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+  const handleBubbleMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
-    setIsDragging(true);
+    e.stopPropagation();
+    setIsDraggingBubble(true);
     dragStartRef.current = {
       x: e.clientX,
       y: e.clientY,
-      bubbleX: bubblePosition.x,
-      bubbleY: bubblePosition.y,
+      elementX: bubblePosition.x,
+      elementY: bubblePosition.y,
     };
   }, [bubblePosition]);
 
+  // Handle drag for toolbar controls
+  const handleToolbarMouseDown = useCallback((e: React.MouseEvent) => {
+    // Only drag if clicking on the controls container, not buttons
+    if ((e.target as HTMLElement).closest('button')) {
+      return;
+    }
+    e.preventDefault();
+    setIsDraggingToolbar(true);
+    dragStartRef.current = {
+      x: e.clientX,
+      y: e.clientY,
+      elementX: toolbarPosition.x,
+      elementY: toolbarPosition.y,
+    };
+  }, [toolbarPosition]);
+
+  // Handle bubble dragging
   useEffect(() => {
-    if (!isDragging) {
+    if (!isDraggingBubble) {
       return;
     }
 
@@ -96,13 +126,13 @@ export const TalktrackToolbar: React.FC<TalktrackToolbarProps> = ({
       const deltaX = e.clientX - dragStartRef.current.x;
       const deltaY = e.clientY - dragStartRef.current.y;
       setBubblePosition({
-        x: dragStartRef.current.bubbleX + deltaX,
-        y: dragStartRef.current.bubbleY + deltaY,
+        x: dragStartRef.current.elementX + deltaX,
+        y: dragStartRef.current.elementY + deltaY,
       });
     };
 
     const handleMouseUp = () => {
-      setIsDragging(false);
+      setIsDraggingBubble(false);
     };
 
     document.addEventListener("mousemove", handleMouseMove);
@@ -112,7 +142,35 @@ export const TalktrackToolbar: React.FC<TalktrackToolbarProps> = ({
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [isDragging]);
+  }, [isDraggingBubble]);
+
+  // Handle toolbar dragging
+  useEffect(() => {
+    if (!isDraggingToolbar) {
+      return;
+    }
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const deltaX = e.clientX - dragStartRef.current.x;
+      const deltaY = e.clientY - dragStartRef.current.y;
+      setToolbarPosition({
+        x: dragStartRef.current.elementX + deltaX,
+        y: dragStartRef.current.elementY + deltaY,
+      });
+    };
+
+    const handleMouseUp = () => {
+      setIsDraggingToolbar(false);
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isDraggingToolbar]);
 
   const handleDeleteClick = useCallback(() => {
     if (showConfirmDelete) {
@@ -139,18 +197,21 @@ export const TalktrackToolbar: React.FC<TalktrackToolbarProps> = ({
   }
 
   return (
-    <div className="talktrack-toolbar">
-      {/* Camera preview bubble - draggable */}
+    <>
+      {/* Camera preview bubble - draggable, positioned absolutely */}
       {cameraEnabled && (
         <div
           ref={cameraBubbleRef}
           className={clsx("talktrack-toolbar__camera-preview", {
-            "talktrack-toolbar__camera-preview--dragging": isDragging,
+            "talktrack-toolbar__camera-preview--dragging": isDraggingBubble,
           })}
           style={{
-            transform: `translate(${bubblePosition.x}px, ${bubblePosition.y}px)`,
+            position: 'fixed',
+            left: `${bubblePosition.x}px`,
+            top: `${bubblePosition.y}px`,
+            zIndex: 1001,
           }}
-          onMouseDown={handleMouseDown}
+          onMouseDown={handleBubbleMouseDown}
         >
           <video
             ref={cameraPreviewRef}
@@ -162,8 +223,22 @@ export const TalktrackToolbar: React.FC<TalktrackToolbarProps> = ({
         </div>
       )}
 
-      {/* Main toolbar */}
-      <div className="talktrack-toolbar__controls">
+      {/* Main toolbar - draggable */}
+      <div
+        ref={toolbarRef}
+        className={clsx("talktrack-toolbar", {
+          "talktrack-toolbar--dragging": isDraggingToolbar,
+        })}
+        style={{
+          position: 'fixed',
+          left: `${toolbarPosition.x}px`,
+          top: `${toolbarPosition.y}px`,
+        }}
+      >
+        <div
+          className="talktrack-toolbar__controls"
+          onMouseDown={handleToolbarMouseDown}
+        >
         {/* Delete button */}
         <button
           className={clsx("talktrack-toolbar__button", {
@@ -248,7 +323,8 @@ export const TalktrackToolbar: React.FC<TalktrackToolbarProps> = ({
         >
           {t("talktrack.stop")}
         </button>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
