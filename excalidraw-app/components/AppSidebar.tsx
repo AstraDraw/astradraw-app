@@ -36,63 +36,57 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ excalidrawAPI }) => {
 
   return (
     <>
-      <DefaultSidebar>
-        <DefaultSidebar.TabTriggers>
-          <Sidebar.TabTrigger
-            tab="stickers"
-            style={{ opacity: openSidebar?.tab === "stickers" ? 1 : 0.4 }}
-          >
-            {stickerIcon}
-          </Sidebar.TabTrigger>
-          <Sidebar.TabTrigger
-            tab="talktrack"
-            style={{ opacity: openSidebar?.tab === "talktrack" ? 1 : 0.4 }}
-          >
-            {videoIcon}
-          </Sidebar.TabTrigger>
-          <Sidebar.TabTrigger
-            tab="comments"
-            style={{ opacity: openSidebar?.tab === "comments" ? 1 : 0.4 }}
-          >
-            {messageCircleIcon}
-          </Sidebar.TabTrigger>
-          <Sidebar.TabTrigger
-            tab="presentation"
-            style={{ opacity: openSidebar?.tab === "presentation" ? 1 : 0.4 }}
-          >
-            {presentationIcon}
-          </Sidebar.TabTrigger>
-        </DefaultSidebar.TabTriggers>
-        <Sidebar.Tab tab="comments">
-          <div className="app-sidebar-promo-container">
-            <div
-              className="app-sidebar-promo-image"
-              style={{
-                ["--image-source" as any]: `url(/oss_promo_comments_${
-                  theme === THEME.DARK ? "dark" : "light"
-                }.jpg)`,
-                opacity: 0.7,
-              }}
-            />
-            <div className="app-sidebar-promo-text">
-              Make comments with AstraDraw
-            </div>
-            <div className="app-sidebar-promo-coming-soon">Coming soon</div>
+    <DefaultSidebar>
+      <DefaultSidebar.TabTriggers>
+        <Sidebar.TabTrigger
+          tab="stickers"
+          style={{ opacity: openSidebar?.tab === "stickers" ? 1 : 0.4 }}
+        >
+          {stickerIcon}
+        </Sidebar.TabTrigger>
+        <Sidebar.TabTrigger
+          tab="talktrack"
+          style={{ opacity: openSidebar?.tab === "talktrack" ? 1 : 0.4 }}
+        >
+          {videoIcon}
+        </Sidebar.TabTrigger>
+        <Sidebar.TabTrigger
+          tab="presentation"
+          style={{ opacity: openSidebar?.tab === "presentation" ? 1 : 0.4 }}
+        >
+          {presentationIcon}
+        </Sidebar.TabTrigger>
+      </DefaultSidebar.TabTriggers>
+      <Sidebar.Tab tab="comments">
+        <div className="app-sidebar-promo-container">
+          <div
+            className="app-sidebar-promo-image"
+            style={{
+              ["--image-source" as any]: `url(/oss_promo_comments_${
+                theme === THEME.DARK ? "dark" : "light"
+              }.jpg)`,
+              opacity: 0.7,
+            }}
+          />
+          <div className="app-sidebar-promo-text">
+            Make comments with AstraDraw
           </div>
-        </Sidebar.Tab>
-        <Sidebar.Tab tab="presentation">
-          <PresentationPanel excalidrawAPI={excalidrawAPI} />
-        </Sidebar.Tab>
-        <Sidebar.Tab tab="stickers">
-          <StickersPanel excalidrawAPI={excalidrawAPI} />
-        </Sidebar.Tab>
+          <div className="app-sidebar-promo-coming-soon">Coming soon</div>
+        </div>
+      </Sidebar.Tab>
+      <Sidebar.Tab tab="presentation">
+        <PresentationPanel excalidrawAPI={excalidrawAPI} />
+      </Sidebar.Tab>
+      <Sidebar.Tab tab="stickers">
+        <StickersPanel excalidrawAPI={excalidrawAPI} />
+      </Sidebar.Tab>
         <Sidebar.Tab tab="talktrack">
           <TalktrackPanel
             excalidrawAPI={excalidrawAPI}
             onStartRecording={handleStartRecording}
           />
         </Sidebar.Tab>
-      </DefaultSidebar>
+    </DefaultSidebar>
 
       {/* Talktrack recording manager (handles dialogs and recording toolbar) */}
       <TalktrackManager

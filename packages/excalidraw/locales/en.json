@@ -797,6 +797,7 @@
   },
   "talktrack": {
     "title": "Talktrack",
+    "toggleSidebar": "Toggle Talktrack sidebar",
     "emptyTitle": "No recordings yet",
     "emptyDescription": "Record your canvas walkthrough with camera and microphone to share with others.",
     "recordTalktrack": "Record a Talktrack",

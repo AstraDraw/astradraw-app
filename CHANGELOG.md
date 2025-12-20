@@ -9,6 +9,28 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.26] - 2025-12-20
+
+### Added
+
+- **Talktrack Quick Access Button**
+  - Added Talktrack toggle button in footer toolbar (next to Presentation button)
+  - Both buttons share a unified container with consistent styling
+  - Tooltips show "Presentation" / "Презентация" and "Talktrack" labels
+
+### Changed
+
+- **Sidebar Tab Triggers**
+  - Removed "Comments" tab from sidebar triggers (still "Coming soon")
+  - Sidebar now shows: Stickers, Talktrack, Presentation tabs
+  - Fixed close button being cut off due to too many tabs
+
+### Fixed
+
+- **Footer Button Styling**
+  - Unified Presentation and Talktrack button styles
+  - Both buttons now in shared container matching undo/redo styling
+
 ## [0.18.0-beta0.25] - 2025-12-20
 
 ### Fixed
