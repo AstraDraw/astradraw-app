@@ -837,7 +837,13 @@
     "deleting": "Deleting recording...",
     "deleteSuccess": "Recording deleted",
     "deleteError": "Failed to delete recording",
-    "processing": "Processing..."
+    "processing": "Processing...",
+    "noSceneTitle": "Save your scene first",
+    "noSceneDescription": "Talktrack recordings are saved with your scene. Save your scene to the workspace to start recording.",
+    "saveSceneFirst": "Please save your scene first to record a talktrack",
+    "loading": "Loading recordings...",
+    "retry": "Retry",
+    "renameError": "Failed to rename recording"
   },
   "workspace": {
     "title": "Workspace",
