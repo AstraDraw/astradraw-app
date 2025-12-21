@@ -1099,7 +1099,7 @@
     "collectionTitle": "Коллекция: {{name}}",
     "collectionTeamsDescription": "Выберите команды, которые будут иметь доступ к этой коллекции",
     "everyone": "Все участники",
-    "allMembers": "Все участники",
+    "allMembers": "Только админы",
     "noWorkspaceSelected": "Рабочее пространство не выбрано",
     "noCollectionsYet": "Коллекций пока нет",
     "noTeamsYet": "Команд пока нет",
@@ -1108,6 +1108,9 @@
     "edit": "Редактировать",
     "save": "Сохранить",
     "cancel": "Отмена",
-    "close": "Закрыть"
+    "close": "Закрыть",
+    "accessNone": "Нет доступа",
+    "accessView": "Просмотр",
+    "accessEdit": "Редактирование"
   }
 }

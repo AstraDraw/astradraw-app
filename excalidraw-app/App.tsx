@@ -149,7 +149,14 @@ import {
   navigateToDashboardAtom,
   activeCollectionIdAtom,
   triggerScenesRefreshAtom,
+  currentWorkspaceSlugAtom,
+  currentSceneIdAtom,
+  currentSceneTitleAtom,
+  dashboardViewAtom,
+  isPrivateCollectionAtom,
 } from "./components/Settings";
+
+import { parseUrl, buildSceneUrl, type RouteType } from "./router";
 
 import { WorkspaceMainContent } from "./components/Workspace";
 
@@ -408,6 +415,13 @@ const ExcalidrawWrapper = () => {
   const setActiveCollectionId = useSetAtom(activeCollectionIdAtom);
   const triggerScenesRefresh = useSetAtom(triggerScenesRefreshAtom);
 
+  // URL-based navigation atoms
+  const setCurrentWorkspaceSlugAtom = useSetAtom(currentWorkspaceSlugAtom);
+  const setCurrentSceneIdAtom = useSetAtom(currentSceneIdAtom);
+  const setCurrentSceneTitleAtom = useSetAtom(currentSceneTitleAtom);
+  const setDashboardView = useSetAtom(dashboardViewAtom);
+  const setIsPrivateCollection = useSetAtom(isPrivateCollectionAtom);
+
   // Auth state for auto-open on login
   const { isAuthenticated } = useAuth();
   const wasAuthenticated = useRef(false);
@@ -423,6 +437,11 @@ const ExcalidrawWrapper = () => {
   const [currentSceneId, setCurrentSceneId] = useState<string | null>(null);
   const [currentSceneTitle, setCurrentSceneTitle] =
     useState<string>("Untitled");
+
+  // Ref to access currentSceneId in closures without adding to useEffect deps
+  // Used by syncData to skip localStorage sync for workspace scenes
+  const currentSceneIdRef = useRef<string | null>(null);
+  currentSceneIdRef.current = currentSceneId;
   // isAutoSaving tracks auto-save state for potential UI feedback (saving indicator)
   const [_isAutoSaving, setIsAutoSaving] = useState(false);
   void _isAutoSaving; // Reserved for future UI indicator
@@ -578,6 +597,138 @@ const ExcalidrawWrapper = () => {
       window.removeEventListener("popstate", updateLegacyMode);
     };
   }, []);
+
+  // URL-based navigation sync
+  // This effect handles:
+  // 1. Initial URL parsing on mount
+  // 2. Browser back/forward navigation via popstate
+  // 3. Syncing URL state to Jotai atoms
+  const handleUrlRouteRef = useRef<((route: RouteType) => void) | null>(null);
+
+  useEffect(() => {
+    // Define the route handler
+    const handleUrlRoute = (route: RouteType) => {
+      // Skip if in legacy mode (anonymous or legacy collab)
+      if (route.type === "anonymous" || route.type === "legacy-collab") {
+        return;
+      }
+
+      // Handle workspace routes
+      switch (route.type) {
+        case "dashboard":
+          setCurrentWorkspaceSlugAtom(route.workspaceSlug);
+          setDashboardView("home");
+          navigateToCanvas(); // First set canvas mode
+          navigateToDashboard(); // Then switch to dashboard (this also pushes URL)
+          break;
+
+        case "collection":
+          setCurrentWorkspaceSlugAtom(route.workspaceSlug);
+          setActiveCollectionId(route.collectionId);
+          setIsPrivateCollection(false);
+          setDashboardView("collection");
+          navigateToDashboard();
+          break;
+
+        case "private":
+          setCurrentWorkspaceSlugAtom(route.workspaceSlug);
+          setIsPrivateCollection(true);
+          setDashboardView("collection");
+          navigateToDashboard();
+          break;
+
+        case "settings":
+          setCurrentWorkspaceSlugAtom(route.workspaceSlug);
+          setDashboardView("workspace");
+          navigateToDashboard();
+          break;
+
+        case "members":
+          setCurrentWorkspaceSlugAtom(route.workspaceSlug);
+          setDashboardView("members");
+          navigateToDashboard();
+          break;
+
+        case "teams":
+          setCurrentWorkspaceSlugAtom(route.workspaceSlug);
+          setDashboardView("teams-collections");
+          navigateToDashboard();
+          break;
+
+        case "profile":
+          setDashboardView("profile");
+          navigateToDashboard();
+          break;
+
+        case "scene":
+          // Scene loading is handled by handleWorkspaceUrl in the main initialization effect
+          // This just ensures the app mode is correct for popstate navigation
+          setCurrentWorkspaceSlugAtom(route.workspaceSlug);
+          navigateToCanvas();
+          break;
+
+        case "home":
+          // Root URL - check if authenticated and redirect to dashboard or stay on canvas
+          // This is handled by the main app logic
+          break;
+
+        default:
+          break;
+      }
+    };
+
+    handleUrlRouteRef.current = handleUrlRoute;
+
+    // Handle popstate for browser back/forward navigation
+    const handlePopState = async (event: PopStateEvent) => {
+      const route = parseUrl();
+
+      // If navigating to a scene URL, we need to load the scene
+      if (route.type === "scene") {
+        // Check if this is a different scene than currently loaded
+        if (currentSceneIdRef.current !== route.sceneId) {
+          // Scene will be loaded by the existing handleWorkspaceUrl logic
+          // Just set the workspace slug for now
+          setCurrentWorkspaceSlugAtom(route.workspaceSlug);
+          setCurrentWorkspaceSlug(route.workspaceSlug);
+          navigateToCanvas();
+
+          // The scene loading will be triggered by the main effect
+          // when it detects the URL change
+        }
+      } else {
+        handleUrlRoute(route);
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+
+    // Parse initial URL on mount (but don't navigate - let existing logic handle it)
+    // This is just to sync the workspace slug from URL if present
+    const initialRoute = parseUrl();
+    if (
+      initialRoute.type === "dashboard" ||
+      initialRoute.type === "collection" ||
+      initialRoute.type === "private" ||
+      initialRoute.type === "settings" ||
+      initialRoute.type === "members" ||
+      initialRoute.type === "teams" ||
+      initialRoute.type === "scene"
+    ) {
+      setCurrentWorkspaceSlugAtom(initialRoute.workspaceSlug);
+    }
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [
+    navigateToCanvas,
+    navigateToDashboard,
+    setActiveCollectionId,
+    setCurrentWorkspaceSlugAtom,
+    setDashboardView,
+    setIsPrivateCollection,
+  ]);
 
   const [, setShareDialogState] = useAtom(shareDialogStateAtom);
   const [collabAPI] = useAtom(collabAPIAtom);
@@ -753,6 +904,11 @@ const ExcalidrawWrapper = () => {
         setCurrentSceneTitle(loaded.scene.title || "Untitled");
         setCurrentSceneAccess(loaded.access);
 
+        // Sync with Jotai atoms for URL-based navigation
+        setCurrentWorkspaceSlugAtom(workspaceSlug);
+        setCurrentSceneIdAtom(loaded.scene.id);
+        setCurrentSceneTitleAtom(loaded.scene.title || "Untitled");
+
         let restored: RestoredDataState | null = null;
         if (loaded.data) {
           const blob = decodeBase64ToBlob(loaded.data);
@@ -883,6 +1039,14 @@ const ExcalidrawWrapper = () => {
       if (isTestEnv()) {
         return;
       }
+
+      // Skip localStorage sync when working on a workspace scene
+      // This prevents overwriting scene data with stale localStorage data
+      // Workspace scenes are loaded/saved only via backend API
+      if (currentSceneIdRef.current) {
+        return;
+      }
+
       if (
         !document.hidden &&
         ((collabAPI && !collabAPI.isCollaborating()) || isCollabDisabled)
@@ -976,6 +1140,9 @@ const ExcalidrawWrapper = () => {
     excalidrawAPI,
     setLangCode,
     navigateToCanvas,
+    setCurrentWorkspaceSlugAtom,
+    setCurrentSceneIdAtom,
+    setCurrentSceneTitleAtom,
   ]);
 
   useEffect(() => {
@@ -1156,6 +1323,10 @@ const ExcalidrawWrapper = () => {
         setCurrentSceneId(scene.id);
         setCurrentSceneTitle(title);
 
+        // Sync with Jotai atoms
+        setCurrentSceneIdAtom(scene.id);
+        setCurrentSceneTitleAtom(title);
+
         // Set the active collection so sidebar shows scenes from this collection
         if (targetCollectionId) {
           setActiveCollectionId(targetCollectionId);
@@ -1163,6 +1334,13 @@ const ExcalidrawWrapper = () => {
 
         // Keep sidebar open to show the new scene in the list
         setWorkspaceSidebarOpen(true);
+
+        // Update URL to reflect the new scene
+        const workspaceSlug = currentWorkspace?.slug || currentWorkspaceSlug;
+        if (workspaceSlug) {
+          const newUrl = buildSceneUrl(workspaceSlug, scene.id);
+          window.history.pushState({ sceneId: scene.id }, "", newUrl);
+        }
 
         // Switch to canvas mode (important when called from dashboard)
         // Sidebar will automatically switch to "board" mode showing scenes
@@ -1206,6 +1384,10 @@ const ExcalidrawWrapper = () => {
       navigateToCanvas,
       setActiveCollectionId,
       triggerScenesRefresh,
+      currentWorkspace?.slug,
+      currentWorkspaceSlug,
+      setCurrentSceneIdAtom,
+      setCurrentSceneTitleAtom,
     ],
   );
 
@@ -1244,10 +1426,15 @@ const ExcalidrawWrapper = () => {
         });
         setWorkspaceSidebarOpen(false);
 
+        // Sync with Jotai atoms
+        setCurrentSceneIdAtom(scene.id);
+        setCurrentSceneTitleAtom(scene.title);
+
         if (currentWorkspace?.slug) {
-          const newUrl = `/workspace/${currentWorkspace.slug}/scene/${scene.id}`;
+          const newUrl = buildSceneUrl(currentWorkspace.slug, scene.id);
           window.history.pushState({ sceneId: scene.id }, "", newUrl);
           setCurrentWorkspaceSlug(currentWorkspace.slug);
+          setCurrentWorkspaceSlugAtom(currentWorkspace.slug);
         }
 
         // Navigate to canvas mode if we're in dashboard
@@ -1290,6 +1477,9 @@ const ExcalidrawWrapper = () => {
       excalidrawAPI,
       isCollabDisabled,
       navigateToCanvas,
+      setCurrentSceneIdAtom,
+      setCurrentSceneTitleAtom,
+      setCurrentWorkspaceSlugAtom,
     ],
   );
 

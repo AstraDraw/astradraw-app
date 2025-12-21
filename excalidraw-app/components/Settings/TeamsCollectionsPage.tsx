@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
+
 import { useAtomValue } from "../../app-jotai";
 
 import {
@@ -19,8 +20,10 @@ import {
   type Collection,
   type WorkspaceMember,
   type CollectionTeamAccess,
+  type CollectionAccessLevel,
 } from "../../auth/workspaceApi";
 import { EmojiPicker } from "../EmojiPicker";
+
 import { collectionsRefreshAtom } from "./settingsState";
 
 import "./TeamsCollectionsPage.scss";
@@ -354,26 +357,26 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
     setEditingCollection(null);
   };
 
-  const handleToggleCollectionTeamAccess = async (
+  const handleAccessLevelChange = async (
     collectionId: string,
     teamId: string,
-    hasAccess: boolean,
+    accessLevel: string,
   ) => {
     if (!workspaceId) {
       return;
     }
 
     try {
-      if (hasAccess) {
+      if (accessLevel === "NONE") {
         // Remove access
         await removeCollectionTeamAccess(workspaceId, collectionId, teamId);
       } else {
-        // Add access
+        // Add or update access
         await setCollectionTeamAccess(
           workspaceId,
           collectionId,
           teamId,
-          "EDIT",
+          accessLevel as CollectionAccessLevel,
         );
       }
 
@@ -708,11 +711,18 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
                                 style={{ backgroundColor: ta.teamColor }}
                               >
                                 {ta.teamName}
+                                <span
+                                  className={`teams-collections-page__chip-access-badge teams-collections-page__chip-access-badge--${ta.accessLevel.toLowerCase()}`}
+                                >
+                                  {ta.accessLevel === "VIEW"
+                                    ? t("settings.accessView")
+                                    : t("settings.accessEdit")}
+                                </span>
                               </span>
                             ))}
                           </div>
                         ) : (
-                          <span className="teams-collections-page__access-badge teams-collections-page__access-badge--everyone">
+                          <span className="teams-collections-page__access-badge teams-collections-page__access-badge--admins-only">
                             {t("settings.allMembers")}
                           </span>
                         )}
@@ -1052,11 +1062,13 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
                 ) : (
                   <div className="teams-collections-page__member-list">
                     {teams.map((team) => {
-                      const hasAccess = editingCollection.teamAccess?.some(
+                      const teamAccess = editingCollection.teamAccess?.find(
                         (ta) => ta.teamId === team.id,
                       );
+                      const currentAccessLevel =
+                        teamAccess?.accessLevel || "NONE";
                       return (
-                        <label
+                        <div
                           key={team.id}
                           className="teams-collections-page__member-row"
                         >
@@ -1067,19 +1079,28 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
                           <span className="teams-collections-page__member-name">
                             {team.name}
                           </span>
-                          <input
-                            type="checkbox"
-                            checked={hasAccess}
-                            onChange={() =>
-                              handleToggleCollectionTeamAccess(
+                          <select
+                            value={currentAccessLevel}
+                            onChange={(e) =>
+                              handleAccessLevelChange(
                                 editingCollection.id,
                                 team.id,
-                                hasAccess || false,
+                                e.target.value,
                               )
                             }
-                            className="teams-collections-page__row-checkbox"
-                          />
-                        </label>
+                            className={`teams-collections-page__access-select teams-collections-page__access-select--${currentAccessLevel.toLowerCase()}`}
+                          >
+                            <option value="NONE">
+                              {t("settings.accessNone")}
+                            </option>
+                            <option value="VIEW">
+                              {t("settings.accessView")}
+                            </option>
+                            <option value="EDIT">
+                              {t("settings.accessEdit")}
+                            </option>
+                          </select>
+                        </div>
                       );
                     })}
                   </div>

@@ -79,7 +79,7 @@ interface FullModeNavProps {
   onSettingsClick: () => void;
   onMembersClick: () => void;
   onTeamsCollectionsClick: () => void;
-  onCollectionClick: (collectionId: string) => void;
+  onCollectionClick: (collectionId: string, isPrivate?: boolean) => void;
   onCreateCollection: () => void;
   onNewScene: (collectionId?: string) => void;
   onDeleteCollection?: (collectionId: string) => void;
@@ -232,7 +232,7 @@ export const FullModeNav: React.FC<FullModeNavProps> = ({
                   ? "full-mode-nav__collection-item--active"
                   : ""
               }`}
-              onClick={() => onCollectionClick(privateCollection.id)}
+              onClick={() => onCollectionClick(privateCollection.id, true)}
             >
               <span className="full-mode-nav__collection-icon">{lockIcon}</span>
               <span className="full-mode-nav__collection-name">
@@ -254,7 +254,7 @@ export const FullModeNav: React.FC<FullModeNavProps> = ({
             >
               <button
                 className="full-mode-nav__collection-item"
-                onClick={() => onCollectionClick(collection.id)}
+                onClick={() => onCollectionClick(collection.id, false)}
               >
                 <span className="full-mode-nav__collection-icon">
                   {collection.icon || folderIcon}

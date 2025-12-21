@@ -40,6 +40,7 @@ import {
   triggerCollectionsRefreshAtom,
   triggerScenesRefreshAtom,
   scenesRefreshAtom,
+  currentWorkspaceSlugAtom,
 } from "../Settings/settingsState";
 
 import { EmojiPicker } from "../EmojiPicker";
@@ -135,6 +136,8 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
   const triggerScenesRefresh = useSetAtom(triggerScenesRefreshAtom);
   // Subscribe to scenes refresh trigger from other components (e.g., App.tsx)
   const scenesRefresh = useAtomValue(scenesRefreshAtom);
+  // Sync workspace slug with URL router
+  const setCurrentWorkspaceSlug = useSetAtom(currentWorkspaceSlugAtom);
 
   // Local state
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
@@ -203,11 +206,13 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
       setWorkspaces(data);
       if (data.length > 0 && !currentWorkspace) {
         setCurrentWorkspace(data[0]);
+        // Sync workspace slug with URL router
+        setCurrentWorkspaceSlug(data[0].slug);
       }
     } catch (err) {
       console.error("Failed to load workspaces:", err);
     }
-  }, [isAuthenticated, currentWorkspace]);
+  }, [isAuthenticated, currentWorkspace, setCurrentWorkspaceSlug]);
 
   // Load collections for current workspace
   const loadCollections = useCallback(async () => {
@@ -340,21 +345,24 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
   }, [isOpen]);
 
   // Handlers
-  const handleDeleteScene = useCallback(async (sceneId: string) => {
-    if (!confirm(t("workspace.confirmDeleteScene"))) {
-      return;
-    }
+  const handleDeleteScene = useCallback(
+    async (sceneId: string) => {
+      if (!confirm(t("workspace.confirmDeleteScene"))) {
+        return;
+      }
 
-    try {
-      await deleteSceneApi(sceneId);
-      setScenes((prev) => prev.filter((s) => s.id !== sceneId));
-      // Trigger refresh for other components (e.g., DashboardView, CollectionView)
-      triggerScenesRefresh();
-    } catch (err) {
-      console.error("Failed to delete scene:", err);
-      alert("Failed to delete scene");
-    }
-  }, [triggerScenesRefresh]);
+      try {
+        await deleteSceneApi(sceneId);
+        setScenes((prev) => prev.filter((s) => s.id !== sceneId));
+        // Trigger refresh for other components (e.g., DashboardView, CollectionView)
+        triggerScenesRefresh();
+      } catch (err) {
+        console.error("Failed to delete scene:", err);
+        alert("Failed to delete scene");
+      }
+    },
+    [triggerScenesRefresh],
+  );
 
   const handleRenameScene = useCallback(
     async (sceneId: string, newTitle: string) => {
@@ -373,17 +381,20 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
     [triggerScenesRefresh],
   );
 
-  const handleDuplicateScene = useCallback(async (sceneId: string) => {
-    try {
-      const newScene = await duplicateSceneApi(sceneId);
-      setScenes((prev) => [newScene, ...prev]);
-      // Trigger refresh for other components
-      triggerScenesRefresh();
-    } catch (err) {
-      console.error("Failed to duplicate scene:", err);
-      alert("Failed to duplicate scene");
-    }
-  }, [triggerScenesRefresh]);
+  const handleDuplicateScene = useCallback(
+    async (sceneId: string) => {
+      try {
+        const newScene = await duplicateSceneApi(sceneId);
+        setScenes((prev) => [newScene, ...prev]);
+        // Trigger refresh for other components
+        triggerScenesRefresh();
+      } catch (err) {
+        console.error("Failed to duplicate scene:", err);
+        alert("Failed to duplicate scene");
+      }
+    },
+    [triggerScenesRefresh],
+  );
 
   const handleCreateCollection = useCallback(async () => {
     if (!currentWorkspace || !newCollectionName.trim()) {
@@ -405,7 +416,12 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
       console.error("Failed to create collection:", err);
       alert("Failed to create collection");
     }
-  }, [currentWorkspace, newCollectionName, newCollectionIcon, triggerCollectionsRefresh]);
+  }, [
+    currentWorkspace,
+    newCollectionName,
+    newCollectionIcon,
+    triggerCollectionsRefresh,
+  ]);
 
   const handleEditCollection = useCallback((collection: Collection) => {
     setEditingCollection(collection);
@@ -435,7 +451,12 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
       console.error("Failed to update collection:", err);
       alert("Failed to update collection");
     }
-  }, [editingCollection, newCollectionName, newCollectionIcon, triggerCollectionsRefresh]);
+  }, [
+    editingCollection,
+    newCollectionName,
+    newCollectionIcon,
+    triggerCollectionsRefresh,
+  ]);
 
   const handleDeleteCollection = useCallback(
     async (collectionId: string) => {
@@ -457,7 +478,12 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
         alert("Failed to delete collection");
       }
     },
-    [activeCollectionId, privateCollection, setActiveCollectionId, triggerCollectionsRefresh],
+    [
+      activeCollectionId,
+      privateCollection,
+      setActiveCollectionId,
+      triggerCollectionsRefresh,
+    ],
   );
 
   const openCopyMoveDialog = useCallback(
@@ -534,6 +560,7 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
       // Reload workspaces and switch to new one
       await loadWorkspaces();
       setCurrentWorkspace(workspace);
+      setCurrentWorkspaceSlug(workspace.slug);
       setWorkspaceMenuOpen(false);
     } catch (err) {
       if (err instanceof Error && err.message.includes("already taken")) {
@@ -546,7 +573,13 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
     } finally {
       setIsCreatingWorkspace(false);
     }
-  }, [newWorkspaceName, newWorkspaceSlug, newWorkspaceType, loadWorkspaces]);
+  }, [
+    newWorkspaceName,
+    newWorkspaceSlug,
+    newWorkspaceType,
+    loadWorkspaces,
+    setCurrentWorkspaceSlug,
+  ]);
 
   const handleLoginClick = () => {
     if (oidcConfigured && !localAuthEnabled) {
@@ -569,8 +602,8 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
   }, [navigateToDashboard]);
 
   const handleCollectionClick = useCallback(
-    (collectionId: string) => {
-      navigateToCollection(collectionId);
+    (collectionId: string, isPrivate?: boolean) => {
+      navigateToCollection({ collectionId, isPrivate });
     },
     [navigateToCollection],
   );
@@ -653,6 +686,7 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
                     }`}
                     onClick={() => {
                       setCurrentWorkspace(ws);
+                      setCurrentWorkspaceSlug(ws.slug);
                       setWorkspaceMenuOpen(false);
                     }}
                   >

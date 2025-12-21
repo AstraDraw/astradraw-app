@@ -1099,7 +1099,7 @@
     "collectionTitle": "Collection: {{name}}",
     "collectionTeamsDescription": "Select which teams have access to this collection",
     "everyone": "Everyone",
-    "allMembers": "All members",
+    "allMembers": "Only Admins",
     "noWorkspaceSelected": "No workspace selected",
     "noCollectionsYet": "No collections yet",
     "noTeamsYet": "No teams yet",
@@ -1108,6 +1108,9 @@
     "edit": "Edit",
     "save": "Save",
     "cancel": "Cancel",
-    "close": "Close"
+    "close": "Close",
+    "accessNone": "No access",
+    "accessView": "View",
+    "accessEdit": "Edit"
   }
 }

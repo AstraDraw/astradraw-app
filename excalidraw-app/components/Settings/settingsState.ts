@@ -1,4 +1,15 @@
 import { atom } from "../../app-jotai";
+import {
+  buildDashboardUrl,
+  buildCollectionUrl,
+  buildPrivateUrl,
+  buildSceneUrl,
+  buildSettingsUrl,
+  buildMembersUrl,
+  buildTeamsUrl,
+  buildProfileUrl,
+  navigateTo,
+} from "../../router";
 
 /**
  * App mode - determines what the main content area shows
@@ -48,6 +59,26 @@ export const activeCollectionIdAtom = atom<string | null>(null);
 export const dashboardViewAtom = atom<DashboardView>("home");
 
 /**
+ * Current workspace slug - tracks the active workspace for URL routing
+ */
+export const currentWorkspaceSlugAtom = atom<string | null>(null);
+
+/**
+ * Current scene ID - tracks the active scene being edited
+ */
+export const currentSceneIdAtom = atom<string | null>(null);
+
+/**
+ * Current scene title - for display purposes
+ */
+export const currentSceneTitleAtom = atom<string>("Untitled");
+
+/**
+ * Flag to indicate if a collection is private (for URL routing)
+ */
+export const isPrivateCollectionAtom = atom<boolean>(false);
+
+/**
  * Derived atom to get the current sidebar mode based on app mode
  */
 export const sidebarModeAtom = atom<SidebarMode>((get) => {
@@ -57,61 +88,135 @@ export const sidebarModeAtom = atom<SidebarMode>((get) => {
 
 /**
  * Atom for navigating to dashboard home
+ * Updates URL to /workspace/{slug}/dashboard
  */
 export const navigateToDashboardAtom = atom(null, (get, set) => {
+  const workspaceSlug = get(currentWorkspaceSlugAtom);
   set(appModeAtom, "dashboard");
   set(dashboardViewAtom, "home");
+
+  // Update URL if we have a workspace
+  if (workspaceSlug) {
+    navigateTo(buildDashboardUrl(workspaceSlug));
+  }
 });
 
 /**
  * Atom for navigating to a specific collection view
+ * Updates URL to /workspace/{slug}/collection/{id} or /workspace/{slug}/private
  */
 export const navigateToCollectionAtom = atom(
   null,
-  (get, set, collectionId: string) => {
+  (
+    get,
+    set,
+    params: { collectionId: string; isPrivate?: boolean } | string,
+  ) => {
+    // Support both old string API and new object API
+    const collectionId =
+      typeof params === "string" ? params : params.collectionId;
+    const isPrivate = typeof params === "string" ? false : params.isPrivate;
+
+    const workspaceSlug = get(currentWorkspaceSlugAtom);
     set(activeCollectionIdAtom, collectionId);
+    set(isPrivateCollectionAtom, isPrivate || false);
     set(appModeAtom, "dashboard");
     set(dashboardViewAtom, "collection");
+
+    // Update URL if we have a workspace
+    if (workspaceSlug) {
+      if (isPrivate) {
+        navigateTo(buildPrivateUrl(workspaceSlug));
+      } else {
+        navigateTo(buildCollectionUrl(workspaceSlug, collectionId));
+      }
+    }
   },
 );
 
 /**
  * Atom for navigating back to canvas mode
+ * Note: This only changes app mode, URL is set by scene loading
  */
 export const navigateToCanvasAtom = atom(null, (get, set) => {
   set(appModeAtom, "canvas");
 });
 
 /**
+ * Atom for navigating to a specific scene
+ * Updates URL to /workspace/{slug}/scene/{id}
+ */
+export const navigateToSceneAtom = atom(
+  null,
+  (
+    get,
+    set,
+    params: { sceneId: string; title?: string; workspaceSlug?: string },
+  ) => {
+    const slug = params.workspaceSlug || get(currentWorkspaceSlugAtom);
+    set(currentSceneIdAtom, params.sceneId);
+    if (params.title) {
+      set(currentSceneTitleAtom, params.title);
+    }
+    set(appModeAtom, "canvas");
+
+    // Update URL if we have a workspace
+    if (slug) {
+      navigateTo(buildSceneUrl(slug, params.sceneId));
+    }
+  },
+);
+
+/**
  * Atom for navigating to profile settings
+ * Updates URL to /profile
  */
 export const navigateToProfileAtom = atom(null, (get, set) => {
   set(appModeAtom, "dashboard");
   set(dashboardViewAtom, "profile");
+  navigateTo(buildProfileUrl());
 });
 
 /**
  * Atom for navigating to workspace settings
+ * Updates URL to /workspace/{slug}/settings
  */
 export const navigateToWorkspaceSettingsAtom = atom(null, (get, set) => {
+  const workspaceSlug = get(currentWorkspaceSlugAtom);
   set(appModeAtom, "dashboard");
   set(dashboardViewAtom, "workspace");
+
+  if (workspaceSlug) {
+    navigateTo(buildSettingsUrl(workspaceSlug));
+  }
 });
 
 /**
  * Atom for navigating to members page
+ * Updates URL to /workspace/{slug}/members
  */
 export const navigateToMembersAtom = atom(null, (get, set) => {
+  const workspaceSlug = get(currentWorkspaceSlugAtom);
   set(appModeAtom, "dashboard");
   set(dashboardViewAtom, "members");
+
+  if (workspaceSlug) {
+    navigateTo(buildMembersUrl(workspaceSlug));
+  }
 });
 
 /**
  * Atom for navigating to teams & collections page
+ * Updates URL to /workspace/{slug}/teams
  */
 export const navigateToTeamsCollectionsAtom = atom(null, (get, set) => {
+  const workspaceSlug = get(currentWorkspaceSlugAtom);
   set(appModeAtom, "dashboard");
   set(dashboardViewAtom, "teams-collections");
+
+  if (workspaceSlug) {
+    navigateTo(buildTeamsUrl(workspaceSlug));
+  }
 });
 
 /**

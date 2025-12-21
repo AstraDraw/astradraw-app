@@ -291,14 +291,70 @@
     font-size: 12px;
     font-weight: 500;
 
-    &--everyone {
-      background: rgba(105, 101, 219, 0.15);
-      color: var(--color-primary, #6965db);
+    &--admins-only {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--color-warning, #d97706);
     }
 
     &--private {
       background: rgba(107, 107, 107, 0.15);
       color: var(--text-secondary-color, #6b6b6b);
+    }
+  }
+
+  // Access level badge inside team chips
+  &__chip-access-badge {
+    margin-left: 6px;
+    padding: 2px 6px;
+    border-radius: 8px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    background: rgba(255, 255, 255, 0.25);
+    color: white;
+
+    &--view {
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    &--edit {
+      background: rgba(255, 255, 255, 0.3);
+    }
+  }
+
+  // Access level select dropdown
+  &__access-select {
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: var(--ui-font);
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.15s ease;
+
+    &--none {
+      color: var(--text-secondary-color, #6b7280);
+      background: rgba(107, 114, 128, 0.1);
+    }
+
+    &--view {
+      color: var(--color-warning, #d97706);
+      background: rgba(217, 119, 6, 0.1);
+    }
+
+    &--edit {
+      color: var(--color-primary, #6965db);
+      background: rgba(105, 101, 219, 0.1);
+    }
+
+    &:hover {
+      opacity: 0.85;
+    }
+
+    &:focus {
+      box-shadow: 0 0 0 2px rgba(105, 101, 219, 0.3);
     }
   }
 
@@ -841,9 +897,9 @@
     }
 
     &__access-badge {
-      &--everyone {
-        background: rgba(165, 161, 255, 0.2);
-        color: #a5a1ff;
+      &--admins-only {
+        background: rgba(245, 158, 11, 0.2);
+        color: #fbbf24;
       }
 
       &--private {

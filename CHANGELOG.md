@@ -9,6 +9,167 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.49] - 2025-12-21
+
+### Added
+
+- **URL-Based Navigation System** (Major Feature)
+  
+  - All application views now have unique, shareable URLs
+  - Browser back/forward buttons work correctly throughout the app
+  - Page refresh preserves current view and scene data
+  - Direct scene links: `/workspace/{slug}/scene/{id}`
+  
+  **URL Patterns:**
+  - Dashboard: `/workspace/{slug}/dashboard`
+  - Private collection: `/workspace/{slug}/private`
+  - Named collection: `/workspace/{slug}/collection/{id}`
+  - Scene (canvas): `/workspace/{slug}/scene/{id}`
+  - Profile: `/profile`
+  - Workspace settings: `/workspace/{slug}/settings`
+  - Team members: `/workspace/{slug}/members`
+  - Teams & collections: `/workspace/{slug}/teams`
+  - Invite links: `/invite/{code}`
+  - Anonymous mode: `/` (root)
+
+- **New Router Module** (`excalidraw-app/router.ts`)
+  - `parseUrl()` - Extract route information from current URL
+  - `buildSceneUrl()`, `buildDashboardUrl()`, `buildCollectionUrl()`, etc.
+  - `navigateTo()` and `replaceUrl()` for programmatic navigation
+  - Helper functions: `isWorkspaceRoute()`, `isDashboardRoute()`, `isCanvasRoute()`
+
+- **New Jotai Atoms for URL State**
+  - `currentWorkspaceSlugAtom` - Current workspace from URL
+  - `currentSceneIdAtom` - Current scene ID from URL
+  - `currentSceneTitleAtom` - Current scene title
+  - `isPrivateCollectionAtom` - Whether viewing private collection
+  - `navigateToSceneAtom` - Navigate to a specific scene with URL update
+
+### Changed
+
+- **Navigation Atoms Now Push URLs**
+  - `navigateToDashboardAtom` → pushes `/workspace/{slug}/dashboard`
+  - `navigateToCollectionAtom` → pushes `/workspace/{slug}/collection/{id}` or `/private`
+  - `navigateToCanvasAtom` → pushes scene URL when scene is loaded
+  - `navigateToProfileAtom` → pushes `/profile`
+  - `navigateToWorkspaceSettingsAtom` → pushes `/workspace/{slug}/settings`
+  - `navigateToMembersAtom` → pushes `/workspace/{slug}/members`
+  - `navigateToTeamsCollectionsAtom` → pushes `/workspace/{slug}/teams`
+
+- **App.tsx URL Synchronization**
+  - Initial URL parsing on mount to restore state
+  - `popstate` event listener for browser back/forward
+  - URL updates when creating or opening scenes
+
+### Fixed
+
+- **Scene Data Loss on Navigation** (Critical Bug Fix)
+  - Added localStorage sync guard: `if (currentSceneIdRef.current) return;`
+  - Prevents `syncData` from overwriting workspace scene data with localStorage
+  - Scene data now persists correctly when navigating between dashboard and canvas
+
+- **Browser Back/Forward Not Working**
+  - All navigation now properly updates browser history
+  - `popstate` event handler restores correct view state
+
+### Technical
+
+- New `router.ts` module with comprehensive URL routing utilities
+- Updated `settingsState.ts` with URL-aware navigation atoms
+- Updated `Settings/index.ts` to export new atoms
+- `WorkspaceSidebar.tsx` syncs workspace slug to Jotai atom
+- `FullModeNav.tsx` passes `isPrivate` flag for collection navigation
+
+## [0.18.0-beta0.48] - 2025-12-21
+
+### Added
+
+- **Invite Link Acceptance Page**
+  - New `InviteAcceptPage` component with login flow for `/invite/:code` URLs
+  - Automatic workspace join after successful authentication
+  - Nginx config for SPA client-side routing
+  - Translations for invite UI (en, ru-RU)
+
+- **Cross-Component State Sync**
+  - `collectionsRefreshAtom` / `triggerCollectionsRefreshAtom` for collection changes
+  - `scenesRefreshAtom` / `triggerScenesRefreshAtom` for scene changes
+  - Components now auto-refresh when data is modified elsewhere
+
+### Fixed
+
+- Checkbox click handlers in TeamsCollectionsPage (event propagation)
+- CSS specificity for member-row display
+
+## [0.18.0-beta0.47] - 2025-12-21
+
+### Added
+
+- **Teams & Collections UI Redesign**
+  - Two-section layout (Teams + Collections on same page)
+  - Enhanced team dialog with two-column layout
+  - Full-width member/collection rows with right-aligned checkboxes
+  - Team access chips in Collections table Access column
+  - 'All members' badge for collections without team restrictions
+  - Clickable team rows to open edit dialog
+  - Empty states with 'Create collection/team' buttons
+  - Role badges for admin members
+  - Tooltip for disabled admin checkboxes
+
+### Fixed
+
+- Admin member count now includes auto-included admins
+
+## [0.18.0-beta0.46] - 2025-12-21
+
+### Added
+
+- **Create Workspace UI** (Super Admin Only)
+  - Create Workspace button in workspace dropdown
+  - Workspace creation dialog with name, slug, and type fields
+  - Auto-generate slug from workspace name
+
+- **Profile Page Redesign**
+  - Two-column layout (Excalidraw+ style)
+  - Role indicator showing Super Admin or User badge
+  - Updated User interface with `isSuperAdmin` field
+
+### Fixed
+
+- ESLint warning in App.tsx (useAtom → useSetAtom)
+
+## [0.18.0-beta0.45] - 2025-12-21
+
+### Fixed
+
+- **Infinite API Polling Loop** (Critical Performance Bug)
+  - Removed `activeCollectionId` from `loadCollections` dependencies
+  - Added `hasSetDefaultCollectionRef` to prevent duplicate default setting
+  - Added `lastNotifiedWorkspaceRef` to call `onWorkspaceChange` only once per workspace
+  - Separated default collection setting into its own effect with ref guard
+  - This fixed the bug where the app made hundreds of API requests per second
+
+## [0.18.0-beta0.44] - 2025-12-21
+
+### Added
+
+- **Frontend Collaboration Permissions** (Phase 3-6)
+  - URL routing for workspace scenes: `/workspace/{slug}/scene/{id}#key={roomKey}`
+  - Workspace scene loader with permission checks
+  - Auto-join collaboration when scene has roomId
+  - `CopyMoveDialog` for copying/moving collections between workspaces
+  - Workspace-aware `ShareDialog` with collaboration controls
+  - Collaboration status indicators in `FullModeNav`
+
+### Changed
+
+- Separated legacy anonymous mode from workspace collaboration
+- Updated `WorkspaceSidebar` with copy/move collection options
+
+### Technical
+
+- New `excalidraw-app/data/workspaceSceneLoader.ts`
+- New `excalidraw-app/components/Workspace/CopyMoveDialog.tsx`
+
 ## [0.18.0-beta0.43] - 2025-12-21
 
 ### Fixed
