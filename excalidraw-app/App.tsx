@@ -553,6 +553,19 @@ const ExcalidrawWrapper = () => {
     }
   }, [isLegacyMode]);
 
+  // Block Excalidraw keyboard shortcuts when in dashboard mode
+  // This prevents canvas shortcuts from firing when user is typing in dashboard
+  useEffect(() => {
+    if (appMode === "dashboard") {
+      document.body.classList.add("excalidraw-disabled");
+    } else {
+      document.body.classList.remove("excalidraw-disabled");
+    }
+    return () => {
+      document.body.classList.remove("excalidraw-disabled");
+    };
+  }, [appMode]);
+
   // initial state
   // ---------------------------------------------------------------------------
 
@@ -1634,43 +1647,8 @@ const ExcalidrawWrapper = () => {
   // Determine if current user is admin of the workspace
   const isWorkspaceAdmin = currentWorkspace?.role === "ADMIN";
 
-  // If in dashboard mode, render the dashboard/collection/settings view
-  if (appMode === "dashboard" && !isLegacyMode) {
-    return (
-      <div
-        style={{ height: "100%" }}
-        className={clsx("excalidraw-app", {
-          "workspace-sidebar-open": workspaceSidebarOpen,
-        })}
-      >
-        {/* Workspace Sidebar (Left) - pushes content when open */}
-        <WorkspaceSidebar
-          isOpen={workspaceSidebarOpen}
-          onClose={() => setWorkspaceSidebarOpen(false)}
-          onNewScene={handleNewScene}
-          currentSceneId={currentSceneId}
-          onWorkspaceChange={(workspace, privateColId) => {
-            setCurrentWorkspace(workspace);
-            setCurrentWorkspaceSlug(workspace.slug);
-            setPrivateCollectionId(privateColId);
-            // Note: Don't reload collections here - WorkspaceSidebar already loads them
-            // and calling listCollections here causes an infinite loop
-          }}
-        />
-
-        {/* Main content area - Dashboard, Collection, or Settings view */}
-        <div className="excalidraw-app__main">
-          <WorkspaceMainContent
-            workspace={currentWorkspace}
-            collections={collections}
-            isAdmin={isWorkspaceAdmin}
-            onNewScene={handleNewScene}
-          />
-        </div>
-      </div>
-    );
-  }
-
+  // CSS Hide/Show pattern: Both dashboard and canvas are always mounted
+  // This prevents Excalidraw from unmounting/remounting and losing state
   return (
     <div
       style={{ height: "100%" }}
@@ -1679,7 +1657,7 @@ const ExcalidrawWrapper = () => {
         "workspace-sidebar-open": workspaceSidebarOpen,
       })}
     >
-      {/* Workspace Sidebar (Left) - pushes content when open */}
+      {/* Workspace Sidebar (Left) - shared between both modes */}
       {!isLegacyMode && (
         <WorkspaceSidebar
           isOpen={workspaceSidebarOpen}
@@ -1696,8 +1674,32 @@ const ExcalidrawWrapper = () => {
         />
       )}
 
-      {/* Main content area - shrinks when sidebar is open */}
-      <div className="excalidraw-app__main">
+      {/* Dashboard Content - hidden when in canvas mode */}
+      {!isLegacyMode && (
+        <div
+          className="excalidraw-app__main excalidraw-app__dashboard"
+          style={{ display: appMode === "dashboard" ? "block" : "none" }}
+          aria-hidden={appMode !== "dashboard"}
+        >
+          <WorkspaceMainContent
+            workspace={currentWorkspace}
+            collections={collections}
+            isAdmin={isWorkspaceAdmin}
+            onNewScene={handleNewScene}
+          />
+        </div>
+      )}
+
+      {/* Canvas Content - hidden when in dashboard mode */}
+      {/* Using CSS display:none + inert to keep Excalidraw mounted but inactive */}
+      <div
+        className="excalidraw-app__main excalidraw-app__canvas"
+        style={{
+          display: appMode === "canvas" || isLegacyMode ? "block" : "none",
+        }}
+        aria-hidden={appMode !== "canvas" && !isLegacyMode}
+        inert={appMode !== "canvas" && !isLegacyMode ? true : undefined}
+      >
         <Excalidraw
           excalidrawAPI={excalidrawRefCallback}
           onChange={onChange}
@@ -1740,8 +1742,8 @@ const ExcalidrawWrapper = () => {
           langCode={langCode}
           renderCustomStats={renderCustomStats}
           detectScroll={false}
-          handleKeyboardGlobally={true}
-          autoFocus={true}
+          handleKeyboardGlobally={appMode === "canvas"}
+          autoFocus={appMode === "canvas"}
           theme={editorTheme}
           renderTopRightUI={(isMobile) => {
             if (isMobile || !collabAPI || isCollabDisabled) {

@@ -174,10 +174,27 @@ body.excalidraw-presentation-mode {
     transition: margin-left 0.2s ease-out;
   }
 
+  // Canvas container - needs position relative for potential overlays
+  &__canvas {
+    position: relative;
+  }
+
+  // Block pointer events when canvas is hidden (CSS fallback for older browsers)
+  &__canvas[aria-hidden="true"] {
+    pointer-events: none;
+  }
+
   // When sidebar is open, main content area shrinks
   &.workspace-sidebar-open {
     .excalidraw-app__main {
       // The sidebar is 300px wide, content area fills the rest
     }
   }
+}
+
+// Keyboard blocking class (applied to body when in dashboard mode)
+// This provides an additional safety layer for keyboard event handling
+body.excalidraw-disabled {
+  // The inert attribute handles most cases, but this class can be used
+  // for additional CSS-based blocking if needed
 }

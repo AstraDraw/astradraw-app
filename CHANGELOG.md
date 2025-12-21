@@ -9,6 +9,45 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.53] - 2025-12-22
+
+### Fixed
+
+- **CRITICAL: CSS Hide/Show Pattern for Scene Data Preservation**
+
+  This is a **CHECKPOINT RELEASE** - a stable point to revert to if issues arise.
+
+  **Problem Solved:**
+  - Scene data was lost when navigating between dashboard and canvas
+  - The "Meet Excalidraw" welcome screen appeared instead of saved drawings
+  - Auto-save could overwrite scenes with empty data, causing permanent data loss
+
+  **Root Cause:**
+  - Conditional rendering (`if (appMode === "dashboard") return <Dashboard />`)
+  - Excalidraw unmounted when switching to dashboard, losing all internal state
+  - When remounting, Excalidraw showed welcome screen instead of loaded data
+
+  **Solution:**
+  - Both Dashboard and Canvas are now **always mounted**
+  - CSS `display: none` toggles visibility instead of conditional rendering
+  - Excalidraw never unmounts, preserving all state
+  - Scene data loaded via `excalidrawAPI.updateScene()`
+
+  **Key Changes:**
+  - Removed early return for dashboard mode in App.tsx
+  - Added CSS Hide/Show structure with `inert` attribute for accessibility
+  - Made `handleKeyboardGlobally` and `autoFocus` conditional on `appMode`
+  - Added `body.excalidraw-disabled` class for keyboard blocking
+  - Added canvas container styles in index.scss
+
+  **See:** `/docs/CRITICAL_CSS_HIDE_SHOW_FIX.md` for full documentation
+
+### Removed
+
+- Debug navigation tooling (was added for investigation, now removed)
+- `debug/navigationLogger.ts` - No longer needed
+- Debug instrumentation in App.tsx
+
 ## [0.18.0-beta0.49] - 2025-12-21
 
 ### Added
@@ -73,6 +112,7 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
   - Scene data now persists correctly when navigating between dashboard and canvas
 
 - **Browser Back/Forward Not Working**
+
   - All navigation now properly updates browser history
   - `popstate` event handler restores correct view state
 
