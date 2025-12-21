@@ -118,6 +118,7 @@ export interface CreateSceneDto {
   title?: string;
   thumbnail?: string;
   data?: string; // Base64 encoded scene data
+  collectionId?: string; // Collection to add the scene to
 }
 
 export interface UpdateSceneDto {

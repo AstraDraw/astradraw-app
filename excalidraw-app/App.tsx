@@ -152,9 +152,11 @@ import {
   createScene,
   updateSceneData,
   getSceneData,
+  listWorkspaces,
+  listCollections,
 } from "./auth/workspaceApi";
 
-import type { WorkspaceScene } from "./auth/workspaceApi";
+import type { WorkspaceScene, Workspace, Collection } from "./auth/workspaceApi";
 
 import type { CollabAPI } from "./collab/Collab";
 
@@ -406,6 +408,10 @@ const ExcalidrawWrapper = () => {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSavedDataRef = useRef<string | null>(null);
+  
+  // Track current workspace and its private collection for default scene creation
+  const [currentWorkspace, setCurrentWorkspace] = useState<Workspace | null>(null);
+  const [privateCollectionId, setPrivateCollectionId] = useState<string | null>(null);
 
   // Auto-open sidebar when user logs in
   useEffect(() => {
@@ -414,6 +420,37 @@ const ExcalidrawWrapper = () => {
       setWorkspaceSidebarOpen(true);
     }
     wasAuthenticated.current = isAuthenticated;
+  }, [isAuthenticated]);
+
+  // Load current workspace and find private collection when authenticated
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setCurrentWorkspace(null);
+      setPrivateCollectionId(null);
+      return;
+    }
+
+    const loadWorkspaceData = async () => {
+      try {
+        // Get user's workspaces
+        const workspaces = await listWorkspaces();
+        if (workspaces.length > 0) {
+          const workspace = workspaces[0]; // Use first workspace as default
+          setCurrentWorkspace(workspace);
+
+          // Find the private collection in this workspace
+          const collections = await listCollections(workspace.id);
+          const privateCollection = collections.find((c) => c.isPrivate);
+          if (privateCollection) {
+            setPrivateCollectionId(privateCollection.id);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to load workspace data:", error);
+      }
+    };
+
+    loadWorkspaceData();
   }, [isAuthenticated]);
 
   // Save sidebar preference to localStorage
@@ -870,7 +907,7 @@ const ExcalidrawWrapper = () => {
   );
 
   // Workspace handlers
-  const handleNewScene = useCallback(async () => {
+  const handleNewScene = useCallback(async (collectionId?: string) => {
     if (!excalidrawAPI) {
       return;
     }
@@ -881,8 +918,11 @@ const ExcalidrawWrapper = () => {
         "workspace.untitled",
       )} ${new Date().toLocaleTimeString()}`;
 
-      // Create scene in backend immediately
-      const scene = await createScene({ title });
+      // Use provided collectionId, or fall back to user's private collection
+      const targetCollectionId = collectionId || privateCollectionId || undefined;
+
+      // Create scene in backend immediately (with collection if provided)
+      const scene = await createScene({ title, collectionId: targetCollectionId });
 
       // Clear the canvas
       excalidrawAPI.resetScene();
@@ -919,7 +959,7 @@ const ExcalidrawWrapper = () => {
       setCurrentSceneTitle("Untitled");
       setWorkspaceSidebarOpen(false);
     }
-  }, [excalidrawAPI]);
+  }, [excalidrawAPI, privateCollectionId]);
 
   const handleOpenScene = useCallback(
     async (scene: WorkspaceScene) => {
@@ -998,9 +1038,12 @@ const ExcalidrawWrapper = () => {
         const title =
           currentSceneTitle ||
           `${t("workspace.untitled")} ${new Date().toLocaleString()}`;
+        
+        // Save to private collection by default
         const scene = await createScene({
           title,
           thumbnail: thumbnail || undefined,
+          collectionId: privateCollectionId || undefined,
         });
 
         // Save the data
@@ -1014,7 +1057,7 @@ const ExcalidrawWrapper = () => {
       console.error("Failed to save scene:", error);
       setErrorMessage("Failed to save scene to workspace");
     }
-  }, [excalidrawAPI, currentSceneId, currentSceneTitle]);
+  }, [excalidrawAPI, currentSceneId, currentSceneTitle, privateCollectionId]);
 
   // Auto-save effect - triggers 3 seconds after changes stop
   useEffect(() => {
@@ -1157,6 +1200,10 @@ const ExcalidrawWrapper = () => {
         onNewScene={handleNewScene}
         onOpenScene={handleOpenScene}
         currentSceneId={currentSceneId}
+        onWorkspaceChange={(workspace, privateColId) => {
+          setCurrentWorkspace(workspace);
+          setPrivateCollectionId(privateColId);
+        }}
       />
 
       {/* Main content area - shrinks when sidebar is open */}

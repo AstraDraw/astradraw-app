@@ -9,6 +9,29 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.39] - 2025-12-21
+
+### Added
+
+- **Default Private Collection Behavior**
+  - New scenes are automatically saved to user's Private collection when no collection is selected
+  - Workspace change tracking to ensure scenes go to correct workspace's private collection
+  - `onWorkspaceChange` callback from WorkspaceSidebar to App for workspace state sync
+
+### Changed
+
+- **Workspace Sidebar Layout** (matches reference design)
+  - Compact workspace header with circular avatar and dropdown
+  - Horizontal dividers separating sections
+  - Small navigation items (Dashboard, Workspace settings, Team members) instead of large tiles
+  - Collections section with "Collections" label and small "+" button
+  - User footer fixed at bottom with avatar, name, and notification bell
+
+### Fixed
+
+- Scene creation now properly passes `collectionId` to backend
+- Private collection selection uses actual collection ID instead of literal string "private"
+
 ## [0.18.0-beta0.38] - 2025-12-21
 
 ### Added
