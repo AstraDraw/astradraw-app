@@ -405,6 +405,7 @@ const ExcalidrawWrapper = () => {
 
   // App mode state (canvas, settings, or dashboard)
   const appMode = useAtomValue(appModeAtom);
+  const setAppMode = useSetAtom(appModeAtom);
   const navigateToCanvas = useSetAtom(navigateToCanvasAtom);
   const navigateToDashboard = useSetAtom(navigateToDashboardAtom);
   const setActiveCollectionId = useSetAtom(activeCollectionIdAtom);
@@ -607,20 +608,21 @@ const ExcalidrawWrapper = () => {
   >(null);
 
   useEffect(() => {
-    // Define the route handler
+    // Define the route handler - this is called from popstate, so we should NOT
+    // call navigation atoms that push URLs (that would cause infinite loop).
+    // Instead, we directly set the state atoms.
     const handleUrlRoute = (route: RouteType) => {
       // Skip if in legacy mode (anonymous or legacy collab)
       if (route.type === "anonymous" || route.type === "legacy-collab") {
         return;
       }
 
-      // Handle workspace routes
+      // Handle workspace routes - set state directly without pushing URLs
       switch (route.type) {
         case "dashboard":
           setCurrentWorkspaceSlugAtom(route.workspaceSlug);
           setDashboardView("home");
-          navigateToCanvas(); // First set canvas mode
-          navigateToDashboard(); // Then switch to dashboard (this also pushes URL)
+          setAppMode("dashboard");
           break;
 
         case "collection":
@@ -628,44 +630,44 @@ const ExcalidrawWrapper = () => {
           setActiveCollectionId(route.collectionId);
           setIsPrivateCollection(false);
           setDashboardView("collection");
-          navigateToDashboard();
+          setAppMode("dashboard");
           break;
 
         case "private":
           setCurrentWorkspaceSlugAtom(route.workspaceSlug);
           setIsPrivateCollection(true);
           setDashboardView("collection");
-          navigateToDashboard();
+          setAppMode("dashboard");
           break;
 
         case "settings":
           setCurrentWorkspaceSlugAtom(route.workspaceSlug);
           setDashboardView("workspace");
-          navigateToDashboard();
+          setAppMode("dashboard");
           break;
 
         case "members":
           setCurrentWorkspaceSlugAtom(route.workspaceSlug);
           setDashboardView("members");
-          navigateToDashboard();
+          setAppMode("dashboard");
           break;
 
         case "teams":
           setCurrentWorkspaceSlugAtom(route.workspaceSlug);
           setDashboardView("teams-collections");
-          navigateToDashboard();
+          setAppMode("dashboard");
           break;
 
         case "profile":
           setDashboardView("profile");
-          navigateToDashboard();
+          setAppMode("dashboard");
           break;
 
         case "scene":
-          // Scene loading is handled by handleWorkspaceUrl in the main initialization effect
-          // This just ensures the app mode is correct for popstate navigation
+          // Scene loading is handled separately by loadSceneFromUrlRef
+          // This just ensures the app mode is correct
           setCurrentWorkspaceSlugAtom(route.workspaceSlug);
-          navigateToCanvas();
+          setAppMode("canvas");
           break;
 
         case "home":
@@ -688,6 +690,10 @@ const ExcalidrawWrapper = () => {
       if (route.type === "scene") {
         // Check if this is a different scene than currently loaded
         if (currentSceneIdRef.current !== route.sceneId) {
+          // First, switch to canvas mode so the UI updates immediately
+          setAppMode("canvas");
+          setCurrentWorkspaceSlugAtom(route.workspaceSlug);
+
           // Load the scene using the ref function (populated by initialization effect)
           if (loadSceneFromUrlRef.current) {
             await loadSceneFromUrlRef.current(
@@ -696,9 +702,7 @@ const ExcalidrawWrapper = () => {
             );
           } else {
             // Fallback: just set state if loader not ready yet
-            setCurrentWorkspaceSlugAtom(route.workspaceSlug);
             setCurrentWorkspaceSlug(route.workspaceSlug);
-            navigateToCanvas();
           }
         }
       } else {
@@ -708,27 +712,27 @@ const ExcalidrawWrapper = () => {
 
     window.addEventListener("popstate", handlePopState);
 
-    // Parse initial URL on mount (but don't navigate - let existing logic handle it)
-    // This is just to sync the workspace slug from URL if present
+    // Parse initial URL on mount and set the correct app state
     const initialRoute = parseUrl();
     if (
-      initialRoute.type === "dashboard" ||
-      initialRoute.type === "collection" ||
-      initialRoute.type === "private" ||
-      initialRoute.type === "settings" ||
-      initialRoute.type === "members" ||
-      initialRoute.type === "teams" ||
-      initialRoute.type === "scene"
+      initialRoute.type !== "anonymous" &&
+      initialRoute.type !== "legacy-collab" &&
+      initialRoute.type !== "home"
     ) {
-      setCurrentWorkspaceSlugAtom(initialRoute.workspaceSlug);
+      // For dashboard routes, set state immediately (scene loading is handled separately)
+      if (initialRoute.type !== "scene") {
+        handleUrlRoute(initialRoute);
+      } else {
+        // For scene routes, just set the workspace slug - scene loading happens in the other useEffect
+        setCurrentWorkspaceSlugAtom(initialRoute.workspaceSlug);
+      }
     }
 
     return () => {
       window.removeEventListener("popstate", handlePopState);
     };
   }, [
-    navigateToCanvas,
-    navigateToDashboard,
+    setAppMode,
     setActiveCollectionId,
     setCurrentWorkspaceSlugAtom,
     setDashboardView,

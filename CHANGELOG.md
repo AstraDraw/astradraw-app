@@ -76,17 +76,21 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
   - All navigation now properly updates browser history
   - `popstate` event handler restores correct view state
 
-- **"Failed to open scene" When Clicking Scene from Dashboard** (Critical Bug Fix)
+- **"Failed to open scene" When Clicking Scene from Dashboard** (Critical Bug Fix - WIP)
 
-  - **Problem:** After creating a scene and returning to dashboard, clicking on it showed "Failed to open scene" error and URL stayed at `/workspace/{slug}/dashboard`
-  - **Root cause:** Scene loading was fragmented - `handlePopState` didn't actually load scene data, and child components used incorrect parent callbacks
+  - **Problem:** After creating a scene and returning to dashboard, clicking on it showed "Failed to open scene" error or reset the canvas
+  - **Root causes identified:**
+    1. Infinite loop: `handleUrlRoute` called navigation atoms that pushed URLs → triggered popstate → loop
+    2. Scene not loading: `handlePopState` didn't set `appMode` or call scene loading
+    3. Initial URL ignored: Page load with dashboard URL showed canvas instead of dashboard
   - **Solution:**
-    - Centralized scene loading in `App.tsx` via new `loadSceneFromUrl()` function
-    - Stored function in `loadSceneFromUrlRef` so `handlePopState` can access it
-    - Updated `handlePopState` to call `loadSceneFromUrlRef.current()` for scene URLs
-    - Removed `onOpenScene` prop from DashboardView, CollectionView, WorkspaceSidebar, WorkspaceMainContent
-    - Components now use `navigateToSceneAtom` directly - URL change triggers scene loading
-  - **Result:** URL is now the single source of truth; clicking scenes works correctly from dashboard, collections, and sidebar
+    - `handleUrlRoute` now sets state directly (`setAppMode`, `setDashboardView`) instead of calling navigation atoms
+    - `handlePopState` sets `appMode("canvas")` before loading scenes
+    - Initial URL parsing now calls `handleUrlRoute` for dashboard routes
+    - Centralized scene loading in `App.tsx` via `loadSceneFromUrl()` function
+    - Removed `onOpenScene` prop from child components - they use `navigateToSceneAtom` directly
+  - **Key principle:** URL navigation is one-way - popstate handlers set state directly, never push URLs
+  - **Status:** Basic navigation working; needs further testing across all scenarios (collections, teams, etc.)
 
 ### Technical
 
