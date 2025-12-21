@@ -89,6 +89,12 @@ export interface Collection {
   isOwner: boolean;
   createdAt: string;
   updatedAt: string;
+  // Team access info (populated separately)
+  teams?: Array<{
+    teamId: string;
+    teamName: string;
+    teamColor: string;
+  }>;
 }
 
 export interface InviteLink {
@@ -1443,6 +1449,109 @@ export async function moveScene(
       throw new Error("Access denied");
     }
     throw new Error("Failed to move scene");
+  }
+
+  return response.json();
+}
+
+// ============================================================================
+// Collection Team Access API
+// ============================================================================
+
+export type CollectionAccessLevel = "VIEW" | "EDIT";
+
+export interface CollectionTeamAccess {
+  teamId: string;
+  teamName: string;
+  teamColor: string;
+  accessLevel: CollectionAccessLevel;
+}
+
+/**
+ * List teams with access to a collection
+ */
+export async function listCollectionTeams(
+  workspaceId: string,
+  collectionId: string,
+): Promise<CollectionTeamAccess[]> {
+  const response = await fetch(
+    `${getApiBaseUrl()}/workspaces/${workspaceId}/collections/${collectionId}/teams`,
+    {
+      credentials: "include",
+    },
+  );
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("Not authenticated");
+    }
+    if (response.status === 403) {
+      throw new Error("Access denied");
+    }
+    throw new Error("Failed to list collection teams");
+  }
+
+  return response.json();
+}
+
+/**
+ * Set team access level for a collection
+ */
+export async function setCollectionTeamAccess(
+  workspaceId: string,
+  collectionId: string,
+  teamId: string,
+  accessLevel: CollectionAccessLevel = "EDIT",
+): Promise<{ success: boolean }> {
+  const response = await fetch(
+    `${getApiBaseUrl()}/workspaces/${workspaceId}/collections/${collectionId}/teams`,
+    {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ teamId, accessLevel }),
+    },
+  );
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("Not authenticated");
+    }
+    if (response.status === 403) {
+      throw new Error("Admin access required");
+    }
+    throw new Error("Failed to set team access");
+  }
+
+  return response.json();
+}
+
+/**
+ * Remove team access from a collection
+ */
+export async function removeCollectionTeamAccess(
+  workspaceId: string,
+  collectionId: string,
+  teamId: string,
+): Promise<{ success: boolean }> {
+  const response = await fetch(
+    `${getApiBaseUrl()}/workspaces/${workspaceId}/collections/${collectionId}/teams/${teamId}`,
+    {
+      method: "DELETE",
+      credentials: "include",
+    },
+  );
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("Not authenticated");
+    }
+    if (response.status === 403) {
+      throw new Error("Admin access required");
+    }
+    throw new Error("Failed to remove team access");
   }
 
   return response.json();
