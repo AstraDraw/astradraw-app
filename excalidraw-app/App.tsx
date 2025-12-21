@@ -144,6 +144,11 @@ import {
 } from "./components/Workspace";
 
 import {
+  SaveStatusIndicator,
+  type SaveStatus,
+} from "./components/SaveStatusIndicator";
+
+import {
   appModeAtom,
   navigateToCanvasAtom,
   navigateToDashboardAtom,
@@ -179,6 +184,11 @@ import type { CollabAPI } from "./collab/Collab";
 polyfill();
 
 window.EXCALIDRAW_THROTTLE_RENDER = true;
+
+// Autosave timing constants
+const AUTOSAVE_DEBOUNCE_MS = 2000; // 2 seconds after last change
+const AUTOSAVE_RETRY_DELAY_MS = 5000; // 5 seconds on error (single retry)
+const BACKUP_SAVE_INTERVAL_MS = 30000; // 30 seconds safety net
 
 declare global {
   interface BeforeInstallPromptEventChoiceResult {
@@ -438,11 +448,20 @@ const ExcalidrawWrapper = () => {
   // Used by syncData to skip localStorage sync for workspace scenes
   const currentSceneIdRef = useRef<string | null>(null);
   currentSceneIdRef.current = currentSceneId;
-  // isAutoSaving tracks auto-save state for potential UI feedback (saving indicator)
-  const [_isAutoSaving, setIsAutoSaving] = useState(false);
-  void _isAutoSaving; // Reserved for future UI indicator
+
+  // Save status state machine for autosave UI
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("saved");
+  const [lastSavedTime, setLastSavedTime] = useState<Date | null>(null);
+  // isOnline is set by event handlers and used to trigger save on reconnect
+  const [_isOnline, setIsOnline] = useState(navigator.onLine);
+  void _isOnline; // Used in offline detection effect
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const retryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const backupSaveIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
+    null,
+  );
+  const retryCountRef = useRef<number>(0);
   const lastSavedDataRef = useRef<string | null>(null);
 
   // Track current workspace and its collections for default scene creation
@@ -1195,6 +1214,16 @@ const ExcalidrawWrapper = () => {
     const unloadHandler = (event: BeforeUnloadEvent) => {
       LocalData.flushSave();
 
+      // Check for unsaved workspace scene changes
+      if (
+        currentSceneId &&
+        (saveStatus === "pending" || saveStatus === "saving")
+      ) {
+        if (import.meta.env.VITE_APP_DISABLE_PREVENT_UNLOAD !== "true") {
+          preventUnload(event);
+        }
+      }
+
       if (
         excalidrawAPI &&
         LocalData.fileStorage.shouldPreventUnload(
@@ -1214,7 +1243,7 @@ const ExcalidrawWrapper = () => {
     return () => {
       window.removeEventListener(EVENT.BEFORE_UNLOAD, unloadHandler);
     };
-  }, [excalidrawAPI]);
+  }, [excalidrawAPI, currentSceneId, saveStatus]);
 
   const onChange = (
     elements: readonly OrderedExcalidrawElement[],
@@ -1498,7 +1527,109 @@ const ExcalidrawWrapper = () => {
     }
   }, [excalidrawAPI, currentSceneId, currentSceneTitle, privateCollectionId]);
 
-  // Auto-save effect - triggers 3 seconds after changes stop
+  // Core save function - used by autosave, retry, and immediate save
+  const performSave = useCallback(async (): Promise<boolean> => {
+    if (!currentSceneId || !excalidrawAPI) {
+      return false;
+    }
+
+    // Check if offline
+    if (!navigator.onLine) {
+      setSaveStatus("offline");
+      return false;
+    }
+
+    try {
+      const elements = excalidrawAPI.getSceneElements();
+      const appState = excalidrawAPI.getAppState();
+      const files = excalidrawAPI.getFiles();
+
+      // Create scene data for comparison
+      const sceneData = {
+        type: "excalidraw",
+        version: 2,
+        source: window.location.href,
+        elements,
+        appState: {
+          viewBackgroundColor: appState.viewBackgroundColor,
+          gridSize: appState.gridSize,
+        },
+        files: files || {},
+      };
+
+      const dataString = JSON.stringify(sceneData);
+
+      // Skip if data hasn't changed
+      if (lastSavedDataRef.current === dataString) {
+        setHasUnsavedChanges(false);
+        setSaveStatus("saved");
+        return true;
+      }
+
+      setSaveStatus("saving");
+
+      const blob = new Blob([dataString], {
+        type: "application/json",
+      });
+
+      await updateSceneData(currentSceneId, blob);
+      lastSavedDataRef.current = dataString;
+      setHasUnsavedChanges(false);
+      setSaveStatus("saved");
+      setLastSavedTime(new Date());
+      retryCountRef.current = 0; // Reset retry count on success
+
+      return true;
+    } catch (error) {
+      console.error("Auto-save failed:", error);
+      setSaveStatus("error");
+      return false;
+    }
+  }, [currentSceneId, excalidrawAPI]);
+
+  // Immediate save function - bypasses debounce, used before navigation
+  // TODO: Expose via context/atom for use in navigation components
+  const saveSceneImmediately = useCallback(async (): Promise<boolean> => {
+    // Clear any pending debounced save
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+      autoSaveTimeoutRef.current = null;
+    }
+    if (retryTimeoutRef.current) {
+      clearTimeout(retryTimeoutRef.current);
+      retryTimeoutRef.current = null;
+    }
+
+    return performSave();
+  }, [performSave]);
+  void saveSceneImmediately; // Reserved for future navigation integration
+
+  // Manual retry function - called when user clicks on error status
+  const handleSaveRetry = useCallback(async () => {
+    retryCountRef.current = 0; // Reset retry count for manual retry
+    await performSave();
+  }, [performSave]);
+
+  // Handle scene title change - separate API call from autosave
+  const handleSceneTitleChange = useCallback(
+    async (newTitle: string) => {
+      if (!currentSceneId) {
+        return;
+      }
+
+      const { updateScene: updateSceneApi } = await import(
+        "./auth/workspaceApi"
+      );
+      await updateSceneApi(currentSceneId, { title: newTitle });
+      setCurrentSceneTitle(newTitle);
+      setCurrentSceneTitleAtom(newTitle);
+      // Refresh sidebar scene list to show updated title
+      triggerScenesRefresh();
+    },
+    [currentSceneId, setCurrentSceneTitleAtom, triggerScenesRefresh],
+  );
+
+  // Auto-save effect - triggers after debounce period
   useEffect(() => {
     if (!hasUnsavedChanges || !currentSceneId || !excalidrawAPI) {
       return;
@@ -1509,68 +1640,97 @@ const ExcalidrawWrapper = () => {
       clearTimeout(autoSaveTimeoutRef.current);
     }
 
-    // Schedule auto-save after 3 seconds of inactivity
+    // Set pending status when changes are detected (only if currently saved)
+    // Use functional update to avoid stale closure issues
+    setSaveStatus((current) => (current === "saved" ? "pending" : current));
+
+    // Schedule auto-save after debounce period
     autoSaveTimeoutRef.current = setTimeout(async () => {
-      try {
-        const elements = excalidrawAPI.getSceneElements();
-        const appState = excalidrawAPI.getAppState();
-        const files = excalidrawAPI.getFiles();
+      const success = await performSave();
 
-        // Create scene data for comparison
-        const sceneData = {
-          type: "excalidraw",
-          version: 2,
-          source: window.location.href,
-          elements,
-          appState: {
-            viewBackgroundColor: appState.viewBackgroundColor,
-            gridSize: appState.gridSize,
-          },
-          files: files || {},
-        };
-
-        const dataString = JSON.stringify(sceneData);
-
-        // Skip if data hasn't changed
-        if (lastSavedDataRef.current === dataString) {
-          setHasUnsavedChanges(false);
-          return;
+      // If save failed and we haven't retried yet, schedule a retry
+      if (!success && retryCountRef.current < 1) {
+        retryCountRef.current++;
+        if (retryTimeoutRef.current) {
+          clearTimeout(retryTimeoutRef.current);
         }
-
-        setIsAutoSaving(true);
-
-        const blob = new Blob([dataString], {
-          type: "application/json",
-        });
-
-        await updateSceneData(currentSceneId, blob);
-        lastSavedDataRef.current = dataString;
-        setHasUnsavedChanges(false);
-
-        // Show subtle auto-save indicator
-        excalidrawAPI.setToast({
-          message: t("workspace.autoSaved"),
-          duration: 1500,
-        });
-      } catch (error) {
-        console.error("Auto-save failed:", error);
-        // Don't show error toast for auto-save failures to avoid spam
-      } finally {
-        setIsAutoSaving(false);
+        retryTimeoutRef.current = setTimeout(() => {
+          performSave();
+        }, AUTOSAVE_RETRY_DELAY_MS);
       }
-    }, 3000); // 3 second debounce
+    }, AUTOSAVE_DEBOUNCE_MS);
 
     return () => {
       if (autoSaveTimeoutRef.current) {
         clearTimeout(autoSaveTimeoutRef.current);
       }
     };
-  }, [hasUnsavedChanges, currentSceneId, excalidrawAPI]);
+  }, [hasUnsavedChanges, currentSceneId, excalidrawAPI, performSave]);
 
-  // Reset lastSavedDataRef when scene changes
+  // Backup save interval - safety net every 30 seconds
+  // Use refs to access current values without adding to dependencies
+  const hasUnsavedChangesRef = useRef(hasUnsavedChanges);
+  hasUnsavedChangesRef.current = hasUnsavedChanges;
+  const saveStatusRef = useRef(saveStatus);
+  saveStatusRef.current = saveStatus;
+
+  useEffect(() => {
+    if (!currentSceneId || !excalidrawAPI) {
+      return;
+    }
+
+    backupSaveIntervalRef.current = setInterval(() => {
+      if (hasUnsavedChangesRef.current && saveStatusRef.current !== "saving") {
+        performSave();
+      }
+    }, BACKUP_SAVE_INTERVAL_MS);
+
+    return () => {
+      if (backupSaveIntervalRef.current) {
+        clearInterval(backupSaveIntervalRef.current);
+      }
+    };
+  }, [currentSceneId, excalidrawAPI, performSave]);
+
+  // Offline detection - update save status based on network state
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      // If we were offline with pending changes, trigger save
+      if (saveStatus === "offline" && hasUnsavedChanges) {
+        performSave();
+      }
+    };
+
+    const handleOffline = () => {
+      setIsOnline(false);
+      if (saveStatus === "pending" || saveStatus === "saving") {
+        setSaveStatus("offline");
+      }
+    };
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, [saveStatus, hasUnsavedChanges, performSave]);
+
+  // Reset save state when scene changes
   useEffect(() => {
     lastSavedDataRef.current = null;
     setHasUnsavedChanges(false);
+    setSaveStatus("saved");
+    retryCountRef.current = 0;
+    // Clear any pending timeouts
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+    if (retryTimeoutRef.current) {
+      clearTimeout(retryTimeoutRef.current);
+    }
   }, [currentSceneId]);
 
   // Keyboard shortcut handler for Ctrl+S
@@ -1746,22 +1906,54 @@ const ExcalidrawWrapper = () => {
           autoFocus={appMode === "canvas"}
           theme={editorTheme}
           renderTopRightUI={(isMobile) => {
-            if (isMobile || !collabAPI || isCollabDisabled) {
-              return null;
+            // Show save status indicator when workspace scene is open
+            const showSaveStatus =
+              isAuthenticated && currentSceneId && !isLegacyMode;
+
+            // On mobile with no collab, only show save status if applicable
+            if (isMobile) {
+              if (!showSaveStatus) {
+                return null;
+              }
+              return (
+                <div className="excalidraw-ui-top-right">
+                  <SaveStatusIndicator
+                    status={saveStatus}
+                    lastSavedTime={lastSavedTime}
+                    sceneTitle={currentSceneTitle}
+                    onTitleChange={handleSceneTitleChange}
+                    onRetry={handleSaveRetry}
+                    isMobile={true}
+                  />
+                </div>
+              );
             }
 
+            // Desktop: show save status + collab
             return (
               <div className="excalidraw-ui-top-right">
+                {showSaveStatus && (
+                  <SaveStatusIndicator
+                    status={saveStatus}
+                    lastSavedTime={lastSavedTime}
+                    sceneTitle={currentSceneTitle}
+                    onTitleChange={handleSceneTitleChange}
+                    onRetry={handleSaveRetry}
+                    isMobile={false}
+                  />
+                )}
                 {collabError.message && (
                   <CollabError collabError={collabError} />
                 )}
-                <LiveCollaborationTrigger
-                  isCollaborating={isCollaborating}
-                  onSelect={() =>
-                    setShareDialogState({ isOpen: true, type: "share" })
-                  }
-                  editorInterface={editorInterface}
-                />
+                {collabAPI && !isCollabDisabled && (
+                  <LiveCollaborationTrigger
+                    isCollaborating={isCollaborating}
+                    onSelect={() =>
+                      setShareDialogState({ isOpen: true, type: "share" })
+                    }
+                    editorInterface={editorInterface}
+                  />
+                )}
               </div>
             );
           }}

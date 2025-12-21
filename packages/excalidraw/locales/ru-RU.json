@@ -989,6 +989,21 @@
       "cancel": "Отмена"
     }
   },
+  "saveStatus": {
+    "saved": "Сохранено",
+    "saving": "Сохранение...",
+    "pending": "Несохранённые изменения",
+    "pendingShort": "Не сохранено",
+    "error": "Ошибка сохранения",
+    "offline": "Нет сети",
+    "justNow": "только что",
+    "secondsAgo": "{{count}} сек. назад",
+    "minutesAgo": "{{count}} мин. назад",
+    "hoursAgo": "{{count}} ч. назад",
+    "clickToRetry": "Нажмите для повтора",
+    "unsavedWarning": "У вас есть несохранённые изменения. Вы уверены, что хотите уйти?",
+    "sceneTitle": "Название сцены"
+  },
   "settings": {
     "profile": "Профиль",
     "workspace": "Рабочее пространство",

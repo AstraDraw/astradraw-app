@@ -18,22 +18,26 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
   This is a **CHECKPOINT RELEASE** - a stable point to revert to if issues arise.
 
   **Problem Solved:**
+
   - Scene data was lost when navigating between dashboard and canvas
   - The "Meet Excalidraw" welcome screen appeared instead of saved drawings
   - Auto-save could overwrite scenes with empty data, causing permanent data loss
 
   **Root Cause:**
+
   - Conditional rendering (`if (appMode === "dashboard") return <Dashboard />`)
   - Excalidraw unmounted when switching to dashboard, losing all internal state
   - When remounting, Excalidraw showed welcome screen instead of loaded data
 
   **Solution:**
+
   - Both Dashboard and Canvas are now **always mounted**
   - CSS `display: none` toggles visibility instead of conditional rendering
   - Excalidraw never unmounts, preserving all state
   - Scene data loaded via `excalidrawAPI.updateScene()`
 
   **Key Changes:**
+
   - Removed early return for dashboard mode in App.tsx
   - Added CSS Hide/Show structure with `inert` attribute for accessibility
   - Made `handleKeyboardGlobally` and `autoFocus` conditional on `appMode`

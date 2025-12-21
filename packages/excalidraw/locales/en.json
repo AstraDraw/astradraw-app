@@ -989,6 +989,21 @@
       "cancel": "Cancel"
     }
   },
+  "saveStatus": {
+    "saved": "Saved",
+    "saving": "Saving...",
+    "pending": "Unsaved changes",
+    "pendingShort": "Unsaved",
+    "error": "Save failed",
+    "offline": "Offline",
+    "justNow": "just now",
+    "secondsAgo": "{{count}} sec ago",
+    "minutesAgo": "{{count}} min ago",
+    "hoursAgo": "{{count}} h ago",
+    "clickToRetry": "Click to retry",
+    "unsavedWarning": "You have unsaved changes. Are you sure you want to leave?",
+    "sceneTitle": "Scene title"
+  },
   "settings": {
     "profile": "Profile",
     "workspace": "Workspace",
