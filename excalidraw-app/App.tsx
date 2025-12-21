@@ -400,9 +400,7 @@ const ExcalidrawWrapper = () => {
   // App mode state (canvas, settings, or dashboard)
   const appMode = useAtomValue(appModeAtom);
   const navigateToCanvas = useSetAtom(navigateToCanvasAtom);
-  const [activeCollectionId, setActiveCollectionId] = useAtom(
-    activeCollectionIdAtom,
-  );
+  const setActiveCollectionId = useSetAtom(activeCollectionIdAtom);
 
   // Auth state for auto-open on login
   const { isAuthenticated } = useAuth();

@@ -554,6 +554,7 @@ export interface UserProfile {
   email: string;
   name: string | null;
   avatarUrl: string | null;
+  isSuperAdmin?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -701,6 +702,7 @@ export async function getWorkspace(workspaceId: string): Promise<Workspace> {
 export async function createWorkspace(data: {
   name: string;
   slug?: string;
+  type?: WorkspaceType;
 }): Promise<Workspace> {
   const response = await fetch(`${getApiBaseUrl()}/workspaces`, {
     method: "POST",

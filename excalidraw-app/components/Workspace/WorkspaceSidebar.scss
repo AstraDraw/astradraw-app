@@ -588,6 +588,89 @@
     font-weight: 600;
     cursor: pointer;
   }
+
+  // ============================================
+  // Menu divider and create button
+  // ============================================
+  &__menu-divider {
+    height: 1px;
+    background: var(--default-border-color, #e5e5e5);
+    margin: 4px 0;
+  }
+
+  &__menu-item-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    background: var(--color-primary, #6965db);
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  &__menu-item--create {
+    color: var(--color-primary, #6965db);
+    font-weight: 500;
+  }
+
+  // ============================================
+  // Form hint and error
+  // ============================================
+  &__form-hint {
+    font-size: 12px;
+    color: var(--text-secondary-color, #9b9b9b);
+    margin-top: 4px;
+  }
+
+  &__form-error {
+    padding: 10px 12px;
+    background: var(--color-danger-light, rgba(224, 49, 49, 0.1));
+    border-radius: 8px;
+    color: var(--color-danger, #e03131);
+    font-size: 13px;
+  }
+
+  // ============================================
+  // Type selector (toggle buttons)
+  // ============================================
+  &__type-selector {
+    display: flex;
+    gap: 8px;
+  }
+
+  &__type-option {
+    flex: 1;
+    padding: 10px 16px;
+    background: var(--default-bg-color, #f5f5f5);
+    border: 1px solid transparent;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary-color, #6b6b6b);
+    cursor: pointer;
+    transition: all 0.15s;
+
+    &:hover {
+      background: var(--button-hover-bg, rgba(0, 0, 0, 0.08));
+    }
+
+    &--active {
+      background: var(--color-primary-light, rgba(105, 101, 219, 0.15));
+      border-color: var(--color-primary, #6965db);
+      color: var(--color-primary, #6965db);
+    }
+  }
+
+  // ============================================
+  // Wide dialog modifier
+  // ============================================
+  &__dialog--wide {
+    width: 400px;
+    max-width: 90vw;
+  }
 }
 
 // ============================================
@@ -720,6 +803,28 @@
       &:hover {
         background: var(--button-hover-bg, rgba(255, 255, 255, 0.1));
       }
+    }
+
+    &__menu-divider {
+      background: var(--default-border-color, #3d3d3d);
+    }
+
+    &__type-option {
+      background: var(--default-bg-color, #232329);
+      color: var(--text-secondary-color, #9b9b9b);
+
+      &:hover {
+        background: var(--button-hover-bg, rgba(255, 255, 255, 0.1));
+      }
+
+      &--active {
+        background: var(--color-primary-light, rgba(165, 161, 255, 0.15));
+        color: var(--color-primary-light, #a5a1ff);
+      }
+    }
+
+    &__form-error {
+      background: var(--color-danger-light, rgba(224, 49, 49, 0.15));
     }
   }
 }

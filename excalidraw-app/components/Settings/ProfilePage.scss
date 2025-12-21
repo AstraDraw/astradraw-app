@@ -56,23 +56,17 @@
     }
   }
 
-  // Container (no card style)
+  // Container
   &__container {
-    max-width: 640px;
+    max-width: 900px;
   }
 
   // Title
   &__title {
-    margin: 0 0 8px;
-    font-size: 28px;
-    font-weight: 700;
+    margin: 0 0 24px;
+    font-size: 24px;
+    font-weight: 600;
     color: var(--text-primary-color, #1b1b1f);
-  }
-
-  &__subtitle {
-    margin: 0 0 32px;
-    font-size: 14px;
-    color: var(--text-secondary-color, #6b6b6b);
   }
 
   // Messages
@@ -96,52 +90,64 @@
     margin-bottom: 24px;
   }
 
-  // Sections
-  &__section {
-    margin-bottom: 32px;
-    padding-bottom: 32px;
+  // Two-column row layout
+  &__row {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 48px;
+    padding: 32px 0;
     border-bottom: 1px solid var(--default-border-color, #e5e5e5);
 
-    &:last-child {
+    &:first-of-type {
+      padding-top: 0;
+    }
+
+    &:last-of-type {
       border-bottom: none;
-      padding-bottom: 0;
-    }
-
-    &--danger {
-      .profile-page__section-title {
-        color: var(--color-danger, #dc2626);
-      }
     }
   }
 
-  &__section-title {
-    margin: 0 0 16px;
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--color-primary, #6965db);
+  &__row-label {
+    h2 {
+      margin: 0 0 4px;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--color-primary, #6965db);
+    }
+
+    p {
+      margin: 0;
+      font-size: 14px;
+      color: var(--text-secondary-color, #6b6b6b);
+    }
   }
 
-  &__section-description {
-    font-size: 14px;
-    color: var(--text-secondary-color, #6b6b6b);
-    margin: 0 0 16px;
+  &__row-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    &--avatar {
+      align-items: center;
+    }
   }
 
-  // Avatar section
-  &__avatar-section {
+  // Avatar
+  &__avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    background: var(--color-primary, #6965db);
     display: flex;
     align-items: center;
-    gap: 24px;
-  }
+    justify-content: center;
+    transition: opacity 0.15s ease;
 
-  &__avatar {
-    width: 96px;
-    height: 96px;
-    border-radius: 50%;
-    overflow: hidden;
-    position: relative;
-    cursor: pointer;
-    flex-shrink: 0;
+    &:hover {
+      opacity: 0.9;
+    }
 
     img {
       width: 100%;
@@ -151,47 +157,48 @@
   }
 
   &__avatar-initials {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    font-size: 32px;
+    font-size: 28px;
     font-weight: 600;
+    color: white;
   }
 
-  &__avatar-overlay {
-    position: absolute;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.5);
+  &__avatar-links {
     display: flex;
     align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transition: opacity 0.2s ease;
+    gap: 4px;
+    margin-top: 8px;
+  }
 
-    svg {
-      width: 32px;
-      height: 32px;
-      color: white;
+  &__link {
+    background: none;
+    border: none;
+    padding: 4px 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-primary, #6965db);
+    cursor: pointer;
+    transition: opacity 0.15s;
+
+    &:hover {
+      opacity: 0.8;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    &--danger {
+      color: var(--color-danger, #dc2626);
     }
   }
 
-  &__avatar:hover &__avatar-overlay,
-  &__avatar:focus &__avatar-overlay {
-    opacity: 1;
+  &__link-separator {
+    color: var(--text-secondary-color, #9b9b9b);
   }
 
-  &__avatar-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  // Fields
-  &__field {
+  // Field card (editable fields like name)
+  &__field-card {
     display: flex;
     align-items: center;
     gap: 12px;
@@ -199,12 +206,25 @@
     background: var(--island-bg-color, #ffffff);
     border: 1px solid var(--default-border-color, #e5e5e5);
     border-radius: 8px;
-    min-height: 48px;
+    max-width: 400px;
+  }
 
-    &--readonly {
-      background: transparent;
-      border-color: transparent;
-      padding-left: 0;
+  // Field info (read-only fields like email, role)
+  &__field-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  &__field-icon {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    color: var(--text-secondary-color, #6b6b6b);
+
+    svg {
+      width: 100%;
+      height: 100%;
     }
   }
 
@@ -215,10 +235,11 @@
   }
 
   &__edit-button {
-    padding: 8px;
+    flex-shrink: 0;
+    padding: 6px;
     background: transparent;
     border: none;
-    border-radius: 6px;
+    border-radius: 4px;
     cursor: pointer;
     color: var(--text-secondary-color, #6b6b6b);
     transition: all 0.15s ease;
@@ -229,16 +250,17 @@
     }
 
     svg {
-      width: 18px;
-      height: 18px;
+      width: 16px;
+      height: 16px;
     }
   }
 
-  // Edit field
+  // Edit field (when editing name)
   &__edit-field {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    max-width: 400px;
   }
 
   &__input {
@@ -266,13 +288,30 @@
     gap: 8px;
   }
 
+  // Role badge
+  &__role-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 6px;
+    background: var(--default-bg-color, #f5f5f5);
+    color: var(--text-secondary-color, #6b6b6b);
+
+    &--admin {
+      background: var(--color-primary-light, rgba(105, 101, 219, 0.15));
+      color: var(--color-primary, #6965db);
+    }
+  }
+
   // Buttons
   &__button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 10px 16px;
+    padding: 10px 20px;
     font-size: 14px;
     font-weight: 500;
     border-radius: 8px;
@@ -308,25 +347,6 @@
         background: var(--default-border-color, #e5e5e5);
       }
     }
-
-    &--danger {
-      background: var(--color-danger, #dc2626);
-      color: white;
-
-      &:hover:not(:disabled) {
-        background: var(--color-danger-darker, #b91c1c);
-      }
-    }
-
-    &--danger-outline {
-      background: transparent;
-      border: 1px solid var(--color-danger, #dc2626);
-      color: var(--color-danger, #dc2626);
-
-      &:hover:not(:disabled) {
-        background: rgba(220, 38, 38, 0.1);
-      }
-    }
   }
 }
 
@@ -344,17 +364,27 @@
       color: var(--text-primary-color, #e1e1e1);
     }
 
-    &__subtitle {
-      color: var(--text-secondary-color, #9b9b9b);
-    }
-
-    &__section {
+    &__row {
       border-bottom-color: var(--default-border-color, #3d3d3d);
     }
 
-    &__field {
+    &__row-label {
+      h2 {
+        color: var(--color-primary-light, #a5a1ff);
+      }
+
+      p {
+        color: var(--text-secondary-color, #9b9b9b);
+      }
+    }
+
+    &__field-card {
       background: var(--island-bg-color, #232329);
       border-color: var(--default-border-color, #3d3d3d);
+    }
+
+    &__field-value {
+      color: var(--text-primary-color, #e1e1e1);
     }
 
     &__input {
@@ -362,21 +392,49 @@
       border-color: var(--default-border-color, #3d3d3d);
       color: var(--text-primary-color, #e1e1e1);
     }
+
+    &__role-badge {
+      background: var(--default-bg-color, #2d2d33);
+      color: var(--text-secondary-color, #9b9b9b);
+
+      &--admin {
+        background: var(--color-primary-light, rgba(165, 161, 255, 0.15));
+        color: var(--color-primary-light, #a5a1ff);
+      }
+    }
+
+    &__edit-button:hover {
+      background: var(--default-border-color, #3d3d3d);
+    }
+
+    &__button--secondary {
+      border-color: var(--default-border-color, #3d3d3d);
+      color: var(--text-primary-color, #e1e1e1);
+
+      &:hover:not(:disabled) {
+        background: var(--default-border-color, #3d3d3d);
+      }
+    }
   }
 }
 
-// Responsive
-@media (max-width: 640px) {
+// Responsive - stack on mobile
+@media (max-width: 768px) {
   .profile-page {
     padding: 24px 16px;
 
-    &__avatar-section {
-      flex-direction: column;
+    &__row {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    &__row-content--avatar {
       align-items: flex-start;
     }
 
-    &__avatar-actions {
-      flex-direction: row;
+    &__field-card,
+    &__edit-field {
+      max-width: 100%;
     }
   }
 }

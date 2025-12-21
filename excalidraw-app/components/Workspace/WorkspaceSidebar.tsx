@@ -14,6 +14,7 @@ import {
   listCollections,
   listWorkspaceScenes,
   createCollection,
+  createWorkspace,
   updateCollection,
   deleteScene as deleteSceneApi,
   updateScene as updateSceneApi,
@@ -22,6 +23,7 @@ import {
   type WorkspaceScene,
   type Workspace,
   type Collection,
+  type WorkspaceType,
 } from "../../auth/workspaceApi";
 
 import {
@@ -148,6 +150,15 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
   );
   const [searchQuery, setSearchQuery] = useState("");
   const [workspaceMenuOpen, setWorkspaceMenuOpen] = useState(false);
+  const [showCreateWorkspace, setShowCreateWorkspace] = useState(false);
+  const [newWorkspaceName, setNewWorkspaceName] = useState("");
+  const [newWorkspaceSlug, setNewWorkspaceSlug] = useState("");
+  const [newWorkspaceType, setNewWorkspaceType] =
+    useState<WorkspaceType>("SHARED");
+  const [isCreatingWorkspace, setIsCreatingWorkspace] = useState(false);
+  const [createWorkspaceError, setCreateWorkspaceError] = useState<
+    string | null
+  >(null);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
   const workspaceMenuRef = useRef<HTMLDivElement>(null);
@@ -457,6 +468,66 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
     loadScenes();
   }, [loadCollections, loadScenes]);
 
+  // Generate slug from workspace name
+  const generateSlug = useCallback((name: string): string => {
+    return name
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "")
+      .slice(0, 30);
+  }, []);
+
+  // Auto-generate slug when name changes
+  const handleWorkspaceNameChange = useCallback(
+    (name: string) => {
+      setNewWorkspaceName(name);
+      setNewWorkspaceSlug(generateSlug(name));
+      setCreateWorkspaceError(null);
+    },
+    [generateSlug],
+  );
+
+  // Handle create workspace
+  const handleCreateWorkspace = useCallback(async () => {
+    if (!newWorkspaceName.trim() || !newWorkspaceSlug.trim()) {
+      return;
+    }
+
+    setIsCreatingWorkspace(true);
+    setCreateWorkspaceError(null);
+
+    try {
+      const workspace = await createWorkspace({
+        name: newWorkspaceName.trim(),
+        slug: newWorkspaceSlug.trim(),
+        type: newWorkspaceType,
+      });
+
+      // Reset form
+      setNewWorkspaceName("");
+      setNewWorkspaceSlug("");
+      setNewWorkspaceType("SHARED");
+      setShowCreateWorkspace(false);
+
+      // Reload workspaces and switch to new one
+      await loadWorkspaces();
+      setCurrentWorkspace(workspace);
+      setWorkspaceMenuOpen(false);
+    } catch (err) {
+      if (err instanceof Error && err.message.includes("already taken")) {
+        setCreateWorkspaceError(t("workspace.workspaceSlugTaken"));
+      } else {
+        setCreateWorkspaceError(
+          err instanceof Error ? err.message : "Failed to create workspace",
+        );
+      }
+    } finally {
+      setIsCreatingWorkspace(false);
+    }
+  }, [newWorkspaceName, newWorkspaceSlug, newWorkspaceType, loadWorkspaces]);
+
   const handleLoginClick = () => {
     if (oidcConfigured && !localAuthEnabled) {
       login(window.location.pathname);
@@ -578,6 +649,23 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
                     )}
                   </button>
                 ))}
+                {user?.isSuperAdmin && (
+                  <>
+                    <div className="workspace-sidebar__menu-divider" />
+                    <button
+                      className="workspace-sidebar__menu-item workspace-sidebar__menu-item--create"
+                      onClick={() => {
+                        setShowCreateWorkspace(true);
+                        setWorkspaceMenuOpen(false);
+                      }}
+                    >
+                      <span className="workspace-sidebar__menu-item-icon">
+                        +
+                      </span>
+                      <span>{t("workspace.createWorkspace")}</span>
+                    </button>
+                  </>
+                )}
               </div>
             )}
           </div>
@@ -847,6 +935,127 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
                 disabled={!newCollectionName.trim()}
               >
                 {t("settings.save")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create Workspace Dialog */}
+      {showCreateWorkspace && (
+        <div
+          className="workspace-sidebar__dialog-overlay"
+          onClick={() => {
+            setShowCreateWorkspace(false);
+            setNewWorkspaceName("");
+            setNewWorkspaceSlug("");
+            setNewWorkspaceType("SHARED");
+            setCreateWorkspaceError(null);
+          }}
+        >
+          <div
+            className="workspace-sidebar__dialog workspace-sidebar__dialog--wide"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3>{t("workspace.createWorkspaceTitle")}</h3>
+            <div className="workspace-sidebar__dialog-content">
+              <div className="workspace-sidebar__form-group">
+                <label>{t("workspace.workspaceNameLabel")}</label>
+                <input
+                  type="text"
+                  value={newWorkspaceName}
+                  onChange={(e) => handleWorkspaceNameChange(e.target.value)}
+                  placeholder={t("workspace.workspaceNamePlaceholder")}
+                  onKeyDown={(e) => {
+                    e.stopPropagation();
+                    if (e.key === "Enter" && !isCreatingWorkspace) {
+                      handleCreateWorkspace();
+                    }
+                  }}
+                  onKeyUp={(e) => e.stopPropagation()}
+                  autoFocus
+                />
+              </div>
+              <div className="workspace-sidebar__form-group">
+                <label>{t("workspace.workspaceSlugLabel")}</label>
+                <input
+                  type="text"
+                  value={newWorkspaceSlug}
+                  onChange={(e) => {
+                    setNewWorkspaceSlug(e.target.value);
+                    setCreateWorkspaceError(null);
+                  }}
+                  placeholder="my-workspace"
+                  onKeyDown={(e) => {
+                    e.stopPropagation();
+                    if (e.key === "Enter" && !isCreatingWorkspace) {
+                      handleCreateWorkspace();
+                    }
+                  }}
+                  onKeyUp={(e) => e.stopPropagation()}
+                />
+                <span className="workspace-sidebar__form-hint">
+                  {t("workspace.workspaceSlugHint")}
+                </span>
+              </div>
+              <div className="workspace-sidebar__form-group">
+                <label>{t("workspace.workspaceTypeLabel")}</label>
+                <div className="workspace-sidebar__type-selector">
+                  <button
+                    type="button"
+                    className={`workspace-sidebar__type-option ${
+                      newWorkspaceType === "PERSONAL"
+                        ? "workspace-sidebar__type-option--active"
+                        : ""
+                    }`}
+                    onClick={() => setNewWorkspaceType("PERSONAL")}
+                  >
+                    {t("workspace.workspaceTypePersonal")}
+                  </button>
+                  <button
+                    type="button"
+                    className={`workspace-sidebar__type-option ${
+                      newWorkspaceType === "SHARED"
+                        ? "workspace-sidebar__type-option--active"
+                        : ""
+                    }`}
+                    onClick={() => setNewWorkspaceType("SHARED")}
+                  >
+                    {t("workspace.workspaceTypeShared")}
+                  </button>
+                </div>
+              </div>
+              {createWorkspaceError && (
+                <div className="workspace-sidebar__form-error">
+                  {createWorkspaceError}
+                </div>
+              )}
+            </div>
+            <div className="workspace-sidebar__dialog-actions">
+              <button
+                className="workspace-sidebar__dialog-cancel"
+                onClick={() => {
+                  setShowCreateWorkspace(false);
+                  setNewWorkspaceName("");
+                  setNewWorkspaceSlug("");
+                  setNewWorkspaceType("SHARED");
+                  setCreateWorkspaceError(null);
+                }}
+              >
+                {t("workspace.cancel")}
+              </button>
+              <button
+                className="workspace-sidebar__dialog-confirm"
+                onClick={handleCreateWorkspace}
+                disabled={
+                  !newWorkspaceName.trim() ||
+                  !newWorkspaceSlug.trim() ||
+                  isCreatingWorkspace
+                }
+              >
+                {isCreatingWorkspace
+                  ? t("workspace.creating")
+                  : t("workspace.createWorkspace")}
               </button>
             </div>
           </div>
