@@ -958,7 +958,18 @@ const ExcalidrawWrapper = () => {
         // Set the new scene as current (so auto-save works)
         setCurrentSceneId(scene.id);
         setCurrentSceneTitle(title);
-        setWorkspaceSidebarOpen(false);
+
+        // Set the active collection so sidebar shows scenes from this collection
+        if (targetCollectionId) {
+          setActiveCollectionId(targetCollectionId);
+        }
+
+        // Keep sidebar open to show the new scene in the list
+        setWorkspaceSidebarOpen(true);
+
+        // Switch to canvas mode (important when called from dashboard)
+        // Sidebar will automatically switch to "board" mode showing scenes
+        navigateToCanvas();
 
         // Save empty scene data to establish storage
         const emptySceneData = {
@@ -985,10 +996,16 @@ const ExcalidrawWrapper = () => {
         excalidrawAPI.resetScene();
         setCurrentSceneId(null);
         setCurrentSceneTitle("Untitled");
-        setWorkspaceSidebarOpen(false);
+        // Still switch to canvas mode on error
+        navigateToCanvas();
       }
     },
-    [excalidrawAPI, privateCollectionId],
+    [
+      excalidrawAPI,
+      privateCollectionId,
+      navigateToCanvas,
+      setActiveCollectionId,
+    ],
   );
 
   const handleOpenScene = useCallback(

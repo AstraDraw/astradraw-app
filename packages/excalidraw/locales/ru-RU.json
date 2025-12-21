@@ -795,6 +795,14 @@
     "clickToInsert": "Нажмите, чтобы добавить на холст",
     "dragToInsert": "Перетащите на холст или нажмите"
   },
+  "emojiPicker": {
+    "selectEmoji": "Выбрать эмодзи",
+    "search": "Поиск",
+    "random": "Случайный",
+    "remove": "Удалить",
+    "frequentlyUsed": "Часто используемые",
+    "noResults": "Эмодзи не найдены"
+  },
   "talktrack": {
     "title": "Talktrack",
     "toggleSidebar": "Переключить панель Talktrack",
@@ -900,6 +908,7 @@
     "dashboard": "Панель",
     "collections": "Коллекции",
     "createCollection": "Создать коллекцию",
+    "editCollection": "Редактировать коллекцию",
     "private": "Приватное",
     "privateDescription": "Только вы можете видеть сцены в этой коллекции",
     "startDrawing": "Начать рисовать",
@@ -918,6 +927,15 @@
     "recentlyModified": "Недавно изменённые вами",
     "recentlyVisited": "Недавно посещённые вами",
     "noRecentlyVisited": "Нет недавно посещённых сцен",
+    "justNow": "Только что",
+    "minuteAgo": "{{count}} мин. назад",
+    "minutesAgo": "{{count}} мин. назад",
+    "hourAgo": "{{count}} ч. назад",
+    "hoursAgo": "{{count}} ч. назад",
+    "yesterday": "Вчера",
+    "daysAgo": "{{count}} дн. назад",
+    "byYou": "Вы",
+    "byAuthor": "{{name}}",
     "teamMembersAt": "Участники команды сейчас...",
     "noOneActive": "Никого нет в сети",
     "importScenes": "Импортировать сцены",

@@ -9,6 +9,57 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.42] - 2025-12-21
+
+### Added
+
+- **Emoji Picker for Collection Icons**
+  - New `EmojiPicker` component with category tabs, search, and emoji grid
+  - Supports "Frequently used" section with popular emojis
+  - Random emoji and Remove buttons in header
+  - Lazy loading with debounced search
+  - Dark mode support
+  - Replaces hardcoded emoji array in collection creation/edit dialogs
+
+- **Edit Collection Dialog**
+  - New edit functionality in collection context menu
+  - Reuses create collection dialog structure
+  - Allows changing collection name and icon
+
+- **Russian Localization for Time Formats**
+  - Added translation keys: `justNow`, `minuteAgo`, `minutesAgo`, `hourAgo`, `hoursAgo`, `yesterday`, `daysAgo`
+  - Added `byYou` and `authorBy` for author display
+  - Natural Russian phrasing: "Автор: {name}" instead of literal "by"
+
+### Fixed
+
+- **Font Consistency Across Dashboard & Settings Pages**
+  - Added `--ui-font` CSS variable to all pages outside `.excalidraw` container
+  - Fixed: `ProfilePage`, `WorkspaceSettingsPage`, `MembersPage`, `TeamsCollectionsPage`
+  - Fixed: `DashboardView`, `CollectionView`, `SceneCardGrid`
+  - Removed explicit `Virgil, cursive` font declarations that caused Times New Roman fallback
+
+- **Collection Context Menu Click-Outside Handler**
+  - Menu now closes when clicking outside (previously required clicking the three-dot button again)
+
+- **Create New Scene from Collection Context Menu**
+  - Now properly switches to canvas mode instead of just closing sidebar
+  - Sets active collection so sidebar shows scenes from that collection
+  - Keeps sidebar open to display the new scene in the list
+  - New scene appears selected in the collection's scene list
+
+- **Main Content Area Scrolling**
+  - Changed `overflow: hidden` to `overflow-y: auto` in `WorkspaceMainContent.scss`
+  - Dashboard and collection views now scroll properly when content exceeds viewport
+
+### Changed
+
+- **Emoji Picker UI Improvements**
+  - Dropdown size: 400px width × 360px height
+  - Single clean border on search input (removed double-border effect)
+  - Empty trigger button shows "+" placeholder instead of folder icon
+  - Proper bottom padding in emoji grid
+
 ## [0.18.0-beta0.41] - 2025-12-21
 
 ### Changed

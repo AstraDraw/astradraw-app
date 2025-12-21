@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 
 import type { Collection } from "../../auth/workspaceApi";
@@ -83,6 +83,7 @@ interface FullModeNavProps {
   onCreateCollection: () => void;
   onNewScene: (collectionId?: string) => void;
   onDeleteCollection?: (collectionId: string) => void;
+  onEditCollection?: (collection: Collection) => void;
 }
 
 export const FullModeNav: React.FC<FullModeNavProps> = ({
@@ -99,10 +100,29 @@ export const FullModeNav: React.FC<FullModeNavProps> = ({
   onCreateCollection,
   onNewScene,
   onDeleteCollection,
+  onEditCollection,
 }) => {
   const [collectionMenuOpen, setCollectionMenuOpen] = useState<string | null>(
     null,
   );
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setCollectionMenuOpen(null);
+      }
+    };
+
+    if (collectionMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [collectionMenuOpen]);
 
   // Separate private collection from others
   const privateCollection = collections.find((c) => c.isPrivate);
@@ -240,7 +260,10 @@ export const FullModeNav: React.FC<FullModeNavProps> = ({
                 </span>
               </button>
               {collection.canWrite && (
-                <div className="full-mode-nav__collection-actions">
+                <div
+                  className="full-mode-nav__collection-actions"
+                  ref={collectionMenuOpen === collection.id ? menuRef : null}
+                >
                   <button
                     className="full-mode-nav__collection-more"
                     onClick={(e) => {
@@ -266,7 +289,9 @@ export const FullModeNav: React.FC<FullModeNavProps> = ({
                       </button>
                       <button
                         onClick={() => {
-                          // TODO: Edit collection
+                          if (onEditCollection) {
+                            onEditCollection(collection);
+                          }
                           setCollectionMenuOpen(null);
                         }}
                       >

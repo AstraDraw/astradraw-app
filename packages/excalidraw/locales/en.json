@@ -795,6 +795,14 @@
     "clickToInsert": "Click to add to canvas",
     "dragToInsert": "Drag to canvas or click to insert"
   },
+  "emojiPicker": {
+    "selectEmoji": "Select emoji",
+    "search": "Search",
+    "random": "Random",
+    "remove": "Remove",
+    "frequentlyUsed": "Frequently used",
+    "noResults": "No emojis found"
+  },
   "talktrack": {
     "title": "Talktrack",
     "toggleSidebar": "Toggle Talktrack sidebar",
@@ -900,6 +908,7 @@
     "dashboard": "Dashboard",
     "collections": "Collections",
     "createCollection": "Create Collection",
+    "editCollection": "Edit Collection",
     "private": "Private",
     "privateDescription": "Only you can see scenes in this collection",
     "startDrawing": "Start Drawing",
@@ -918,6 +927,15 @@
     "recentlyModified": "Recently modified by you",
     "recentlyVisited": "Recently visited by you",
     "noRecentlyVisited": "No recently visited scenes",
+    "justNow": "Just now",
+    "minuteAgo": "{{count}} min ago",
+    "minutesAgo": "{{count}} mins ago",
+    "hourAgo": "{{count}} hour ago",
+    "hoursAgo": "{{count}} hours ago",
+    "yesterday": "Yesterday",
+    "daysAgo": "{{count}} days ago",
+    "byYou": "by You",
+    "byAuthor": "by {{name}}",
     "teamMembersAt": "Team-members currently at...",
     "noOneActive": "No one here is currently active",
     "importScenes": "Import scenes",

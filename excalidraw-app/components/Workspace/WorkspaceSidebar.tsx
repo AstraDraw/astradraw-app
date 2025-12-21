@@ -14,6 +14,7 @@ import {
   listCollections,
   listWorkspaceScenes,
   createCollection,
+  updateCollection,
   deleteScene as deleteSceneApi,
   updateScene as updateSceneApi,
   duplicateScene as duplicateSceneApi,
@@ -35,6 +36,8 @@ import {
   sidebarModeAtom,
   dashboardViewAtom,
 } from "../Settings/settingsState";
+
+import { EmojiPicker } from "../EmojiPicker";
 
 import { BoardModeNav } from "./BoardModeNav";
 import { FullModeNav } from "./FullModeNav";
@@ -133,7 +136,10 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
   const [showLoginDialog, setShowLoginDialog] = useState(false);
   const [showCreateCollection, setShowCreateCollection] = useState(false);
   const [newCollectionName, setNewCollectionName] = useState("");
-  const [newCollectionIcon, setNewCollectionIcon] = useState("📁");
+  const [newCollectionIcon, setNewCollectionIcon] = useState("");
+  const [editingCollection, setEditingCollection] = useState<Collection | null>(
+    null,
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [workspaceMenuOpen, setWorkspaceMenuOpen] = useState(false);
 
@@ -335,13 +341,41 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
       });
       setCollections((prev) => [...prev, collection]);
       setNewCollectionName("");
-      setNewCollectionIcon("📁");
+      setNewCollectionIcon("");
       setShowCreateCollection(false);
     } catch (err) {
       console.error("Failed to create collection:", err);
       alert("Failed to create collection");
     }
   }, [currentWorkspace, newCollectionName, newCollectionIcon]);
+
+  const handleEditCollection = useCallback((collection: Collection) => {
+    setEditingCollection(collection);
+    setNewCollectionName(collection.name);
+    setNewCollectionIcon(collection.icon || "");
+  }, []);
+
+  const handleSaveEditCollection = useCallback(async () => {
+    if (!editingCollection || !newCollectionName.trim()) {
+      return;
+    }
+
+    try {
+      const updated = await updateCollection(editingCollection.id, {
+        name: newCollectionName.trim(),
+        icon: newCollectionIcon || undefined,
+      });
+      setCollections((prev) =>
+        prev.map((c) => (c.id === updated.id ? updated : c)),
+      );
+      setEditingCollection(null);
+      setNewCollectionName("");
+      setNewCollectionIcon("");
+    } catch (err) {
+      console.error("Failed to update collection:", err);
+      alert("Failed to update collection");
+    }
+  }, [editingCollection, newCollectionName, newCollectionIcon]);
 
   const handleDeleteCollection = useCallback(
     async (collectionId: string) => {
@@ -418,22 +452,6 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
     }
     return email[0].toUpperCase();
   };
-
-  // Icon picker options
-  const iconOptions = [
-    "📁",
-    "📂",
-    "🗂️",
-    "📋",
-    "📌",
-    "⭐",
-    "💼",
-    "🎯",
-    "🚀",
-    "💡",
-    "🔒",
-    "🌟",
-  ];
 
   return (
     <div
@@ -598,6 +616,7 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
                 onCreateCollection={() => setShowCreateCollection(true)}
                 onNewScene={onNewScene}
                 onDeleteCollection={handleDeleteCollection}
+                onEditCollection={handleEditCollection}
               />
             )}
           </>
@@ -650,40 +669,31 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
           >
             <h3>{t("workspace.createCollection")}</h3>
             <div className="workspace-sidebar__dialog-content">
-              <div className="workspace-sidebar__form-group">
-                <label>{t("workspace.icon")}</label>
-                <div className="workspace-sidebar__icon-picker">
-                  {iconOptions.map((icon) => (
-                    <button
-                      key={icon}
-                      className={`workspace-sidebar__icon-option ${
-                        newCollectionIcon === icon
-                          ? "workspace-sidebar__icon-option--selected"
-                          : ""
-                      }`}
-                      onClick={() => setNewCollectionIcon(icon)}
-                    >
-                      {icon}
-                    </button>
-                  ))}
+              <div className="workspace-sidebar__form-row">
+                <div className="workspace-sidebar__form-group workspace-sidebar__form-group--icon">
+                  <label>{t("workspace.icon")}</label>
+                  <EmojiPicker
+                    value={newCollectionIcon}
+                    onSelect={setNewCollectionIcon}
+                  />
                 </div>
-              </div>
-              <div className="workspace-sidebar__form-group">
-                <label>{t("workspace.collectionName")}</label>
-                <input
-                  type="text"
-                  value={newCollectionName}
-                  onChange={(e) => setNewCollectionName(e.target.value)}
-                  placeholder={t("workspace.collectionNamePlaceholder")}
-                  onKeyDown={(e) => {
-                    e.stopPropagation();
-                    if (e.key === "Enter") {
-                      handleCreateCollection();
-                    }
-                  }}
-                  onKeyUp={(e) => e.stopPropagation()}
-                  autoFocus
-                />
+                <div className="workspace-sidebar__form-group workspace-sidebar__form-group--name">
+                  <label>{t("workspace.collectionName")}</label>
+                  <input
+                    type="text"
+                    value={newCollectionName}
+                    onChange={(e) => setNewCollectionName(e.target.value)}
+                    placeholder={t("workspace.collectionNamePlaceholder")}
+                    onKeyDown={(e) => {
+                      e.stopPropagation();
+                      if (e.key === "Enter") {
+                        handleCreateCollection();
+                      }
+                    }}
+                    onKeyUp={(e) => e.stopPropagation()}
+                    autoFocus
+                  />
+                </div>
               </div>
             </div>
             <div className="workspace-sidebar__dialog-actions">
@@ -699,6 +709,72 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
                 disabled={!newCollectionName.trim()}
               >
                 {t("workspace.createCollection")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Collection Dialog */}
+      {editingCollection && (
+        <div
+          className="workspace-sidebar__dialog-overlay"
+          onClick={() => {
+            setEditingCollection(null);
+            setNewCollectionName("");
+            setNewCollectionIcon("");
+          }}
+        >
+          <div
+            className="workspace-sidebar__dialog"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3>{t("workspace.editCollection")}</h3>
+            <div className="workspace-sidebar__dialog-content">
+              <div className="workspace-sidebar__form-row">
+                <div className="workspace-sidebar__form-group workspace-sidebar__form-group--icon">
+                  <label>{t("workspace.icon")}</label>
+                  <EmojiPicker
+                    value={newCollectionIcon}
+                    onSelect={setNewCollectionIcon}
+                  />
+                </div>
+                <div className="workspace-sidebar__form-group workspace-sidebar__form-group--name">
+                  <label>{t("workspace.collectionName")}</label>
+                  <input
+                    type="text"
+                    value={newCollectionName}
+                    onChange={(e) => setNewCollectionName(e.target.value)}
+                    placeholder={t("workspace.collectionNamePlaceholder")}
+                    onKeyDown={(e) => {
+                      e.stopPropagation();
+                      if (e.key === "Enter") {
+                        handleSaveEditCollection();
+                      }
+                    }}
+                    onKeyUp={(e) => e.stopPropagation()}
+                    autoFocus
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="workspace-sidebar__dialog-actions">
+              <button
+                className="workspace-sidebar__dialog-cancel"
+                onClick={() => {
+                  setEditingCollection(null);
+                  setNewCollectionName("");
+                  setNewCollectionIcon("");
+                }}
+              >
+                {t("workspace.cancel")}
+              </button>
+              <button
+                className="workspace-sidebar__dialog-confirm"
+                onClick={handleSaveEditCollection}
+                disabled={!newCollectionName.trim()}
+              >
+                {t("settings.save")}
               </button>
             </div>
           </div>

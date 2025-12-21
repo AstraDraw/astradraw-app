@@ -76,15 +76,19 @@ const SceneGridCard: React.FC<SceneGridCardProps> = ({
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
     if (diffMins < 1) {
-      return "Just now";
+      return t("workspace.justNow");
     } else if (diffMins < 60) {
-      return `${diffMins} min${diffMins === 1 ? "" : "s"} ago`;
+      return diffMins === 1
+        ? t("workspace.minuteAgo", { count: diffMins })
+        : t("workspace.minutesAgo", { count: diffMins });
     } else if (diffHours < 24) {
-      return `${diffHours} hour${diffHours === 1 ? "" : "s"} ago`;
+      return diffHours === 1
+        ? t("workspace.hourAgo", { count: diffHours })
+        : t("workspace.hoursAgo", { count: diffHours });
     } else if (diffDays === 1) {
-      return "Yesterday";
+      return t("workspace.yesterday");
     } else if (diffDays < 7) {
-      return `${diffDays} days ago`;
+      return t("workspace.daysAgo", { count: diffDays });
     }
     return date.toLocaleDateString();
   };
@@ -209,7 +213,9 @@ const SceneGridCard: React.FC<SceneGridCardProps> = ({
           )}
         </div>
         <div className="scene-grid-card__meta">
-          <span className="scene-grid-card__author">by {"You"}</span>
+          <span className="scene-grid-card__author">
+            {t("workspace.byYou")}
+          </span>
         </div>
       </div>
 

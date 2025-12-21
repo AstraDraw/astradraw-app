@@ -13,6 +13,7 @@ import {
   type Team,
   type Collection,
 } from "../../auth/workspaceApi";
+import { EmojiPicker } from "../EmojiPicker";
 
 import "./TeamsCollectionsPage.scss";
 
@@ -43,24 +44,8 @@ const TEAM_COLORS = [
   "#ec4899",
 ];
 
-const COLLECTION_ICONS = [
-  "📁",
-  "📂",
-  "🗂️",
-  "📋",
-  "📌",
-  "⭐",
-  "💼",
-  "🎯",
-  "🚀",
-  "💡",
-  "🔒",
-  "🌟",
-  "📊",
-  "📈",
-  "🎨",
-  "🔧",
-];
+// Default icon for new collections (empty = user must select)
+const DEFAULT_COLLECTION_ICON = "";
 
 export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
   workspaceId,
@@ -82,7 +67,7 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
   const [showCreateCollection, setShowCreateCollection] = useState(false);
   const [newCollectionName, setNewCollectionName] = useState("");
   const [newCollectionIcon, setNewCollectionIcon] = useState(
-    COLLECTION_ICONS[0],
+    DEFAULT_COLLECTION_ICON,
   );
   const [newCollectionPrivate, setNewCollectionPrivate] = useState(false);
 
@@ -179,7 +164,7 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
       setCollections((prev) => [...prev, collection]);
       setShowCreateCollection(false);
       setNewCollectionName("");
-      setNewCollectionIcon(COLLECTION_ICONS[0]);
+      setNewCollectionIcon(DEFAULT_COLLECTION_ICON);
       setNewCollectionPrivate(false);
       showSuccess(t("settings.collectionCreated"));
     } catch (err: any) {
@@ -633,40 +618,31 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
               </button>
             </div>
             <div className="teams-collections-page__dialog-content">
-              <div className="teams-collections-page__form-group">
-                <label>{t("settings.collectionIcon")}</label>
-                <div className="teams-collections-page__icon-picker">
-                  {COLLECTION_ICONS.map((icon) => (
-                    <button
-                      key={icon}
-                      className={`teams-collections-page__icon-option ${
-                        newCollectionIcon === icon
-                          ? "teams-collections-page__icon-option--selected"
-                          : ""
-                      }`}
-                      onClick={() => setNewCollectionIcon(icon)}
-                    >
-                      {icon}
-                    </button>
-                  ))}
+              <div className="teams-collections-page__form-row">
+                <div className="teams-collections-page__form-group teams-collections-page__form-group--icon">
+                  <label>{t("settings.collectionIcon")}</label>
+                  <EmojiPicker
+                    value={newCollectionIcon}
+                    onSelect={setNewCollectionIcon}
+                  />
                 </div>
-              </div>
-              <div className="teams-collections-page__form-group">
-                <label>{t("settings.collectionName")}</label>
-                <input
-                  type="text"
-                  value={newCollectionName}
-                  onChange={(e) => setNewCollectionName(e.target.value)}
-                  onKeyDown={(e) => {
-                    stopPropagation(e);
-                    if (e.key === "Enter") {
-                      handleCreateCollection();
-                    }
-                  }}
-                  onKeyUp={stopPropagation}
-                  placeholder={t("settings.collectionNamePlaceholder")}
-                  className="teams-collections-page__input"
-                />
+                <div className="teams-collections-page__form-group teams-collections-page__form-group--name">
+                  <label>{t("settings.collectionName")}</label>
+                  <input
+                    type="text"
+                    value={newCollectionName}
+                    onChange={(e) => setNewCollectionName(e.target.value)}
+                    onKeyDown={(e) => {
+                      stopPropagation(e);
+                      if (e.key === "Enter") {
+                        handleCreateCollection();
+                      }
+                    }}
+                    onKeyUp={stopPropagation}
+                    placeholder={t("settings.collectionNamePlaceholder")}
+                    className="teams-collections-page__input"
+                  />
+                </div>
               </div>
               <div className="teams-collections-page__form-group">
                 <label className="teams-collections-page__checkbox-label">
