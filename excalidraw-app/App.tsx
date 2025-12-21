@@ -140,12 +140,15 @@ import { AuthProvider, useAuth } from "./auth";
 import {
   WorkspaceSidebar,
   WorkspaceSidebarTrigger,
+  InviteAcceptPage,
 } from "./components/Workspace";
 
 import {
   appModeAtom,
   navigateToCanvasAtom,
+  navigateToDashboardAtom,
   activeCollectionIdAtom,
+  triggerScenesRefreshAtom,
 } from "./components/Settings";
 
 import { WorkspaceMainContent } from "./components/Workspace";
@@ -223,6 +226,7 @@ if (window.self !== window.top) {
 
 const SCENE_URL_PATTERN = /^\/workspace\/([^/]+)\/scene\/([^/#]+)/;
 const LEGACY_ROOM_PATTERN = /^#room=([a-zA-Z0-9_-]+),([a-zA-Z0-9_-]+)$/;
+const INVITE_URL_PATTERN = /^\/invite\/([a-zA-Z0-9_-]+)$/;
 
 const shareableLinkConfirmDialog = {
   title: t("overwriteConfirm.modal.shareableLink.title"),
@@ -400,7 +404,9 @@ const ExcalidrawWrapper = () => {
   // App mode state (canvas, settings, or dashboard)
   const appMode = useAtomValue(appModeAtom);
   const navigateToCanvas = useSetAtom(navigateToCanvasAtom);
+  const navigateToDashboard = useSetAtom(navigateToDashboardAtom);
   const setActiveCollectionId = useSetAtom(activeCollectionIdAtom);
+  const triggerScenesRefresh = useSetAtom(triggerScenesRefreshAtom);
 
   // Auth state for auto-open on login
   const { isAuthenticated } = useAuth();
@@ -443,6 +449,14 @@ const ExcalidrawWrapper = () => {
   const [collections, setCollections] = useState<Collection[]>([]);
   const [privateCollectionId, setPrivateCollectionId] = useState<string | null>(
     null,
+  );
+
+  // Invite link handling - check URL on initial load
+  const [pendingInviteCode, setPendingInviteCode] = useState<string | null>(
+    () => {
+      const match = window.location.pathname.match(INVITE_URL_PATTERN);
+      return match ? match[1] : null;
+    },
   );
 
   // Track if we've already set the default active collection to prevent loops
@@ -1170,6 +1184,9 @@ const ExcalidrawWrapper = () => {
         });
         await updateSceneData(scene.id, blob);
 
+        // Trigger refresh for other components (e.g., sidebar scene list)
+        triggerScenesRefresh();
+
         excalidrawAPI.setToast({
           message: t("workspace.newSceneCreated") || "New scene created",
         });
@@ -1188,6 +1205,7 @@ const ExcalidrawWrapper = () => {
       privateCollectionId,
       navigateToCanvas,
       setActiveCollectionId,
+      triggerScenesRefresh,
     ],
   );
 
@@ -1432,6 +1450,24 @@ const ExcalidrawWrapper = () => {
     };
   }, [currentSceneId, excalidrawAPI, handleSaveToWorkspace]);
 
+  // Handle invite link success - navigate to the joined workspace's dashboard
+  const handleInviteSuccess = useCallback(
+    (workspace: Workspace) => {
+      setCurrentWorkspace(workspace);
+      setCurrentWorkspaceSlug(workspace.slug);
+      setPendingInviteCode(null);
+      // Navigate to dashboard to show the new workspace
+      navigateToDashboard();
+      setWorkspaceSidebarOpen(true);
+    },
+    [navigateToDashboard],
+  );
+
+  const handleInviteCancel = useCallback(() => {
+    setPendingInviteCode(null);
+    window.history.replaceState({}, document.title, "/");
+  }, []);
+
   // browsers generally prevent infinite self-embedding, there are
   // cases where it still happens, and while we disallow self-embedding
   // by not whitelisting our own origin, this serves as an additional guard
@@ -1452,6 +1488,17 @@ const ExcalidrawWrapper = () => {
   }
 
   // AstraDraw: Removed Excalidraw+ commands - will be replaced with AstraDraw+ later
+
+  // Render invite acceptance page if we have a pending invite code
+  if (pendingInviteCode) {
+    return (
+      <InviteAcceptPage
+        inviteCode={pendingInviteCode}
+        onSuccess={handleInviteSuccess}
+        onCancel={handleInviteCancel}
+      />
+    );
+  }
 
   // Determine if current user is admin of the workspace
   const isWorkspaceAdmin = currentWorkspace?.role === "ADMIN";

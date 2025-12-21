@@ -495,7 +495,8 @@
       }
     }
 
-    label {
+    // Only style direct label children (section titles), not nested labels in member-list
+    > label {
       display: block;
       font-size: 14px;
       font-weight: 600;
@@ -573,7 +574,7 @@
   }
 
   &__member-row {
-    display: flex;
+    display: flex !important;
     align-items: center;
     gap: 12px;
     padding: 12px 14px;

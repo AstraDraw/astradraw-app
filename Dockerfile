@@ -41,6 +41,9 @@ FROM --platform=${TARGETPLATFORM} nginx:1.27-alpine
 # Copy the built application
 COPY --from=build /opt/node_app/excalidraw-app/build /usr/share/nginx/html
 
+# Copy nginx configuration for SPA routing
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
 # Create libraries directory for pre-bundled libraries (mounted via Docker volume)
 RUN mkdir -p /app/libraries
 

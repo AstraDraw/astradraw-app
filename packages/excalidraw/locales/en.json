@@ -974,7 +974,20 @@
     "workspaceTypeShared": "Shared",
     "workspaceCreated": "Workspace created successfully",
     "workspaceSlugTaken": "This URL is already taken",
-    "creating": "Creating..."
+    "creating": "Creating...",
+    "invite": {
+      "joiningWorkspace": "Joining workspace...",
+      "loginToJoin": "Sign in to join workspace",
+      "loginDescription": "You've been invited to join a workspace. Please sign in or create an account to continue.",
+      "invalidLink": "This invite link is invalid or has expired",
+      "alreadyMember": "You are already a member of this workspace",
+      "joinSuccess": "Successfully joined workspace!",
+      "error": "Failed to join workspace",
+      "errorTitle": "Unable to join",
+      "tryAgain": "Try again",
+      "goHome": "Go to home",
+      "cancel": "Cancel"
+    }
   },
   "settings": {
     "profile": "Profile",

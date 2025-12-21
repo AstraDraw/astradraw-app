@@ -11,3 +11,4 @@ export { DashboardView } from "./DashboardView";
 export { CollectionView } from "./CollectionView";
 export { WorkspaceMainContent } from "./WorkspaceMainContent";
 export { CopyMoveDialog } from "./CopyMoveDialog";
+export { InviteAcceptPage } from "./InviteAcceptPage";

@@ -113,3 +113,34 @@ export const navigateToTeamsCollectionsAtom = atom(null, (get, set) => {
   set(appModeAtom, "dashboard");
   set(dashboardViewAtom, "teams-collections");
 });
+
+/**
+ * Refresh trigger atoms - increment to trigger re-fetch in subscribed components
+ * This allows cross-component communication without prop drilling
+ */
+
+/**
+ * Collections refresh trigger - increment when collections are created/updated/deleted
+ * Components that display collections should subscribe to this and re-fetch when it changes
+ */
+export const collectionsRefreshAtom = atom(0);
+
+/**
+ * Action atom to trigger collections refresh
+ */
+export const triggerCollectionsRefreshAtom = atom(null, (get, set) => {
+  set(collectionsRefreshAtom, get(collectionsRefreshAtom) + 1);
+});
+
+/**
+ * Scenes refresh trigger - increment when scenes are created/updated/deleted
+ * Components that display scenes should subscribe to this and re-fetch when it changes
+ */
+export const scenesRefreshAtom = atom(0);
+
+/**
+ * Action atom to trigger scenes refresh
+ */
+export const triggerScenesRefreshAtom = atom(null, (get, set) => {
+  set(scenesRefreshAtom, get(scenesRefreshAtom) + 1);
+});

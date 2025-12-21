@@ -1,0 +1,237 @@
+.invite-accept-page {
+  // Define --ui-font locally since component is outside .excalidraw container
+  --ui-font: Assistant, system-ui, BlinkMacSystemFont, -apple-system, Segoe UI,
+    Roboto, Helvetica, Arial, sans-serif;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 1rem;
+  font-family: var(--ui-font);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+  &__card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 2.5rem;
+    max-width: 400px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+
+    h1 {
+      margin: 0 0 0.75rem;
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #1a1a2e;
+    }
+  }
+
+  &__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 1.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+
+    svg {
+      width: 32px;
+      height: 32px;
+      color: #ffffff;
+    }
+
+    &--error {
+      background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
+    }
+  }
+
+  &__description {
+    margin: 0 0 1.5rem;
+    color: #6b7280;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+  }
+
+  &__error {
+    margin: 0 0 1.5rem;
+    padding: 0.75rem 1rem;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    color: #dc2626;
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+
+  &__loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+
+    p {
+      margin: 0;
+      color: #6b7280;
+      font-size: 1rem;
+    }
+  }
+
+  &__spinner {
+    width: 48px;
+    height: 48px;
+    border: 3px solid #e5e7eb;
+    border-top-color: #667eea;
+    border-radius: 50%;
+    animation: invite-spinner 0.8s linear infinite;
+  }
+
+  &__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  &__button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.875rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-family: var(--ui-font);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &--primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #ffffff;
+
+      &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      }
+
+      &:active {
+        transform: translateY(0);
+      }
+    }
+
+    &--secondary {
+      background: transparent;
+      color: #6b7280;
+      border: 1px solid #e5e7eb;
+
+      &:hover {
+        background: #f9fafb;
+        border-color: #d1d5db;
+      }
+    }
+  }
+}
+
+// Dark mode support
+.excalidraw.theme--dark,
+[data-theme="dark"] {
+  .invite-accept-page {
+    background: linear-gradient(135deg, #1e1e2e 0%, #2d1b4e 100%);
+
+    &__card {
+      background: #232329;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+
+      h1 {
+        color: #f3f4f6;
+      }
+    }
+
+    &__description {
+      color: #9ca3af;
+    }
+
+    &__error {
+      background: rgba(220, 38, 38, 0.1);
+      border-color: rgba(220, 38, 38, 0.3);
+      color: #f87171;
+    }
+
+    &__loading p {
+      color: #9ca3af;
+    }
+
+    &__spinner {
+      border-color: #374151;
+      border-top-color: #818cf8;
+    }
+
+    &__button {
+      &--secondary {
+        color: #9ca3af;
+        border-color: #374151;
+
+        &:hover {
+          background: #2d2d35;
+          border-color: #4b5563;
+        }
+      }
+    }
+  }
+}
+
+// Standalone dark mode (when not inside .excalidraw)
+@media (prefers-color-scheme: dark) {
+  .invite-accept-page:not(.excalidraw *) {
+    background: linear-gradient(135deg, #1e1e2e 0%, #2d1b4e 100%);
+
+    .invite-accept-page__card {
+      background: #232329;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+
+      h1 {
+        color: #f3f4f6;
+      }
+    }
+
+    .invite-accept-page__description {
+      color: #9ca3af;
+    }
+
+    .invite-accept-page__error {
+      background: rgba(220, 38, 38, 0.1);
+      border-color: rgba(220, 38, 38, 0.3);
+      color: #f87171;
+    }
+
+    .invite-accept-page__loading p {
+      color: #9ca3af;
+    }
+
+    .invite-accept-page__spinner {
+      border-color: #374151;
+      border-top-color: #818cf8;
+    }
+
+    .invite-accept-page__button--secondary {
+      color: #9ca3af;
+      border-color: #374151;
+
+      &:hover {
+        background: #2d2d35;
+        border-color: #4b5563;
+      }
+    }
+  }
+}
+
+@keyframes invite-spinner {
+  to {
+    transform: rotate(360deg);
+  }
+}

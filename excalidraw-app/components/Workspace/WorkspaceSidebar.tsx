@@ -37,6 +37,9 @@ import {
   activeCollectionIdAtom,
   sidebarModeAtom,
   dashboardViewAtom,
+  triggerCollectionsRefreshAtom,
+  triggerScenesRefreshAtom,
+  scenesRefreshAtom,
 } from "../Settings/settingsState";
 
 import { EmojiPicker } from "../EmojiPicker";
@@ -128,6 +131,10 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
   );
   const navigateToMembers = useSetAtom(navigateToMembersAtom);
   const navigateToTeamsCollections = useSetAtom(navigateToTeamsCollectionsAtom);
+  const triggerCollectionsRefresh = useSetAtom(triggerCollectionsRefreshAtom);
+  const triggerScenesRefresh = useSetAtom(triggerScenesRefreshAtom);
+  // Subscribe to scenes refresh trigger from other components (e.g., App.tsx)
+  const scenesRefresh = useAtomValue(scenesRefreshAtom);
 
   // Local state
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
@@ -288,11 +295,12 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
   }, [currentWorkspace, collections, onWorkspaceChange]);
 
   // Load scenes when active collection changes (only in board mode)
+  // Also reload when scenesRefresh changes (triggered by other components)
   useEffect(() => {
     if (isOpen && isAuthenticated && sidebarMode === "board") {
       loadScenes();
     }
-  }, [isOpen, isAuthenticated, sidebarMode, loadScenes]);
+  }, [isOpen, isAuthenticated, sidebarMode, loadScenes, scenesRefresh]);
 
   // Close menus when clicking outside
   useEffect(() => {
@@ -340,11 +348,13 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
     try {
       await deleteSceneApi(sceneId);
       setScenes((prev) => prev.filter((s) => s.id !== sceneId));
+      // Trigger refresh for other components (e.g., DashboardView, CollectionView)
+      triggerScenesRefresh();
     } catch (err) {
       console.error("Failed to delete scene:", err);
       alert("Failed to delete scene");
     }
-  }, []);
+  }, [triggerScenesRefresh]);
 
   const handleRenameScene = useCallback(
     async (sceneId: string, newTitle: string) => {
@@ -353,23 +363,27 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
         setScenes((prev) =>
           prev.map((s) => (s.id === sceneId ? updatedScene : s)),
         );
+        // Trigger refresh for other components
+        triggerScenesRefresh();
       } catch (err) {
         console.error("Failed to rename scene:", err);
         alert("Failed to rename scene");
       }
     },
-    [],
+    [triggerScenesRefresh],
   );
 
   const handleDuplicateScene = useCallback(async (sceneId: string) => {
     try {
       const newScene = await duplicateSceneApi(sceneId);
       setScenes((prev) => [newScene, ...prev]);
+      // Trigger refresh for other components
+      triggerScenesRefresh();
     } catch (err) {
       console.error("Failed to duplicate scene:", err);
       alert("Failed to duplicate scene");
     }
-  }, []);
+  }, [triggerScenesRefresh]);
 
   const handleCreateCollection = useCallback(async () => {
     if (!currentWorkspace || !newCollectionName.trim()) {
@@ -385,11 +399,13 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
       setNewCollectionName("");
       setNewCollectionIcon("");
       setShowCreateCollection(false);
+      // Trigger refresh for other components (e.g., TeamsCollectionsPage)
+      triggerCollectionsRefresh();
     } catch (err) {
       console.error("Failed to create collection:", err);
       alert("Failed to create collection");
     }
-  }, [currentWorkspace, newCollectionName, newCollectionIcon]);
+  }, [currentWorkspace, newCollectionName, newCollectionIcon, triggerCollectionsRefresh]);
 
   const handleEditCollection = useCallback((collection: Collection) => {
     setEditingCollection(collection);
@@ -413,11 +429,13 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
       setEditingCollection(null);
       setNewCollectionName("");
       setNewCollectionIcon("");
+      // Trigger refresh for other components (e.g., TeamsCollectionsPage)
+      triggerCollectionsRefresh();
     } catch (err) {
       console.error("Failed to update collection:", err);
       alert("Failed to update collection");
     }
-  }, [editingCollection, newCollectionName, newCollectionIcon]);
+  }, [editingCollection, newCollectionName, newCollectionIcon, triggerCollectionsRefresh]);
 
   const handleDeleteCollection = useCallback(
     async (collectionId: string) => {
@@ -432,12 +450,14 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
           // Reset to private collection
           setActiveCollectionId(privateCollection?.id || null);
         }
+        // Trigger refresh for other components (e.g., TeamsCollectionsPage)
+        triggerCollectionsRefresh();
       } catch (err) {
         console.error("Failed to delete collection:", err);
         alert("Failed to delete collection");
       }
     },
-    [activeCollectionId, privateCollection, setActiveCollectionId],
+    [activeCollectionId, privateCollection, setActiveCollectionId, triggerCollectionsRefresh],
   );
 
   const openCopyMoveDialog = useCallback(

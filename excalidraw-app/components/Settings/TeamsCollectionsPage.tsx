@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
+import { useAtomValue } from "../../app-jotai";
 
 import {
   listTeams,
@@ -20,6 +21,7 @@ import {
   type CollectionTeamAccess,
 } from "../../auth/workspaceApi";
 import { EmojiPicker } from "../EmojiPicker";
+import { collectionsRefreshAtom } from "./settingsState";
 
 import "./TeamsCollectionsPage.scss";
 
@@ -61,6 +63,9 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
   workspaceId,
   isAdmin,
 }) => {
+  // Subscribe to collections refresh trigger from other components (e.g., sidebar)
+  const collectionsRefresh = useAtomValue(collectionsRefreshAtom);
+
   const [teams, setTeams] = useState<Team[]>([]);
   const [collections, setCollections] = useState<CollectionWithTeams[]>([]);
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
@@ -147,7 +152,7 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
 
   useEffect(() => {
     loadData();
-  }, [loadData]);
+  }, [loadData, collectionsRefresh]);
 
   const showSuccess = (message: string) => {
     setSuccessMessage(message);
@@ -883,6 +888,7 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
                             onChange={() =>
                               toggleCollectionSelection(collection.id)
                             }
+                            onClick={(e) => e.stopPropagation()}
                             className="teams-collections-page__row-checkbox"
                           />
                         </div>
@@ -911,14 +917,16 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
                               ? "teams-collections-page__member-row--disabled"
                               : ""
                           }`}
-                          onClick={() =>
-                            !memberIsAdmin && toggleMemberSelection(member.id)
-                          }
                           title={
                             memberIsAdmin
                               ? t("settings.adminAlwaysInTeam")
                               : undefined
                           }
+                          onClick={() => {
+                            if (!memberIsAdmin) {
+                              toggleMemberSelection(member.id);
+                            }
+                          }}
                         >
                           {member.user.avatarUrl ? (
                             <img
@@ -947,9 +955,12 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
                               memberIsAdmin ||
                               selectedMemberIds.includes(member.id)
                             }
-                            onChange={() =>
-                              !memberIsAdmin && toggleMemberSelection(member.id)
-                            }
+                            onChange={() => {
+                              if (!memberIsAdmin) {
+                                toggleMemberSelection(member.id);
+                              }
+                            }}
+                            onClick={(e) => e.stopPropagation()}
                             disabled={memberIsAdmin}
                             className="teams-collections-page__row-checkbox"
                           />
@@ -1045,16 +1056,9 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
                         (ta) => ta.teamId === team.id,
                       );
                       return (
-                        <div
+                        <label
                           key={team.id}
                           className="teams-collections-page__member-row"
-                          onClick={() =>
-                            handleToggleCollectionTeamAccess(
-                              editingCollection.id,
-                              team.id,
-                              hasAccess || false,
-                            )
-                          }
                         >
                           <div
                             className="teams-collections-page__team-color"
@@ -1075,7 +1079,7 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
                             }
                             className="teams-collections-page__row-checkbox"
                           />
-                        </div>
+                        </label>
                       );
                     })}
                   </div>
