@@ -168,6 +168,12 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
     return collections.find((c) => c.id === activeCollectionId) || null;
   }, [activeCollectionId, collections, privateCollection]);
 
+  // Track if we've set the default collection to prevent infinite loops
+  const hasSetDefaultCollectionRef = useRef(false);
+
+  // Track last notified workspace to prevent duplicate onWorkspaceChange calls
+  const lastNotifiedWorkspaceRef = useRef<string | null>(null);
+
   // Load workspaces
   const loadWorkspaces = useCallback(async () => {
     if (!isAuthenticated) {
@@ -194,18 +200,10 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
     try {
       const data = await listCollections(currentWorkspace.id);
       setCollections(data);
-
-      // Set default active collection to Private if not set
-      if (!activeCollectionId) {
-        const privateCol = data.find((c) => c.isPrivate);
-        if (privateCol) {
-          setActiveCollectionId(privateCol.id);
-        }
-      }
     } catch (err) {
       console.error("Failed to load collections:", err);
     }
-  }, [currentWorkspace, activeCollectionId, setActiveCollectionId]);
+  }, [currentWorkspace]);
 
   // Load scenes for active collection
   const loadScenes = useCallback(async () => {
@@ -243,9 +241,36 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
     }
   }, [currentWorkspace, loadCollections]);
 
-  // Notify parent when workspace or private collection changes
+  // Set default active collection to Private when collections are loaded
+  // This is separate from loadCollections to avoid infinite loop
   useEffect(() => {
-    if (currentWorkspace && onWorkspaceChange) {
+    if (
+      collections.length > 0 &&
+      !activeCollectionId &&
+      !hasSetDefaultCollectionRef.current
+    ) {
+      const privateCol = collections.find((c) => c.isPrivate);
+      if (privateCol) {
+        hasSetDefaultCollectionRef.current = true;
+        setActiveCollectionId(privateCol.id);
+      }
+    }
+  }, [collections, activeCollectionId, setActiveCollectionId]);
+
+  // Reset the default collection flag when workspace changes
+  useEffect(() => {
+    hasSetDefaultCollectionRef.current = false;
+  }, [currentWorkspace]);
+
+  // Notify parent when workspace changes (only once per workspace)
+  // This prevents infinite loops when App.tsx reloads collections in response
+  useEffect(() => {
+    if (
+      currentWorkspace &&
+      onWorkspaceChange &&
+      lastNotifiedWorkspaceRef.current !== currentWorkspace.id
+    ) {
+      lastNotifiedWorkspaceRef.current = currentWorkspace.id;
       const privateCol = collections.find((c) => c.isPrivate);
       onWorkspaceChange(currentWorkspace, privateCol?.id || null);
     }

@@ -447,11 +447,16 @@ const ExcalidrawWrapper = () => {
     null,
   );
 
+  // Track if we've already set the default active collection to prevent loops
+  const hasSetDefaultActiveCollectionRef = useRef(false);
+
   // Auto-open sidebar when user logs in
   useEffect(() => {
     if (isAuthenticated && !wasAuthenticated.current) {
       // User just logged in, open sidebar
       setWorkspaceSidebarOpen(true);
+      // Reset the flag when user logs in
+      hasSetDefaultActiveCollectionRef.current = false;
     }
     wasAuthenticated.current = isAuthenticated;
   }, [isAuthenticated]);
@@ -462,6 +467,7 @@ const ExcalidrawWrapper = () => {
       setCurrentWorkspace(null);
       setCollections([]);
       setPrivateCollectionId(null);
+      hasSetDefaultActiveCollectionRef.current = false;
       return;
     }
 
@@ -485,8 +491,9 @@ const ExcalidrawWrapper = () => {
           );
           if (privateCollection) {
             setPrivateCollectionId(privateCollection.id);
-            // Set as default active collection if none is set
-            if (!activeCollectionId) {
+            // Set as default active collection only once
+            if (!hasSetDefaultActiveCollectionRef.current) {
+              hasSetDefaultActiveCollectionRef.current = true;
               setActiveCollectionId(privateCollection.id);
             }
           }
@@ -497,12 +504,9 @@ const ExcalidrawWrapper = () => {
     };
 
     loadWorkspaceData();
-  }, [
-    isAuthenticated,
-    activeCollectionId,
-    setActiveCollectionId,
-    currentWorkspaceSlug,
-  ]);
+    // Note: Removed activeCollectionId from deps to prevent infinite loop
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, setActiveCollectionId, currentWorkspaceSlug]);
 
   // Save sidebar preference to localStorage
   useEffect(() => {
@@ -1474,12 +1478,8 @@ const ExcalidrawWrapper = () => {
             setCurrentWorkspace(workspace);
             setCurrentWorkspaceSlug(workspace.slug);
             setPrivateCollectionId(privateColId);
-            // Reload collections when workspace changes
-            if (workspace) {
-              listCollections(workspace.id)
-                .then(setCollections)
-                .catch(console.error);
-            }
+            // Note: Don't reload collections here - WorkspaceSidebar already loads them
+            // and calling listCollections here causes an infinite loop
           }}
         />
 
@@ -1517,12 +1517,8 @@ const ExcalidrawWrapper = () => {
             setCurrentWorkspace(workspace);
             setCurrentWorkspaceSlug(workspace.slug);
             setPrivateCollectionId(privateColId);
-            // Reload collections when workspace changes
-            if (workspace) {
-              listCollections(workspace.id)
-                .then(setCollections)
-                .catch(console.error);
-            }
+            // Note: Don't reload collections here - WorkspaceSidebar already loads them
+            // and calling listCollections here causes an infinite loop
           }}
         />
       )}
