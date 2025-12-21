@@ -232,15 +232,40 @@ export class TalktrackRecorder {
     const width = this.compositorCanvas.width;
     const height = this.compositorCanvas.height;
 
-    // Clear canvas
-    ctx.clearRect(0, 0, width, height);
+    // Fill with white background first (prevents black bars from transparent areas)
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, width, height);
 
-    // 1. Draw the static canvas (main drawing)
-    ctx.drawImage(this.staticCanvas, 0, 0, width, height);
+    // 1. Draw the static canvas (main drawing) - use source dimensions to avoid stretching
+    const srcWidth = this.staticCanvas.width;
+    const srcHeight = this.staticCanvas.height;
+    ctx.drawImage(
+      this.staticCanvas,
+      0,
+      0,
+      srcWidth,
+      srcHeight,
+      0,
+      0,
+      width,
+      height,
+    );
 
     // 2. Draw the interactive canvas (laser pointer, selections) if available
     if (this.interactiveCanvas) {
-      ctx.drawImage(this.interactiveCanvas, 0, 0, width, height);
+      const interSrcWidth = this.interactiveCanvas.width;
+      const interSrcHeight = this.interactiveCanvas.height;
+      ctx.drawImage(
+        this.interactiveCanvas,
+        0,
+        0,
+        interSrcWidth,
+        interSrcHeight,
+        0,
+        0,
+        width,
+        height,
+      );
     }
 
     // Draw camera PIP if available
@@ -353,10 +378,21 @@ export class TalktrackRecorder {
         throw new Error("Could not find Excalidraw canvas");
       }
 
-      // Set up compositor canvas to match source canvas
+      // Set up compositor canvas to match source canvas CSS display size
+      // We use getBoundingClientRect to get the actual display size, not the
+      // internal buffer size (which is scaled by devicePixelRatio)
       if (this.compositorCanvas) {
-        this.compositorCanvas.width = this.staticCanvas.width;
-        this.compositorCanvas.height = this.staticCanvas.height;
+        const rect = this.staticCanvas.getBoundingClientRect();
+        // Use a reasonable resolution for recording (1080p max to avoid huge files)
+        const maxWidth = 1920;
+        const maxHeight = 1080;
+        const scale = Math.min(
+          1,
+          maxWidth / rect.width,
+          maxHeight / rect.height,
+        );
+        this.compositorCanvas.width = Math.round(rect.width * scale);
+        this.compositorCanvas.height = Math.round(rect.height * scale);
       }
 
       // Initialize camera if selected
@@ -588,6 +624,18 @@ export function getTalktrackRecorder(): TalktrackRecorder {
     recorderInstance = new TalktrackRecorder();
   }
   return recorderInstance;
+}
+
+/**
+ * Dispose of the TalktrackRecorder singleton and reset the reference.
+ * This should be called when the TalktrackManager component unmounts
+ * to ensure a fresh instance is created on next mount.
+ */
+export function disposeTalktrackRecorder(): void {
+  if (recorderInstance) {
+    recorderInstance.dispose();
+    recorderInstance = null;
+  }
 }
 
 /**

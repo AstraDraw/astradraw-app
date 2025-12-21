@@ -8,6 +8,7 @@ import { createTalktrack } from "../../auth/workspaceApi";
 
 import {
   getTalktrackRecorder,
+  disposeTalktrackRecorder,
   type RecordingState,
   type TalktrackRecorder,
 } from "./TalktrackRecorder";
@@ -21,6 +22,7 @@ interface TalktrackManagerProps {
   onCloseRecordingDialog: () => void;
   sceneId: string | null;
   onRecordingSaved?: () => void;
+  onCloseWorkspaceSidebar?: () => void;
 }
 
 export const TalktrackManager: React.FC<TalktrackManagerProps> = ({
@@ -29,6 +31,7 @@ export const TalktrackManager: React.FC<TalktrackManagerProps> = ({
   onCloseRecordingDialog,
   sceneId,
   onRecordingSaved,
+  onCloseWorkspaceSidebar,
 }) => {
   const [recordingState, setRecordingState] = useState<RecordingState>({
     status: "idle",
@@ -50,7 +53,9 @@ export const TalktrackManager: React.FC<TalktrackManagerProps> = ({
     recorderRef.current.setOnStateChange(setRecordingState);
 
     return () => {
-      recorderRef.current?.dispose();
+      // Use disposeTalktrackRecorder to properly reset the singleton
+      // This ensures a fresh instance is created on next mount (e.g., after collection switch)
+      disposeTalktrackRecorder();
     };
   }, []);
 
@@ -76,6 +81,13 @@ export const TalktrackManager: React.FC<TalktrackManagerProps> = ({
 
       setCameraEnabled(!!videoDeviceId);
       onCloseRecordingDialog();
+
+      // Close the workspace sidebar before recording to ensure full canvas width
+      // This prevents black bars on the sides of the recording
+      onCloseWorkspaceSidebar?.();
+
+      // Small delay to allow sidebar animation to complete and canvas to resize
+      await new Promise((resolve) => setTimeout(resolve, 300));
 
       try {
         // Prepare the recorder
@@ -121,7 +133,7 @@ export const TalktrackManager: React.FC<TalktrackManagerProps> = ({
         });
       }
     },
-    [excalidrawAPI, onCloseRecordingDialog, sceneId],
+    [excalidrawAPI, onCloseRecordingDialog, onCloseWorkspaceSidebar, sceneId],
   );
 
   // Stop recording and upload

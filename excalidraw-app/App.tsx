@@ -1442,7 +1442,11 @@ const ExcalidrawWrapper = () => {
             }}
           />
 
-          <AppSidebar excalidrawAPI={excalidrawAPI} sceneId={currentSceneId} />
+          <AppSidebar
+            excalidrawAPI={excalidrawAPI}
+            sceneId={currentSceneId}
+            onCloseWorkspaceSidebar={() => setWorkspaceSidebarOpen(false)}
+          />
 
           {excalidrawAPI && <PenToolbar excalidrawAPI={excalidrawAPI} />}
           {excalidrawAPI && <PresentationMode excalidrawAPI={excalidrawAPI} />}
