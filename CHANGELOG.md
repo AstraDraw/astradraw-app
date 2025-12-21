@@ -9,6 +9,46 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.40] - 2025-12-21
+
+### Added
+
+- **Dashboard & Collection Views** (Major UI Refactor)
+
+  - New `DashboardView` component showing "Recently modified by you" and "Recently visited by you" scene grids
+  - New `CollectionView` component displaying scenes for selected collection with sort options
+  - New `WorkspaceMainContent` router component that switches between Dashboard and Collection views
+  - New `SceneCardGrid` reusable component for displaying scene cards in a grid layout
+  - New `BoardModeNav` minimal sidebar for canvas/drawing mode
+  - New `FullModeNav` full navigation sidebar for dashboard/collection browsing
+
+- **New App Modes**
+
+  - `dashboard` mode added to `AppMode` type (alongside `canvas` and `settings`)
+  - `sidebarModeAtom` to switch between "board" (minimal) and "full" (navigation) sidebar modes
+  - `dashboardViewAtom` to track current view ("home" or "collection")
+  - `activeCollectionIdAtom` to track selected collection
+  - Navigation atoms: `navigateToDashboardAtom`, `navigateToCollectionAtom`
+
+- **New Translation Keys**
+  - Dashboard: `recentlyModified`, `recentlyVisited`, `teamMembersAt`, `noOneActive`
+  - Collection: `emptyCollection`, `letsChangeThat`, `dragDropHint`, `importScenes`, `createScene`
+  - Sorting: `lastCreated`, `lastModified`, `sort`
+  - UI: `tip`, `changeHomePage`, `preferences`, `backToDashboard`, `privateDescription`
+
+### Changed
+
+- **Scenes Display Location**: Scenes are now rendered in the main content area (right side), NOT in the sidebar
+- **Sidebar Purpose**: Left sidebar is now purely for navigation (workspace, collections, settings)
+- **Clicking Collection**: Opens CollectionView in main content instead of expanding scenes in sidebar
+- **Clicking Scene Card**: Opens scene in canvas mode and switches sidebar to minimal BoardModeNav
+
+### Fixed
+
+- **Infinite Re-render Loop**: Fixed flickering issue when viewing collections caused by `useEffect` dependency on object references instead of IDs
+  - Changed `CollectionView` to use `workspaceId` and `collectionId` in effect dependencies
+  - Changed `DashboardView` to use `workspaceId` in effect dependencies
+
 ## [0.18.0-beta0.39] - 2025-12-21
 
 ### Added
@@ -37,6 +77,7 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 ### Added
 
 - **Roles, Teams & Collections System**
+
   - Multi-workspace support with workspace selector dropdown
   - Role-based access control (ADMIN, MEMBER, VIEWER)
   - Teams for organizing users with shared collection access
@@ -45,6 +86,7 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
   - Team-based collection access control
 
 - **Full-Page Settings Views**
+
   - Replaced modal dialogs with full-page settings layout
   - New settings navigation sidebar
   - Profile page (converted from UserProfileDialog)
@@ -53,6 +95,7 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
   - Teams & Collections page with CRUD operations
 
 - **Workspace Sidebar Redesign**
+
   - Workspace selector at top with dropdown
   - Navigation items (Dashboard, Settings, Members) for admins
   - Collections list with expand/collapse
@@ -60,8 +103,8 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
   - User profile at bottom
 
 - **New Translation Keys**
-  - Added settings.* keys for all settings pages
-  - Added workspace.* keys for sidebar navigation
+  - Added settings.\* keys for all settings pages
+  - Added workspace.\* keys for sidebar navigation
   - Translations for both English and Russian
 
 ### Changed

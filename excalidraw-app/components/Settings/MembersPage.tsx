@@ -36,7 +36,9 @@ export const MembersPage: React.FC<MembersPageProps> = ({
   const [searchQuery, setSearchQuery] = useState("");
 
   const loadMembers = useCallback(async () => {
-    if (!workspaceId) return;
+    if (!workspaceId) {
+      return;
+    }
 
     setIsLoading(true);
     setError(null);
@@ -55,7 +57,9 @@ export const MembersPage: React.FC<MembersPageProps> = ({
   }, [loadMembers]);
 
   const handleRoleChange = async (memberId: string, newRole: WorkspaceRole) => {
-    if (!workspaceId) return;
+    if (!workspaceId) {
+      return;
+    }
 
     try {
       await updateMemberRole(workspaceId, memberId, newRole);
@@ -69,7 +73,9 @@ export const MembersPage: React.FC<MembersPageProps> = ({
   };
 
   const handleRemoveMember = async (memberId: string, memberName: string) => {
-    if (!workspaceId) return;
+    if (!workspaceId) {
+      return;
+    }
     if (!confirm(t("settings.confirmRemoveMember", { name: memberName }))) {
       return;
     }
@@ -84,13 +90,15 @@ export const MembersPage: React.FC<MembersPageProps> = ({
   };
 
   const handleCreateInviteLink = async () => {
-    if (!workspaceId) return;
+    if (!workspaceId) {
+      return;
+    }
 
     try {
       // Calculate expiration date (7 days from now)
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 7);
-      
+
       const link = await createInviteLink(workspaceId, {
         role: inviteRole,
         expiresAt: expiresAt.toISOString(),
@@ -140,7 +148,9 @@ export const MembersPage: React.FC<MembersPageProps> = ({
   };
 
   const filteredMembers = members.filter((member) => {
-    if (!searchQuery.trim()) return true;
+    if (!searchQuery.trim()) {
+      return true;
+    }
     const query = searchQuery.toLowerCase();
     return (
       member.user.name?.toLowerCase().includes(query) ||
@@ -265,20 +275,24 @@ export const MembersPage: React.FC<MembersPageProps> = ({
                           e.target.value as WorkspaceRole,
                         )
                       }
-                      className={`members-page__role-select ${getRoleBadgeClass(member.role)}`}
+                      className={`members-page__role-select ${getRoleBadgeClass(
+                        member.role,
+                      )}`}
                     >
                       <option value="MEMBER">{t("settings.roleMember")}</option>
                       <option value="VIEWER">{t("settings.roleViewer")}</option>
                     </select>
                   ) : (
                     <span
-                      className={`members-page__role-badge ${getRoleBadgeClass(member.role)}`}
+                      className={`members-page__role-badge ${getRoleBadgeClass(
+                        member.role,
+                      )}`}
                     >
                       {member.role === "ADMIN"
                         ? t("settings.roleAdmin")
                         : member.role === "MEMBER"
-                          ? t("settings.roleMember")
-                          : t("settings.roleViewer")}
+                        ? t("settings.roleMember")
+                        : t("settings.roleViewer")}
                     </span>
                   )}
                 </div>
@@ -413,4 +427,3 @@ export const MembersPage: React.FC<MembersPageProps> = ({
 };
 
 export default MembersPage;
-

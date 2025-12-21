@@ -1153,7 +1153,9 @@ export async function updateTeam(
 /**
  * Delete a team
  */
-export async function deleteTeam(teamId: string): Promise<{ success: boolean }> {
+export async function deleteTeam(
+  teamId: string,
+): Promise<{ success: boolean }> {
   const response = await fetch(`${getApiBaseUrl()}/teams/${teamId}`, {
     method: "DELETE",
     credentials: "include",

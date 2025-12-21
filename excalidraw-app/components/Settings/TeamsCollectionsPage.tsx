@@ -93,7 +93,9 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
   );
 
   const loadData = useCallback(async () => {
-    if (!workspaceId) return;
+    if (!workspaceId) {
+      return;
+    }
 
     setIsLoading(true);
     setError(null);
@@ -116,7 +118,9 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
   }, [loadData]);
 
   const handleCreateTeam = async () => {
-    if (!workspaceId || !newTeamName.trim()) return;
+    if (!workspaceId || !newTeamName.trim()) {
+      return;
+    }
 
     try {
       const team = await createTeam(workspaceId, {
@@ -162,7 +166,9 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
   };
 
   const handleCreateCollection = async () => {
-    if (!workspaceId || !newCollectionName.trim()) return;
+    if (!workspaceId || !newCollectionName.trim()) {
+      return;
+    }
 
     try {
       const collection = await createCollection(workspaceId, {
@@ -243,7 +249,9 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
 
         {/* Success/Error messages */}
         {successMessage && (
-          <div className="teams-collections-page__success">{successMessage}</div>
+          <div className="teams-collections-page__success">
+            {successMessage}
+          </div>
         )}
         {error && (
           <div className="teams-collections-page__error-inline">{error}</div>
@@ -473,7 +481,9 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
                           ? t("settings.privateCollection")
                           : t("settings.sharedCollection")}
                         {collection.sceneCount !== undefined &&
-                          ` · ${t("settings.sceneCount", { count: collection.sceneCount })}`}
+                          ` · ${t("settings.sceneCount", {
+                            count: collection.sceneCount,
+                          })}`}
                       </span>
                     </div>
                     {isAdmin && !collection.isPrivate && (
@@ -496,7 +506,10 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
                         <button
                           className="teams-collections-page__action-button teams-collections-page__action-button--danger"
                           onClick={() =>
-                            handleDeleteCollection(collection.id, collection.name)
+                            handleDeleteCollection(
+                              collection.id,
+                              collection.name,
+                            )
                           }
                           title={t("workspace.delete")}
                         >
@@ -554,7 +567,9 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
                   onChange={(e) => setNewTeamName(e.target.value)}
                   onKeyDown={(e) => {
                     stopPropagation(e);
-                    if (e.key === "Enter") handleCreateTeam();
+                    if (e.key === "Enter") {
+                      handleCreateTeam();
+                    }
                   }}
                   onKeyUp={stopPropagation}
                   placeholder={t("settings.teamNamePlaceholder")}
@@ -644,7 +659,9 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
                   onChange={(e) => setNewCollectionName(e.target.value)}
                   onKeyDown={(e) => {
                     stopPropagation(e);
-                    if (e.key === "Enter") handleCreateCollection();
+                    if (e.key === "Enter") {
+                      handleCreateCollection();
+                    }
                   }}
                   onKeyUp={stopPropagation}
                   placeholder={t("settings.collectionNamePlaceholder")}
@@ -680,4 +697,3 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
 };
 
 export default TeamsCollectionsPage;
-

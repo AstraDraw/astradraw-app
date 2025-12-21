@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useAtomValue } from "jotai";
+
+import { useAtomValue } from "../../app-jotai";
 
 import { useAuth } from "../../auth";
 import { listWorkspaces, type Workspace } from "../../auth/workspaceApi";
@@ -15,21 +16,22 @@ export const SettingsView: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const currentPage = useAtomValue(settingsPageAtom);
 
-  const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [currentWorkspace, setCurrentWorkspace] = useState<Workspace | null>(
     null,
   );
 
   const loadWorkspaces = useCallback(async () => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated) {
+      return;
+    }
 
     try {
       const data = await listWorkspaces();
-      setWorkspaces(data);
       if (data.length > 0 && !currentWorkspace) {
         setCurrentWorkspace(data[0]);
       }
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.error("Failed to load workspaces:", err);
     }
   }, [isAuthenticated, currentWorkspace]);
@@ -48,9 +50,8 @@ export const SettingsView: React.FC = () => {
         return (
           <WorkspaceSettingsPage
             workspace={currentWorkspace}
-            onUpdateWorkspace={async (data) => {
+            onUpdateWorkspace={async (_data) => {
               // TODO: Implement workspace update API call
-              console.log("Update workspace:", data);
             }}
           />
         );
@@ -85,4 +86,3 @@ export const SettingsView: React.FC = () => {
 };
 
 export default SettingsView;
-

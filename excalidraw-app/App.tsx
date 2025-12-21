@@ -145,8 +145,11 @@ import {
 import {
   SettingsView,
   appModeAtom,
-  navigateToSettingsAtom,
+  navigateToCanvasAtom,
+  activeCollectionIdAtom,
 } from "./components/Settings";
+
+import { WorkspaceMainContent } from "./components/Workspace";
 
 import {
   createScene,
@@ -156,7 +159,11 @@ import {
   listCollections,
 } from "./auth/workspaceApi";
 
-import type { WorkspaceScene, Workspace, Collection } from "./auth/workspaceApi";
+import type {
+  WorkspaceScene,
+  Workspace,
+  Collection,
+} from "./auth/workspaceApi";
 
 import type { CollabAPI } from "./collab/Collab";
 
@@ -383,9 +390,12 @@ const ExcalidrawWrapper = () => {
 
   const editorInterface = useEditorInterface();
 
-  // App mode state (canvas or settings)
+  // App mode state (canvas, settings, or dashboard)
   const appMode = useAtomValue(appModeAtom);
-  const navigateToSettings = useSetAtom(navigateToSettingsAtom);
+  const navigateToCanvas = useSetAtom(navigateToCanvasAtom);
+  const [activeCollectionId, setActiveCollectionId] = useAtom(
+    activeCollectionIdAtom,
+  );
 
   // Auth state for auto-open on login
   const { isAuthenticated } = useAuth();
@@ -408,10 +418,15 @@ const ExcalidrawWrapper = () => {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSavedDataRef = useRef<string | null>(null);
-  
-  // Track current workspace and its private collection for default scene creation
-  const [currentWorkspace, setCurrentWorkspace] = useState<Workspace | null>(null);
-  const [privateCollectionId, setPrivateCollectionId] = useState<string | null>(null);
+
+  // Track current workspace and its collections for default scene creation
+  const [currentWorkspace, setCurrentWorkspace] = useState<Workspace | null>(
+    null,
+  );
+  const [collections, setCollections] = useState<Collection[]>([]);
+  const [privateCollectionId, setPrivateCollectionId] = useState<string | null>(
+    null,
+  );
 
   // Auto-open sidebar when user logs in
   useEffect(() => {
@@ -426,6 +441,7 @@ const ExcalidrawWrapper = () => {
   useEffect(() => {
     if (!isAuthenticated) {
       setCurrentWorkspace(null);
+      setCollections([]);
       setPrivateCollectionId(null);
       return;
     }
@@ -439,10 +455,18 @@ const ExcalidrawWrapper = () => {
           setCurrentWorkspace(workspace);
 
           // Find the private collection in this workspace
-          const collections = await listCollections(workspace.id);
-          const privateCollection = collections.find((c) => c.isPrivate);
+          const workspaceCollections = await listCollections(workspace.id);
+          setCollections(workspaceCollections);
+
+          const privateCollection = workspaceCollections.find(
+            (c) => c.isPrivate,
+          );
           if (privateCollection) {
             setPrivateCollectionId(privateCollection.id);
+            // Set as default active collection if none is set
+            if (!activeCollectionId) {
+              setActiveCollectionId(privateCollection.id);
+            }
           }
         }
       } catch (error) {
@@ -451,7 +475,7 @@ const ExcalidrawWrapper = () => {
     };
 
     loadWorkspaceData();
-  }, [isAuthenticated]);
+  }, [isAuthenticated, activeCollectionId, setActiveCollectionId]);
 
   // Save sidebar preference to localStorage
   useEffect(() => {
@@ -907,59 +931,66 @@ const ExcalidrawWrapper = () => {
   );
 
   // Workspace handlers
-  const handleNewScene = useCallback(async (collectionId?: string) => {
-    if (!excalidrawAPI) {
-      return;
-    }
+  const handleNewScene = useCallback(
+    async (collectionId?: string) => {
+      if (!excalidrawAPI) {
+        return;
+      }
 
-    try {
-      // Generate a title with timestamp
-      const title = `${t(
-        "workspace.untitled",
-      )} ${new Date().toLocaleTimeString()}`;
+      try {
+        // Generate a title with timestamp
+        const title = `${t(
+          "workspace.untitled",
+        )} ${new Date().toLocaleTimeString()}`;
 
-      // Use provided collectionId, or fall back to user's private collection
-      const targetCollectionId = collectionId || privateCollectionId || undefined;
+        // Use provided collectionId, or fall back to user's private collection
+        const targetCollectionId =
+          collectionId || privateCollectionId || undefined;
 
-      // Create scene in backend immediately (with collection if provided)
-      const scene = await createScene({ title, collectionId: targetCollectionId });
+        // Create scene in backend immediately (with collection if provided)
+        const scene = await createScene({
+          title,
+          collectionId: targetCollectionId,
+        });
 
-      // Clear the canvas
-      excalidrawAPI.resetScene();
+        // Clear the canvas
+        excalidrawAPI.resetScene();
 
-      // Set the new scene as current (so auto-save works)
-      setCurrentSceneId(scene.id);
-      setCurrentSceneTitle(title);
-      setWorkspaceSidebarOpen(false);
+        // Set the new scene as current (so auto-save works)
+        setCurrentSceneId(scene.id);
+        setCurrentSceneTitle(title);
+        setWorkspaceSidebarOpen(false);
 
-      // Save empty scene data to establish storage
-      const emptySceneData = {
-        type: "excalidraw",
-        version: 2,
-        source: window.location.href,
-        elements: [],
-        appState: {
-          viewBackgroundColor: "#ffffff",
-        },
-        files: {},
-      };
-      const blob = new Blob([JSON.stringify(emptySceneData)], {
-        type: "application/json",
-      });
-      await updateSceneData(scene.id, blob);
+        // Save empty scene data to establish storage
+        const emptySceneData = {
+          type: "excalidraw",
+          version: 2,
+          source: window.location.href,
+          elements: [],
+          appState: {
+            viewBackgroundColor: "#ffffff",
+          },
+          files: {},
+        };
+        const blob = new Blob([JSON.stringify(emptySceneData)], {
+          type: "application/json",
+        });
+        await updateSceneData(scene.id, blob);
 
-      excalidrawAPI.setToast({
-        message: t("workspace.newSceneCreated") || "New scene created",
-      });
-    } catch (error) {
-      console.error("Failed to create new scene:", error);
-      // Fallback: just clear canvas without backend save
-      excalidrawAPI.resetScene();
-      setCurrentSceneId(null);
-      setCurrentSceneTitle("Untitled");
-      setWorkspaceSidebarOpen(false);
-    }
-  }, [excalidrawAPI, privateCollectionId]);
+        excalidrawAPI.setToast({
+          message: t("workspace.newSceneCreated") || "New scene created",
+        });
+      } catch (error) {
+        console.error("Failed to create new scene:", error);
+        // Fallback: just clear canvas without backend save
+        excalidrawAPI.resetScene();
+        setCurrentSceneId(null);
+        setCurrentSceneTitle("Untitled");
+        setWorkspaceSidebarOpen(false);
+      }
+    },
+    [excalidrawAPI, privateCollectionId],
+  );
 
   const handleOpenScene = useCallback(
     async (scene: WorkspaceScene) => {
@@ -990,12 +1021,15 @@ const ExcalidrawWrapper = () => {
         setCurrentSceneId(scene.id);
         setCurrentSceneTitle(scene.title);
         setWorkspaceSidebarOpen(false);
+
+        // Navigate to canvas mode if we're in dashboard
+        navigateToCanvas();
       } catch (error) {
         console.error("Failed to open scene:", error);
         setErrorMessage("Failed to open scene");
       }
     },
-    [excalidrawAPI],
+    [excalidrawAPI, navigateToCanvas],
   );
 
   const handleSaveToWorkspace = useCallback(async () => {
@@ -1038,7 +1072,7 @@ const ExcalidrawWrapper = () => {
         const title =
           currentSceneTitle ||
           `${t("workspace.untitled")} ${new Date().toLocaleString()}`;
-        
+
         // Save to private collection by default
         const scene = await createScene({
           title,
@@ -1185,6 +1219,47 @@ const ExcalidrawWrapper = () => {
     );
   }
 
+  // If in dashboard mode, render the dashboard/collection view
+  if (appMode === "dashboard") {
+    return (
+      <div
+        style={{ height: "100%" }}
+        className={clsx("excalidraw-app", {
+          "workspace-sidebar-open": workspaceSidebarOpen,
+        })}
+      >
+        {/* Workspace Sidebar (Left) - pushes content when open */}
+        <WorkspaceSidebar
+          isOpen={workspaceSidebarOpen}
+          onClose={() => setWorkspaceSidebarOpen(false)}
+          onNewScene={handleNewScene}
+          onOpenScene={handleOpenScene}
+          currentSceneId={currentSceneId}
+          onWorkspaceChange={(workspace, privateColId) => {
+            setCurrentWorkspace(workspace);
+            setPrivateCollectionId(privateColId);
+            // Reload collections when workspace changes
+            if (workspace) {
+              listCollections(workspace.id)
+                .then(setCollections)
+                .catch(console.error);
+            }
+          }}
+        />
+
+        {/* Main content area - Dashboard or Collection view */}
+        <div className="excalidraw-app__main">
+          <WorkspaceMainContent
+            workspace={currentWorkspace}
+            collections={collections}
+            onOpenScene={handleOpenScene}
+            onNewScene={handleNewScene}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       style={{ height: "100%" }}
@@ -1203,6 +1278,12 @@ const ExcalidrawWrapper = () => {
         onWorkspaceChange={(workspace, privateColId) => {
           setCurrentWorkspace(workspace);
           setPrivateCollectionId(privateColId);
+          // Reload collections when workspace changes
+          if (workspace) {
+            listCollections(workspace.id)
+              .then(setCollections)
+              .catch(console.error);
+          }
         }}
       />
 

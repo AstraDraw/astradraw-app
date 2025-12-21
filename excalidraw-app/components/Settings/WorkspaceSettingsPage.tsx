@@ -1,9 +1,9 @@
 import React, { useState, useRef } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 
-import type { Workspace } from "../../auth/workspaceApi";
-
 import "./WorkspaceSettingsPage.scss";
+
+import type { Workspace } from "../../auth/workspaceApi";
 
 // Stop keyboard events from propagating
 const stopPropagation = (e: React.KeyboardEvent) => {
@@ -12,7 +12,10 @@ const stopPropagation = (e: React.KeyboardEvent) => {
 
 interface WorkspaceSettingsPageProps {
   workspace: Workspace | null;
-  onUpdateWorkspace?: (data: { name?: string; avatarUrl?: string }) => Promise<void>;
+  onUpdateWorkspace?: (data: {
+    name?: string;
+    avatarUrl?: string;
+  }) => Promise<void>;
 }
 
 export const WorkspaceSettingsPage: React.FC<WorkspaceSettingsPageProps> = ({
@@ -28,7 +31,9 @@ export const WorkspaceSettingsPage: React.FC<WorkspaceSettingsPageProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSaveName = async () => {
-    if (!workspace || !onUpdateWorkspace) return;
+    if (!workspace || !onUpdateWorkspace) {
+      return;
+    }
 
     setIsSaving(true);
     setError(null);
@@ -49,7 +54,9 @@ export const WorkspaceSettingsPage: React.FC<WorkspaceSettingsPageProps> = ({
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !onUpdateWorkspace) return;
+    if (!file || !onUpdateWorkspace) {
+      return;
+    }
 
     // For now, we'll convert to base64 - in production you'd upload to storage
     const reader = new FileReader();
@@ -99,7 +106,9 @@ export const WorkspaceSettingsPage: React.FC<WorkspaceSettingsPageProps> = ({
 
         {/* Success/Error messages */}
         {successMessage && (
-          <div className="workspace-settings-page__success">{successMessage}</div>
+          <div className="workspace-settings-page__success">
+            {successMessage}
+          </div>
         )}
         {error && (
           <div className="workspace-settings-page__error-inline">{error}</div>
@@ -272,4 +281,3 @@ export const WorkspaceSettingsPage: React.FC<WorkspaceSettingsPageProps> = ({
 };
 
 export default WorkspaceSettingsPage;
-

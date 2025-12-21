@@ -1,8 +1,11 @@
 import React from "react";
-import { useAtom, useSetAtom } from "jotai";
+
 import { t } from "@excalidraw/excalidraw/i18n";
 
+import { useAtom, useSetAtom } from "../../app-jotai";
+
 import { useAuth } from "../../auth";
+
 import {
   settingsPageAtom,
   navigateToCanvasAtom,
@@ -215,4 +218,3 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({
 };
 
 export default SettingsLayout;
-

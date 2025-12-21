@@ -8,9 +8,15 @@ export { TeamsCollectionsPage } from "./TeamsCollectionsPage";
 export {
   appModeAtom,
   settingsPageAtom,
+  activeCollectionIdAtom,
+  dashboardViewAtom,
+  sidebarModeAtom,
   navigateToSettingsAtom,
+  navigateToDashboardAtom,
+  navigateToCollectionAtom,
   navigateToCanvasAtom,
   type AppMode,
+  type SidebarMode,
+  type DashboardView,
   type SettingsPage,
 } from "./settingsState";
-

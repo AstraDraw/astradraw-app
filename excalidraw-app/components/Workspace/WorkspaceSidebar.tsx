@@ -7,9 +7,9 @@ import React, {
 } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 
+import { useAtom, useAtomValue, useSetAtom } from "../../app-jotai";
 import { useAuth } from "../../auth";
 import {
-  listScenes,
   listWorkspaces,
   listCollections,
   listWorkspaceScenes,
@@ -18,26 +18,29 @@ import {
   updateScene as updateSceneApi,
   duplicateScene as duplicateSceneApi,
   deleteCollection as deleteCollectionApi,
-  updateCollection as updateCollectionApi,
   type WorkspaceScene,
   type Workspace,
   type Collection,
 } from "../../auth/workspaceApi";
 
-import { useSetAtom } from "jotai";
+import {
+  navigateToSettingsAtom,
+  navigateToDashboardAtom,
+  navigateToCollectionAtom,
+  activeCollectionIdAtom,
+  sidebarModeAtom,
+  dashboardViewAtom,
+} from "../Settings/settingsState";
 
-import { SceneCard } from "./SceneCard";
+import { BoardModeNav } from "./BoardModeNav";
+import { FullModeNav } from "./FullModeNav";
 import { LoginDialog } from "./LoginDialog";
-import { navigateToSettingsAtom } from "../Settings/settingsState";
+
 import "./WorkspaceSidebar.scss";
+import "./BoardModeNav.scss";
+import "./FullModeNav.scss";
 
 // Icons
-const plusIcon = (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M12 5v14M5 12h14" />
-  </svg>
-);
-
 const loginIcon = (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3" />
@@ -63,51 +66,6 @@ const closeIcon = (
   </svg>
 );
 
-const settingsIcon = (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <circle cx="12" cy="12" r="3" />
-    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-  </svg>
-);
-
-const usersIcon = (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-    <circle cx="9" cy="7" r="4" />
-    <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
-  </svg>
-);
-
-const lockIcon = (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-  </svg>
-);
-
-const folderIcon = (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-  </svg>
-);
-
-const dashboardIcon = (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <rect x="3" y="3" width="7" height="7" />
-    <rect x="14" y="3" width="7" height="7" />
-    <rect x="14" y="14" width="7" height="7" />
-    <rect x="3" y="14" width="7" height="7" />
-  </svg>
-);
-
-const moreIcon = (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <circle cx="12" cy="12" r="1" />
-    <circle cx="19" cy="12" r="1" />
-    <circle cx="5" cy="12" r="1" />
-  </svg>
-);
-
 const bellIcon = (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
@@ -121,7 +79,10 @@ interface WorkspaceSidebarProps {
   onNewScene: (collectionId?: string) => void;
   onOpenScene: (scene: WorkspaceScene) => void;
   currentSceneId?: string | null;
-  onWorkspaceChange?: (workspace: Workspace, privateCollectionId: string | null) => void;
+  onWorkspaceChange?: (
+    workspace: Workspace,
+    privateCollectionId: string | null,
+  ) => void;
 }
 
 export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
@@ -137,27 +98,34 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
     isLoading: authLoading,
     isAuthenticated,
     login,
-    logout,
     oidcConfigured,
     localAuthEnabled,
   } = useAuth();
 
-  // State
+  // Global state
+  const sidebarMode = useAtomValue(sidebarModeAtom);
+  const dashboardView = useAtomValue(dashboardViewAtom);
+  const [activeCollectionId, setActiveCollectionId] = useAtom(
+    activeCollectionIdAtom,
+  );
+  const navigateToSettings = useSetAtom(navigateToSettingsAtom);
+  const navigateToDashboard = useSetAtom(navigateToDashboardAtom);
+  const navigateToCollection = useSetAtom(navigateToCollectionAtom);
+
+  // Local state
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
-  const [currentWorkspace, setCurrentWorkspace] = useState<Workspace | null>(null);
+  const [currentWorkspace, setCurrentWorkspace] = useState<Workspace | null>(
+    null,
+  );
   const [collections, setCollections] = useState<Collection[]>([]);
   const [scenes, setScenes] = useState<WorkspaceScene[]>([]);
-  const [selectedCollectionId, setSelectedCollectionId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [showLoginDialog, setShowLoginDialog] = useState(false);
   const [showCreateCollection, setShowCreateCollection] = useState(false);
-  const navigateToSettings = useSetAtom(navigateToSettingsAtom);
   const [newCollectionName, setNewCollectionName] = useState("");
   const [newCollectionIcon, setNewCollectionIcon] = useState("📁");
   const [searchQuery, setSearchQuery] = useState("");
   const [workspaceMenuOpen, setWorkspaceMenuOpen] = useState(false);
-  const [collectionMenuOpen, setCollectionMenuOpen] = useState<string | null>(null);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
   const workspaceMenuRef = useRef<HTMLDivElement>(null);
@@ -165,9 +133,24 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
   const authAvailable = oidcConfigured || localAuthEnabled;
   const isAdmin = currentWorkspace?.role === "ADMIN";
 
+  // Find the private collection
+  const privateCollection = useMemo(() => {
+    return collections.find((c) => c.isPrivate);
+  }, [collections]);
+
+  // Get the active collection object
+  const activeCollection = useMemo(() => {
+    if (!activeCollectionId) {
+      return privateCollection || null;
+    }
+    return collections.find((c) => c.id === activeCollectionId) || null;
+  }, [activeCollectionId, collections, privateCollection]);
+
   // Load workspaces
   const loadWorkspaces = useCallback(async () => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated) {
+      return;
+    }
 
     try {
       const data = await listWorkspaces();
@@ -182,46 +165,47 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
 
   // Load collections for current workspace
   const loadCollections = useCallback(async () => {
-    if (!currentWorkspace) return;
+    if (!currentWorkspace) {
+      return;
+    }
 
     try {
       const data = await listCollections(currentWorkspace.id);
       setCollections(data);
+
+      // Set default active collection to Private if not set
+      if (!activeCollectionId) {
+        const privateCol = data.find((c) => c.isPrivate);
+        if (privateCol) {
+          setActiveCollectionId(privateCol.id);
+        }
+      }
     } catch (err) {
       console.error("Failed to load collections:", err);
     }
-  }, [currentWorkspace]);
+  }, [currentWorkspace, activeCollectionId, setActiveCollectionId]);
 
-  // Load scenes
+  // Load scenes for active collection
   const loadScenes = useCallback(async () => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || !currentWorkspace) {
+      return;
+    }
 
     setIsLoading(true);
-    setError(null);
 
     try {
-      let data: WorkspaceScene[];
-      if (currentWorkspace) {
-        // Resolve the actual collection ID
-        // If selectedCollectionId is null, show all scenes (Dashboard)
-        // Otherwise use the actual collection ID
-        const collectionIdToUse = selectedCollectionId || undefined;
-        
-        data = await listWorkspaceScenes(
-          currentWorkspace.id,
-          collectionIdToUse,
-        );
-      } else {
-        data = await listScenes();
-      }
+      const collectionIdToUse = activeCollectionId || undefined;
+      const data = await listWorkspaceScenes(
+        currentWorkspace.id,
+        collectionIdToUse,
+      );
       setScenes(data);
     } catch (err) {
       console.error("Failed to load scenes:", err);
-      setError("Failed to load scenes");
     } finally {
       setIsLoading(false);
     }
-  }, [isAuthenticated, currentWorkspace, selectedCollectionId]);
+  }, [isAuthenticated, currentWorkspace, activeCollectionId]);
 
   // Initial load
   useEffect(() => {
@@ -234,7 +218,6 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
   useEffect(() => {
     if (currentWorkspace) {
       loadCollections();
-      setSelectedCollectionId(null);
     }
   }, [currentWorkspace, loadCollections]);
 
@@ -246,12 +229,12 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
     }
   }, [currentWorkspace, collections, onWorkspaceChange]);
 
-  // Load scenes when collection changes
+  // Load scenes when active collection changes (only in board mode)
   useEffect(() => {
-    if (isOpen && isAuthenticated) {
+    if (isOpen && isAuthenticated && sidebarMode === "board") {
       loadScenes();
     }
-  }, [isOpen, isAuthenticated, loadScenes, selectedCollectionId]);
+  }, [isOpen, isAuthenticated, sidebarMode, loadScenes]);
 
   // Close menus when clicking outside
   useEffect(() => {
@@ -275,7 +258,9 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
 
   // Keyboard shortcut for search
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {
+      return;
+    }
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "p") {
@@ -290,7 +275,9 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
 
   // Handlers
   const handleDeleteScene = useCallback(async (sceneId: string) => {
-    if (!confirm(t("workspace.confirmDeleteScene"))) return;
+    if (!confirm(t("workspace.confirmDeleteScene"))) {
+      return;
+    }
 
     try {
       await deleteSceneApi(sceneId);
@@ -327,7 +314,9 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
   }, []);
 
   const handleCreateCollection = useCallback(async () => {
-    if (!currentWorkspace || !newCollectionName.trim()) return;
+    if (!currentWorkspace || !newCollectionName.trim()) {
+      return;
+    }
 
     try {
       const collection = await createCollection(currentWorkspace.id, {
@@ -344,20 +333,26 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
     }
   }, [currentWorkspace, newCollectionName, newCollectionIcon]);
 
-  const handleDeleteCollection = useCallback(async (collectionId: string) => {
-    if (!confirm(t("workspace.confirmDeleteCollection"))) return;
-
-    try {
-      await deleteCollectionApi(collectionId);
-      setCollections((prev) => prev.filter((c) => c.id !== collectionId));
-      if (selectedCollectionId === collectionId) {
-        setSelectedCollectionId(null);
+  const handleDeleteCollection = useCallback(
+    async (collectionId: string) => {
+      if (!confirm(t("workspace.confirmDeleteCollection"))) {
+        return;
       }
-    } catch (err) {
-      console.error("Failed to delete collection:", err);
-      alert("Failed to delete collection");
-    }
-  }, [selectedCollectionId]);
+
+      try {
+        await deleteCollectionApi(collectionId);
+        setCollections((prev) => prev.filter((c) => c.id !== collectionId));
+        if (activeCollectionId === collectionId) {
+          // Reset to private collection
+          setActiveCollectionId(privateCollection?.id || null);
+        }
+      } catch (err) {
+        console.error("Failed to delete collection:", err);
+        alert("Failed to delete collection");
+      }
+    },
+    [activeCollectionId, privateCollection, setActiveCollectionId],
+  );
 
   const handleLoginClick = () => {
     if (oidcConfigured && !localAuthEnabled) {
@@ -371,30 +366,36 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
     loadWorkspaces();
   };
 
-  // Find the private collection (isPrivate: true)
-  const privateCollection = useMemo(() => {
-    return collections.find((c) => c.isPrivate);
-  }, [collections]);
+  const handleDashboardClick = useCallback(() => {
+    navigateToDashboard();
+  }, [navigateToDashboard]);
+
+  const handleBackToDashboard = useCallback(() => {
+    navigateToDashboard();
+  }, [navigateToDashboard]);
+
+  const handleCollectionClick = useCallback(
+    (collectionId: string) => {
+      navigateToCollection(collectionId);
+    },
+    [navigateToCollection],
+  );
+
+  const handleSceneClick = useCallback(
+    (scene: WorkspaceScene) => {
+      onOpenScene(scene);
+    },
+    [onOpenScene],
+  );
 
   // Filter scenes by search query
   const filteredScenes = useMemo(() => {
-    if (!searchQuery.trim()) return scenes;
+    if (!searchQuery.trim()) {
+      return scenes;
+    }
     const query = searchQuery.toLowerCase();
     return scenes.filter((scene) => scene.title.toLowerCase().includes(query));
   }, [scenes, searchQuery]);
-
-  // Group scenes by collection
-  const scenesByCollection = useMemo(() => {
-    const grouped: Record<string, WorkspaceScene[]> = { uncategorized: [] };
-    
-    for (const scene of filteredScenes) {
-      const key = scene.collectionId || "uncategorized";
-      if (!grouped[key]) grouped[key] = [];
-      grouped[key].push(scene);
-    }
-    
-    return grouped;
-  }, [filteredScenes]);
 
   const getInitials = (name: string | null, email: string): string => {
     if (name) {
@@ -409,7 +410,23 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
   };
 
   // Icon picker options
-  const iconOptions = ["📁", "📂", "🗂️", "📋", "📌", "⭐", "💼", "🎯", "🚀", "💡", "🔒", "🌟"];
+  const iconOptions = [
+    "📁",
+    "📂",
+    "🗂️",
+    "📋",
+    "📌",
+    "⭐",
+    "💼",
+    "🎯",
+    "🚀",
+    "💡",
+    "🔒",
+    "🌟",
+  ];
+
+  // Determine if dashboard is active (in full mode, dashboard view is "home")
+  const isDashboardActive = sidebarMode === "full" && dashboardView === "home";
 
   return (
     <div
@@ -426,7 +443,10 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
             >
               <div className="workspace-sidebar__workspace-avatar">
                 {currentWorkspace.avatarUrl ? (
-                  <img src={currentWorkspace.avatarUrl} alt={currentWorkspace.name} />
+                  <img
+                    src={currentWorkspace.avatarUrl}
+                    alt={currentWorkspace.name}
+                  />
                 ) : (
                   <span>{currentWorkspace.name[0].toUpperCase()}</span>
                 )}
@@ -452,7 +472,9 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
                   <button
                     key={ws.id}
                     className={`workspace-sidebar__menu-item ${
-                      ws.id === currentWorkspace.id ? "workspace-sidebar__menu-item--active" : ""
+                      ws.id === currentWorkspace.id
+                        ? "workspace-sidebar__menu-item--active"
+                        : ""
                     }`}
                     onClick={() => {
                       setCurrentWorkspace(ws);
@@ -535,205 +557,37 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
               <span className="workspace-sidebar__search-hint">⌘ + p</span>
             </div>
 
-            {/* Navigation items - compact list style */}
-            <nav className="workspace-sidebar__nav">
-              <button
-                className={`workspace-sidebar__nav-item ${
-                  selectedCollectionId === null ? "workspace-sidebar__nav-item--active" : ""
-                }`}
-                onClick={() => setSelectedCollectionId(null)}
-              >
-                <span className="workspace-sidebar__nav-icon">{dashboardIcon}</span>
-                <span className="workspace-sidebar__nav-label">{t("workspace.dashboard")}</span>
-              </button>
-
-              {isAdmin && (
-                <>
-                  <button
-                    className="workspace-sidebar__nav-item"
-                    onClick={() => navigateToSettings("workspace")}
-                  >
-                    <span className="workspace-sidebar__nav-icon">{settingsIcon}</span>
-                    <span className="workspace-sidebar__nav-label">{t("workspace.workspaceSettings")}</span>
-                  </button>
-                  <button
-                    className="workspace-sidebar__nav-item"
-                    onClick={() => navigateToSettings("members")}
-                  >
-                    <span className="workspace-sidebar__nav-icon">{usersIcon}</span>
-                    <span className="workspace-sidebar__nav-label">{t("workspace.teamMembers")}</span>
-                  </button>
-                </>
-              )}
-            </nav>
-
-            {/* Collections section */}
-            <div className="workspace-sidebar__collections">
-              <div className="workspace-sidebar__collections-header">
-                <span className="workspace-sidebar__collections-title">
-                  {t("workspace.collections")}
-                </span>
-                <button
-                  className="workspace-sidebar__add-collection"
-                  onClick={() => setShowCreateCollection(true)}
-                  title={t("workspace.createCollection")}
-                >
-                  {plusIcon}
-                </button>
-              </div>
-
-              <div className="workspace-sidebar__collections-list">
-                {/* Private collection (always first, if exists) */}
-                {privateCollection && (
-                  <button
-                    className={`workspace-sidebar__collection-item ${
-                      selectedCollectionId === privateCollection.id ? "workspace-sidebar__collection-item--active" : ""
-                    }`}
-                    onClick={() => setSelectedCollectionId(privateCollection.id)}
-                  >
-                    <span className="workspace-sidebar__collection-icon">{lockIcon}</span>
-                    <span className="workspace-sidebar__collection-name">
-                      {t("workspace.private")}
-                    </span>
-                  </button>
-                )}
-
-                {/* Other collections */}
-                {collections
-                  .filter((c) => !c.isPrivate)
-                  .map((collection) => (
-                    <div
-                      key={collection.id}
-                      className={`workspace-sidebar__collection-row ${
-                        selectedCollectionId === collection.id
-                          ? "workspace-sidebar__collection-row--active"
-                          : ""
-                      }`}
-                    >
-                      <button
-                        className="workspace-sidebar__collection-item"
-                        onClick={() => setSelectedCollectionId(collection.id)}
-                      >
-                        <span className="workspace-sidebar__collection-icon">
-                          {collection.icon || folderIcon}
-                        </span>
-                        <span className="workspace-sidebar__collection-name">
-                          {collection.name}
-                        </span>
-                      </button>
-                      {collection.canWrite && (
-                        <div className="workspace-sidebar__collection-actions">
-                          <button
-                            className="workspace-sidebar__collection-more"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setCollectionMenuOpen(
-                                collectionMenuOpen === collection.id ? null : collection.id,
-                              );
-                            }}
-                          >
-                            {moreIcon}
-                          </button>
-                          {collectionMenuOpen === collection.id && (
-                            <div className="workspace-sidebar__collection-menu">
-                              <button
-                                onClick={() => {
-                                  onNewScene(collection.id);
-                                  setCollectionMenuOpen(null);
-                                }}
-                              >
-                                {t("workspace.createScene")}
-                              </button>
-                              <button
-                                onClick={() => {
-                                  // TODO: Edit collection
-                                  setCollectionMenuOpen(null);
-                                }}
-                              >
-                                {t("workspace.edit")}
-                              </button>
-                              {collection.isOwner && (
-                                <button
-                                  className="workspace-sidebar__menu-item--danger"
-                                  onClick={() => {
-                                    handleDeleteCollection(collection.id);
-                                    setCollectionMenuOpen(null);
-                                  }}
-                                >
-                                  {t("workspace.delete")}
-                                </button>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-              </div>
-            </div>
-
-            {/* Start drawing button */}
-            <button
-              className="workspace-sidebar__new-button"
-              onClick={() => {
-                // Use selected collection, or fall back to private collection
-                const targetCollectionId = selectedCollectionId || privateCollection?.id;
-                onNewScene(targetCollectionId);
-              }}
-            >
-              {plusIcon}
-              <span>{t("workspace.startDrawing")}</span>
-            </button>
-
-            {/* Scene list */}
-            <div className="workspace-sidebar__scenes">
-              {isLoading ? (
-                <div className="workspace-sidebar__loading">
-                  <div className="workspace-sidebar__spinner" />
-                </div>
-              ) : error ? (
-                <div className="workspace-sidebar__error">
-                  <p>{error}</p>
-                  <button onClick={loadScenes}>Retry</button>
-                </div>
-              ) : filteredScenes.length === 0 ? (
-                <div className="workspace-sidebar__empty">
-                  {searchQuery ? (
-                    <p>{t("workspace.noResults")}</p>
-                  ) : (
-                    <>
-                      <p>{t("workspace.noScenes")}</p>
-                      <span className="workspace-sidebar__empty-hint">
-                        {t("workspace.noScenesHint")}
-                      </span>
-                    </>
-                  )}
-                </div>
-              ) : (
-                <div className="workspace-sidebar__scene-list">
-                  {filteredScenes.map((scene) => (
-                    <SceneCard
-                      key={scene.id}
-                      scene={scene}
-                      isActive={scene.id === currentSceneId}
-                      onOpen={() => onOpenScene(scene)}
-                      onDelete={
-                        scene.canEdit !== false
-                          ? () => handleDeleteScene(scene.id)
-                          : undefined
-                      }
-                      onRename={
-                        scene.canEdit !== false
-                          ? (newTitle) => handleRenameScene(scene.id, newTitle)
-                          : undefined
-                      }
-                      onDuplicate={() => handleDuplicateScene(scene.id)}
-                      authorName={user?.name || undefined}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
+            {/* Navigation - switches based on sidebar mode */}
+            {sidebarMode === "board" ? (
+              <BoardModeNav
+                activeCollection={activeCollection}
+                scenes={filteredScenes}
+                currentSceneId={currentSceneId || null}
+                isLoading={isLoading}
+                onDashboardClick={handleDashboardClick}
+                onBackClick={handleBackToDashboard}
+                onSceneClick={handleSceneClick}
+                onNewScene={onNewScene}
+                onDeleteScene={handleDeleteScene}
+                onRenameScene={handleRenameScene}
+                onDuplicateScene={handleDuplicateScene}
+                authorName={user?.name || undefined}
+              />
+            ) : (
+              <FullModeNav
+                collections={collections}
+                activeCollectionId={activeCollectionId}
+                isDashboardActive={isDashboardActive}
+                isAdmin={isAdmin}
+                onDashboardClick={handleDashboardClick}
+                onSettingsClick={() => navigateToSettings("workspace")}
+                onMembersClick={() => navigateToSettings("members")}
+                onCollectionClick={handleCollectionClick}
+                onCreateCollection={() => setShowCreateCollection(true)}
+                onNewScene={onNewScene}
+                onDeleteCollection={handleDeleteCollection}
+              />
+            )}
           </>
         )}
       </div>
@@ -811,7 +665,9 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
                   placeholder={t("workspace.collectionNamePlaceholder")}
                   onKeyDown={(e) => {
                     e.stopPropagation();
-                    if (e.key === "Enter") handleCreateCollection();
+                    if (e.key === "Enter") {
+                      handleCreateCollection();
+                    }
                   }}
                   onKeyUp={(e) => e.stopPropagation()}
                   autoFocus
