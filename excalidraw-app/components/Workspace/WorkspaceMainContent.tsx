@@ -7,6 +7,11 @@ import {
   activeCollectionIdAtom,
 } from "../Settings/settingsState";
 
+import { ProfilePage } from "../Settings/ProfilePage";
+import { WorkspaceSettingsPage } from "../Settings/WorkspaceSettingsPage";
+import { MembersPage } from "../Settings/MembersPage";
+import { TeamsCollectionsPage } from "../Settings/TeamsCollectionsPage";
+
 import { DashboardView } from "./DashboardView";
 import { CollectionView } from "./CollectionView";
 
@@ -21,15 +26,22 @@ import type {
 interface WorkspaceMainContentProps {
   workspace: Workspace | null;
   collections: Collection[];
+  isAdmin: boolean;
   onOpenScene: (scene: WorkspaceScene) => void;
   onNewScene: (collectionId?: string) => void;
+  onUpdateWorkspace?: (data: {
+    name?: string;
+    avatarUrl?: string;
+  }) => Promise<void>;
 }
 
 export const WorkspaceMainContent: React.FC<WorkspaceMainContentProps> = ({
   workspace,
   collections,
+  isAdmin,
   onOpenScene,
   onNewScene,
+  onUpdateWorkspace,
 }) => {
   const dashboardView = useAtomValue(dashboardViewAtom);
   const activeCollectionId = useAtomValue(activeCollectionIdAtom);
@@ -42,24 +54,57 @@ export const WorkspaceMainContent: React.FC<WorkspaceMainContentProps> = ({
     return collections.find((c) => c.id === activeCollectionId) || null;
   }, [activeCollectionId, collections]);
 
-  return (
-    <div className="workspace-main-content">
-      {dashboardView === "home" ? (
-        <DashboardView
-          workspace={workspace}
-          onOpenScene={onOpenScene}
-          onNewScene={onNewScene}
-        />
-      ) : (
-        <CollectionView
-          workspace={workspace}
-          collection={activeCollection}
-          onOpenScene={onOpenScene}
-          onNewScene={onNewScene}
-        />
-      )}
-    </div>
-  );
+  const renderContent = () => {
+    switch (dashboardView) {
+      case "home":
+        return (
+          <DashboardView
+            workspace={workspace}
+            onOpenScene={onOpenScene}
+            onNewScene={onNewScene}
+          />
+        );
+      case "collection":
+        return (
+          <CollectionView
+            workspace={workspace}
+            collection={activeCollection}
+            onOpenScene={onOpenScene}
+            onNewScene={onNewScene}
+          />
+        );
+      case "profile":
+        return <ProfilePage />;
+      case "workspace":
+        return (
+          <WorkspaceSettingsPage
+            workspace={workspace}
+            onUpdateWorkspace={onUpdateWorkspace}
+          />
+        );
+      case "members":
+        return (
+          <MembersPage workspaceId={workspace?.id || null} isAdmin={isAdmin} />
+        );
+      case "teams-collections":
+        return (
+          <TeamsCollectionsPage
+            workspaceId={workspace?.id || null}
+            isAdmin={isAdmin}
+          />
+        );
+      default:
+        return (
+          <DashboardView
+            workspace={workspace}
+            onOpenScene={onOpenScene}
+            onNewScene={onNewScene}
+          />
+        );
+    }
+  };
+
+  return <div className="workspace-main-content">{renderContent()}</div>;
 };
 
 export default WorkspaceMainContent;

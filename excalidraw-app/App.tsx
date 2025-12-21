@@ -143,7 +143,6 @@ import {
 } from "./components/Workspace";
 
 import {
-  SettingsView,
   appModeAtom,
   navigateToCanvasAtom,
   activeCollectionIdAtom,
@@ -1210,16 +1209,10 @@ const ExcalidrawWrapper = () => {
 
   // AstraDraw: Removed Excalidraw+ commands - will be replaced with AstraDraw+ later
 
-  // If in settings mode, render the full-page settings view
-  if (appMode === "settings") {
-    return (
-      <div style={{ height: "100%" }} className="excalidraw-app">
-        <SettingsView />
-      </div>
-    );
-  }
+  // Determine if current user is admin of the workspace
+  const isWorkspaceAdmin = currentWorkspace?.role === "ADMIN";
 
-  // If in dashboard mode, render the dashboard/collection view
+  // If in dashboard mode, render the dashboard/collection/settings view
   if (appMode === "dashboard") {
     return (
       <div
@@ -1247,11 +1240,12 @@ const ExcalidrawWrapper = () => {
           }}
         />
 
-        {/* Main content area - Dashboard or Collection view */}
+        {/* Main content area - Dashboard, Collection, or Settings view */}
         <div className="excalidraw-app__main">
           <WorkspaceMainContent
             workspace={currentWorkspace}
             collections={collections}
+            isAdmin={isWorkspaceAdmin}
             onOpenScene={handleOpenScene}
             onNewScene={handleNewScene}
           />

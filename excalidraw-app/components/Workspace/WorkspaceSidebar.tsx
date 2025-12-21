@@ -24,9 +24,13 @@ import {
 } from "../../auth/workspaceApi";
 
 import {
-  navigateToSettingsAtom,
   navigateToDashboardAtom,
   navigateToCollectionAtom,
+  navigateToCanvasAtom,
+  navigateToProfileAtom,
+  navigateToWorkspaceSettingsAtom,
+  navigateToMembersAtom,
+  navigateToTeamsCollectionsAtom,
   activeCollectionIdAtom,
   sidebarModeAtom,
   dashboardViewAtom,
@@ -108,9 +112,15 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
   const [activeCollectionId, setActiveCollectionId] = useAtom(
     activeCollectionIdAtom,
   );
-  const navigateToSettings = useSetAtom(navigateToSettingsAtom);
   const navigateToDashboard = useSetAtom(navigateToDashboardAtom);
   const navigateToCollection = useSetAtom(navigateToCollectionAtom);
+  const navigateToCanvas = useSetAtom(navigateToCanvasAtom);
+  const navigateToProfile = useSetAtom(navigateToProfileAtom);
+  const navigateToWorkspaceSettings = useSetAtom(
+    navigateToWorkspaceSettingsAtom,
+  );
+  const navigateToMembers = useSetAtom(navigateToMembersAtom);
+  const navigateToTeamsCollections = useSetAtom(navigateToTeamsCollectionsAtom);
 
   // Local state
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
@@ -425,9 +435,6 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
     "🌟",
   ];
 
-  // Determine if dashboard is active (in full mode, dashboard view is "home")
-  const isDashboardActive = sidebarMode === "full" && dashboardView === "home";
-
   return (
     <div
       className={`workspace-sidebar ${isOpen ? "workspace-sidebar--open" : ""}`}
@@ -504,7 +511,10 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
         )}
         <button
           className="workspace-sidebar__close"
-          onClick={onClose}
+          onClick={() => {
+            navigateToCanvas();
+            onClose();
+          }}
           aria-label="Close"
         >
           {closeIcon}
@@ -577,11 +587,13 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
               <FullModeNav
                 collections={collections}
                 activeCollectionId={activeCollectionId}
-                isDashboardActive={isDashboardActive}
+                currentView={dashboardView}
                 isAdmin={isAdmin}
                 onDashboardClick={handleDashboardClick}
-                onSettingsClick={() => navigateToSettings("workspace")}
-                onMembersClick={() => navigateToSettings("members")}
+                onProfileClick={() => navigateToProfile()}
+                onSettingsClick={() => navigateToWorkspaceSettings()}
+                onMembersClick={() => navigateToMembers()}
+                onTeamsCollectionsClick={() => navigateToTeamsCollections()}
                 onCollectionClick={handleCollectionClick}
                 onCreateCollection={() => setShowCreateCollection(true)}
                 onNewScene={onNewScene}
@@ -599,7 +611,7 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
           <div className="workspace-sidebar__footer">
             <button
               className="workspace-sidebar__user-button"
-              onClick={() => navigateToSettings("profile")}
+              onClick={() => navigateToProfile()}
             >
               {user.avatarUrl ? (
                 <img

@@ -164,7 +164,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </p>
         <button
           className="dashboard-view__start-button"
-          onClick={() => onNewScene()}
+          onClick={() => {
+            navigateToCanvas();
+            onNewScene();
+          }}
         >
           {plusIcon}
           <span>{t("workspace.startDrawing")}</span>

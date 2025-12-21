@@ -3,29 +3,29 @@ import { atom } from "../../app-jotai";
 /**
  * App mode - determines what the main content area shows
  * - "canvas": Drawing board with Excalidraw
- * - "settings": Settings pages (profile, workspace, members, etc.)
- * - "dashboard": Dashboard home or collection view
+ * - "dashboard": Dashboard views (home, collection, settings pages)
  */
-export type AppMode = "canvas" | "settings" | "dashboard";
+export type AppMode = "canvas" | "dashboard";
 
 /**
  * Sidebar display mode (derived from appMode)
- * - "board": Minimal sidebar (Dashboard + active collection + scene list)
- * - "full": Full navigation (settings, members, all collections)
+ * - "board": Minimal sidebar for canvas mode
+ * - "full": Full navigation for dashboard mode
  */
 export type SidebarMode = "board" | "full";
 
 /**
- * Dashboard sub-view (only relevant when appMode === "dashboard")
+ * Dashboard view - what's shown in the main content area when in dashboard mode
  * - "home": Dashboard home page with recently modified/visited
  * - "collection": Collection view showing scenes from a specific collection
+ * - "profile": User profile settings
+ * - "workspace": Workspace settings (admin only)
+ * - "members": Team members management (admin only)
+ * - "teams-collections": Teams & collections management (admin only)
  */
-export type DashboardView = "home" | "collection";
-
-/**
- * Settings page - which settings page is currently active
- */
-export type SettingsPage =
+export type DashboardView =
+  | "home"
+  | "collection"
   | "profile"
   | "workspace"
   | "members"
@@ -37,18 +37,13 @@ export type SettingsPage =
 export const appModeAtom = atom<AppMode>("canvas");
 
 /**
- * Current settings page atom
- */
-export const settingsPageAtom = atom<SettingsPage>("profile");
-
-/**
  * Active collection ID - persists across mode switches
  * This is the collection currently being viewed/worked in
  */
 export const activeCollectionIdAtom = atom<string | null>(null);
 
 /**
- * Dashboard sub-view atom (only relevant when appMode === "dashboard")
+ * Dashboard view atom - which view is shown in dashboard mode
  */
 export const dashboardViewAtom = atom<DashboardView>("home");
 
@@ -59,17 +54,6 @@ export const sidebarModeAtom = atom<SidebarMode>((get) => {
   const appMode = get(appModeAtom);
   return appMode === "canvas" ? "board" : "full";
 });
-
-/**
- * Combined atom for navigating to settings
- */
-export const navigateToSettingsAtom = atom(
-  null,
-  (get, set, page: SettingsPage) => {
-    set(settingsPageAtom, page);
-    set(appModeAtom, "settings");
-  },
-);
 
 /**
  * Atom for navigating to dashboard home
@@ -96,4 +80,36 @@ export const navigateToCollectionAtom = atom(
  */
 export const navigateToCanvasAtom = atom(null, (get, set) => {
   set(appModeAtom, "canvas");
+});
+
+/**
+ * Atom for navigating to profile settings
+ */
+export const navigateToProfileAtom = atom(null, (get, set) => {
+  set(appModeAtom, "dashboard");
+  set(dashboardViewAtom, "profile");
+});
+
+/**
+ * Atom for navigating to workspace settings
+ */
+export const navigateToWorkspaceSettingsAtom = atom(null, (get, set) => {
+  set(appModeAtom, "dashboard");
+  set(dashboardViewAtom, "workspace");
+});
+
+/**
+ * Atom for navigating to members page
+ */
+export const navigateToMembersAtom = atom(null, (get, set) => {
+  set(appModeAtom, "dashboard");
+  set(dashboardViewAtom, "members");
+});
+
+/**
+ * Atom for navigating to teams & collections page
+ */
+export const navigateToTeamsCollectionsAtom = atom(null, (get, set) => {
+  set(appModeAtom, "dashboard");
+  set(dashboardViewAtom, "teams-collections");
 });

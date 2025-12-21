@@ -9,6 +9,42 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.41] - 2025-12-21
+
+### Changed
+
+- **Settings Integrated into Dashboard** (Major Refactor)
+
+  - Settings pages (Profile, Workspace, Members, Teams & Collections) are now views within the dashboard instead of a separate mode
+  - Reduced app modes from 3 (canvas/dashboard/settings) to 2 (canvas/dashboard)
+  - `DashboardView` type expanded to include: `"home" | "collection" | "profile" | "workspace" | "members" | "teams-collections"`
+  - Removed `SettingsLayout` and `SettingsView` components (no longer needed)
+  - Settings pages now use consistent styling matching dashboard/collection views
+
+- **Unified Visual Design**
+
+  - All settings pages (ProfilePage, WorkspaceSettingsPage, MembersPage, TeamsCollectionsPage) now use the same layout pattern as DashboardView
+  - Removed card-like container styling that made settings look like embedded iframes
+  - Consistent padding, typography, and CSS variables across all dashboard views
+  - Proper dark mode support using Excalidraw's standard CSS variables
+
+- **Navigation Updates**
+  - Added "Profile" nav item to sidebar (between Dashboard and Workspace Settings)
+  - Sidebar now highlights active view correctly for all settings pages
+  - Removed "Start Drawing" button from sidebar (use collection's "Create Scene" instead)
+  - Removed unused back navigation buttons and translation keys
+
+### Fixed
+
+- **Sidebar X Button Navigation**: Clicking the X button in dashboard mode now properly navigates back to canvas instead of just closing the sidebar and leaving the user stuck
+
+### Removed
+
+- `SettingsLayout.tsx` and `SettingsLayout.scss` - no longer needed
+- `SettingsView.tsx` - settings are now rendered via WorkspaceMainContent
+- `settingsPageAtom` and `navigateToSettingsAtom` - replaced with individual navigation atoms
+- Translation keys: `backToBoard`, `backToDashboard`, `backToCanvas`
+
 ## [0.18.0-beta0.40] - 2025-12-21
 
 ### Added

@@ -169,8 +169,9 @@ export const CollectionView: React.FC<CollectionViewProps> = ({
   }, []);
 
   const handleCreateScene = useCallback(() => {
+    navigateToCanvas();
     onNewScene(collection?.id);
-  }, [onNewScene, collection]);
+  }, [navigateToCanvas, onNewScene, collection]);
 
   // Get collection display info
   const collectionIcon = collection?.isPrivate

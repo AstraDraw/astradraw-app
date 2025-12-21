@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 
 import type { Collection } from "../../auth/workspaceApi";
+import type { DashboardView } from "../Settings/settingsState";
 
 // Icons
 const dashboardIcon = (
@@ -10,6 +11,13 @@ const dashboardIcon = (
     <rect x="14" y="3" width="7" height="7" />
     <rect x="14" y="14" width="7" height="7" />
     <rect x="3" y="14" width="7" height="7" />
+  </svg>
+);
+
+const userIcon = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+    <circle cx="12" cy="7" r="4" />
   </svg>
 );
 
@@ -25,6 +33,12 @@ const usersIcon = (
     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
     <circle cx="9" cy="7" r="4" />
     <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+  </svg>
+);
+
+const teamsIcon = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
   </svg>
 );
 
@@ -58,11 +72,13 @@ const moreIcon = (
 interface FullModeNavProps {
   collections: Collection[];
   activeCollectionId: string | null;
-  isDashboardActive: boolean;
+  currentView: DashboardView;
   isAdmin: boolean;
   onDashboardClick: () => void;
+  onProfileClick: () => void;
   onSettingsClick: () => void;
   onMembersClick: () => void;
+  onTeamsCollectionsClick: () => void;
   onCollectionClick: (collectionId: string) => void;
   onCreateCollection: () => void;
   onNewScene: (collectionId?: string) => void;
@@ -72,11 +88,13 @@ interface FullModeNavProps {
 export const FullModeNav: React.FC<FullModeNavProps> = ({
   collections,
   activeCollectionId,
-  isDashboardActive,
+  currentView,
   isAdmin,
   onDashboardClick,
+  onProfileClick,
   onSettingsClick,
   onMembersClick,
+  onTeamsCollectionsClick,
   onCollectionClick,
   onCreateCollection,
   onNewScene,
@@ -96,7 +114,7 @@ export const FullModeNav: React.FC<FullModeNavProps> = ({
       <nav className="full-mode-nav__nav">
         <button
           className={`full-mode-nav__nav-item ${
-            isDashboardActive ? "full-mode-nav__nav-item--active" : ""
+            currentView === "home" ? "full-mode-nav__nav-item--active" : ""
           }`}
           onClick={onDashboardClick}
         >
@@ -106,10 +124,28 @@ export const FullModeNav: React.FC<FullModeNavProps> = ({
           </span>
         </button>
 
+        {/* Profile - visible to all users */}
+        <button
+          className={`full-mode-nav__nav-item ${
+            currentView === "profile" ? "full-mode-nav__nav-item--active" : ""
+          }`}
+          onClick={onProfileClick}
+        >
+          <span className="full-mode-nav__nav-icon">{userIcon}</span>
+          <span className="full-mode-nav__nav-label">
+            {t("settings.profile")}
+          </span>
+        </button>
+
+        {/* Admin-only settings */}
         {isAdmin && (
           <>
             <button
-              className="full-mode-nav__nav-item"
+              className={`full-mode-nav__nav-item ${
+                currentView === "workspace"
+                  ? "full-mode-nav__nav-item--active"
+                  : ""
+              }`}
               onClick={onSettingsClick}
             >
               <span className="full-mode-nav__nav-icon">{settingsIcon}</span>
@@ -118,12 +154,29 @@ export const FullModeNav: React.FC<FullModeNavProps> = ({
               </span>
             </button>
             <button
-              className="full-mode-nav__nav-item"
+              className={`full-mode-nav__nav-item ${
+                currentView === "members"
+                  ? "full-mode-nav__nav-item--active"
+                  : ""
+              }`}
               onClick={onMembersClick}
             >
               <span className="full-mode-nav__nav-icon">{usersIcon}</span>
               <span className="full-mode-nav__nav-label">
                 {t("workspace.teamMembers")}
+              </span>
+            </button>
+            <button
+              className={`full-mode-nav__nav-item ${
+                currentView === "teams-collections"
+                  ? "full-mode-nav__nav-item--active"
+                  : ""
+              }`}
+              onClick={onTeamsCollectionsClick}
+            >
+              <span className="full-mode-nav__nav-icon">{teamsIcon}</span>
+              <span className="full-mode-nav__nav-label">
+                {t("settings.teamsCollections")}
               </span>
             </button>
           </>
@@ -150,7 +203,8 @@ export const FullModeNav: React.FC<FullModeNavProps> = ({
           {privateCollection && (
             <button
               className={`full-mode-nav__collection-item ${
-                activeCollectionId === privateCollection.id
+                activeCollectionId === privateCollection.id &&
+                currentView === "collection"
                   ? "full-mode-nav__collection-item--active"
                   : ""
               }`}
@@ -168,7 +222,8 @@ export const FullModeNav: React.FC<FullModeNavProps> = ({
             <div
               key={collection.id}
               className={`full-mode-nav__collection-row ${
-                activeCollectionId === collection.id
+                activeCollectionId === collection.id &&
+                currentView === "collection"
                   ? "full-mode-nav__collection-row--active"
                   : ""
               }`}
@@ -236,20 +291,6 @@ export const FullModeNav: React.FC<FullModeNavProps> = ({
           ))}
         </div>
       </div>
-
-      {/* Start drawing button */}
-      <button
-        className="full-mode-nav__new-button"
-        onClick={() => {
-          // Use active collection, or fall back to private collection
-          const targetCollectionId =
-            activeCollectionId || privateCollection?.id;
-          onNewScene(targetCollectionId || undefined);
-        }}
-      >
-        {plusIcon}
-        <span>{t("workspace.startDrawing")}</span>
-      </button>
     </div>
   );
 };
