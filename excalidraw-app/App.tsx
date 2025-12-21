@@ -976,6 +976,22 @@ const ExcalidrawWrapper = () => {
             excalidrawAPI.addFiles(Object.values(sceneWithCollaborators.files));
           }
 
+          // Initialize lastSavedDataRef with loaded data to prevent false "unsaved" status
+          const loadedSceneData = JSON.stringify({
+            type: "excalidraw",
+            version: 2,
+            source: window.location.href,
+            elements: sceneWithCollaborators.elements || [],
+            appState: {
+              viewBackgroundColor: sceneWithCollaborators.appState?.viewBackgroundColor,
+              gridSize: sceneWithCollaborators.appState?.gridSize,
+            },
+            files: sceneWithCollaborators.files || {},
+          });
+          lastSavedDataRef.current = loadedSceneData;
+          setHasUnsavedChanges(false);
+          setSaveStatus("saved");
+
           loadImages(
             {
               scene: sceneWithCollaborators as any,
@@ -1287,8 +1303,25 @@ const ExcalidrawWrapper = () => {
     }
 
     // Mark as having unsaved changes for auto-save
+    // Only mark as changed if the actual scene data differs from last saved
     if (currentSceneId && !collabAPI?.isCollaborating()) {
-      setHasUnsavedChanges(true);
+      const files = excalidrawAPI?.getFiles() || {};
+      const currentData = JSON.stringify({
+        type: "excalidraw",
+        version: 2,
+        source: window.location.href,
+        elements,
+        appState: {
+          viewBackgroundColor: appState.viewBackgroundColor,
+          gridSize: appState.gridSize,
+        },
+        files: files,
+      });
+      
+      // Only set unsaved if data actually changed from last save
+      if (lastSavedDataRef.current !== currentData) {
+        setHasUnsavedChanges(true);
+      }
     }
 
     // Render the debug scene if the debug canvas is available
