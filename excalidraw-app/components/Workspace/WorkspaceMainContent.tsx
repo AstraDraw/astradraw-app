@@ -17,17 +17,12 @@ import { CollectionView } from "./CollectionView";
 
 import "./WorkspaceMainContent.scss";
 
-import type {
-  WorkspaceScene,
-  Workspace,
-  Collection,
-} from "../../auth/workspaceApi";
+import type { Workspace, Collection } from "../../auth/workspaceApi";
 
 interface WorkspaceMainContentProps {
   workspace: Workspace | null;
   collections: Collection[];
   isAdmin: boolean;
-  onOpenScene: (scene: WorkspaceScene) => void;
   onNewScene: (collectionId?: string) => void;
   onUpdateWorkspace?: (data: {
     name?: string;
@@ -39,7 +34,6 @@ export const WorkspaceMainContent: React.FC<WorkspaceMainContentProps> = ({
   workspace,
   collections,
   isAdmin,
-  onOpenScene,
   onNewScene,
   onUpdateWorkspace,
 }) => {
@@ -57,19 +51,12 @@ export const WorkspaceMainContent: React.FC<WorkspaceMainContentProps> = ({
   const renderContent = () => {
     switch (dashboardView) {
       case "home":
-        return (
-          <DashboardView
-            workspace={workspace}
-            onOpenScene={onOpenScene}
-            onNewScene={onNewScene}
-          />
-        );
+        return <DashboardView workspace={workspace} onNewScene={onNewScene} />;
       case "collection":
         return (
           <CollectionView
             workspace={workspace}
             collection={activeCollection}
-            onOpenScene={onOpenScene}
             onNewScene={onNewScene}
           />
         );
@@ -94,13 +81,7 @@ export const WorkspaceMainContent: React.FC<WorkspaceMainContentProps> = ({
           />
         );
       default:
-        return (
-          <DashboardView
-            workspace={workspace}
-            onOpenScene={onOpenScene}
-            onNewScene={onNewScene}
-          />
-        );
+        return <DashboardView workspace={workspace} onNewScene={onNewScene} />;
     }
   };
 

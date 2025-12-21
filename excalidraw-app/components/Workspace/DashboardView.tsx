@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 
-import { useSetAtom } from "../../app-jotai";
+import { useAtomValue, useSetAtom } from "../../app-jotai";
 import {
   listWorkspaceScenes,
   deleteScene as deleteSceneApi,
@@ -10,7 +10,11 @@ import {
   type WorkspaceScene,
   type Workspace,
 } from "../../auth/workspaceApi";
-import { navigateToCanvasAtom } from "../Settings/settingsState";
+import {
+  navigateToCanvasAtom,
+  navigateToSceneAtom,
+  currentWorkspaceSlugAtom,
+} from "../Settings/settingsState";
 
 import { SceneCardGrid } from "./SceneCardGrid";
 
@@ -34,16 +38,16 @@ const plusIcon = (
 
 interface DashboardViewProps {
   workspace: Workspace | null;
-  onOpenScene: (scene: WorkspaceScene) => void;
   onNewScene: (collectionId?: string) => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
   workspace,
-  onOpenScene,
   onNewScene,
 }) => {
   const navigateToCanvas = useSetAtom(navigateToCanvasAtom);
+  const navigateToScene = useSetAtom(navigateToSceneAtom);
+  const workspaceSlug = useAtomValue(currentWorkspaceSlugAtom);
 
   const [recentlyModified, setRecentlyModified] = useState<WorkspaceScene[]>(
     [],
@@ -132,12 +136,18 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     }
   }, []);
 
+  // Navigate to scene via URL - this triggers the popstate handler which loads the scene
   const handleOpenScene = useCallback(
     (scene: WorkspaceScene) => {
-      navigateToCanvas();
-      onOpenScene(scene);
+      if (workspaceSlug) {
+        navigateToScene({
+          sceneId: scene.id,
+          title: scene.title,
+          workspaceSlug,
+        });
+      }
     },
-    [navigateToCanvas, onOpenScene],
+    [navigateToScene, workspaceSlug],
   );
 
   if (isLoading) {

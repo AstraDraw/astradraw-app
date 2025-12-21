@@ -14,13 +14,14 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 ### Added
 
 - **URL-Based Navigation System** (Major Feature)
-  
+
   - All application views now have unique, shareable URLs
   - Browser back/forward buttons work correctly throughout the app
   - Page refresh preserves current view and scene data
   - Direct scene links: `/workspace/{slug}/scene/{id}`
-  
+
   **URL Patterns:**
+
   - Dashboard: `/workspace/{slug}/dashboard`
   - Private collection: `/workspace/{slug}/private`
   - Named collection: `/workspace/{slug}/collection/{id}`
@@ -33,6 +34,7 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
   - Anonymous mode: `/` (root)
 
 - **New Router Module** (`excalidraw-app/router.ts`)
+
   - `parseUrl()` - Extract route information from current URL
   - `buildSceneUrl()`, `buildDashboardUrl()`, `buildCollectionUrl()`, etc.
   - `navigateTo()` and `replaceUrl()` for programmatic navigation
@@ -48,6 +50,7 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 ### Changed
 
 - **Navigation Atoms Now Push URLs**
+
   - `navigateToDashboardAtom` → pushes `/workspace/{slug}/dashboard`
   - `navigateToCollectionAtom` → pushes `/workspace/{slug}/collection/{id}` or `/private`
   - `navigateToCanvasAtom` → pushes scene URL when scene is loaded
@@ -64,6 +67,7 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 ### Fixed
 
 - **Scene Data Loss on Navigation** (Critical Bug Fix)
+
   - Added localStorage sync guard: `if (currentSceneIdRef.current) return;`
   - Prevents `syncData` from overwriting workspace scene data with localStorage
   - Scene data now persists correctly when navigating between dashboard and canvas
@@ -71,6 +75,18 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - **Browser Back/Forward Not Working**
   - All navigation now properly updates browser history
   - `popstate` event handler restores correct view state
+
+- **"Failed to open scene" When Clicking Scene from Dashboard** (Critical Bug Fix)
+
+  - **Problem:** After creating a scene and returning to dashboard, clicking on it showed "Failed to open scene" error and URL stayed at `/workspace/{slug}/dashboard`
+  - **Root cause:** Scene loading was fragmented - `handlePopState` didn't actually load scene data, and child components used incorrect parent callbacks
+  - **Solution:**
+    - Centralized scene loading in `App.tsx` via new `loadSceneFromUrl()` function
+    - Stored function in `loadSceneFromUrlRef` so `handlePopState` can access it
+    - Updated `handlePopState` to call `loadSceneFromUrlRef.current()` for scene URLs
+    - Removed `onOpenScene` prop from DashboardView, CollectionView, WorkspaceSidebar, WorkspaceMainContent
+    - Components now use `navigateToSceneAtom` directly - URL change triggers scene loading
+  - **Result:** URL is now the single source of truth; clicking scenes works correctly from dashboard, collections, and sidebar
 
 ### Technical
 
@@ -85,6 +101,7 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 ### Added
 
 - **Invite Link Acceptance Page**
+
   - New `InviteAcceptPage` component with login flow for `/invite/:code` URLs
   - Automatic workspace join after successful authentication
   - Nginx config for SPA client-side routing
@@ -124,6 +141,7 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 ### Added
 
 - **Create Workspace UI** (Super Admin Only)
+
   - Create Workspace button in workspace dropdown
   - Workspace creation dialog with name, slug, and type fields
   - Auto-generate slug from workspace name

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 
-import { useSetAtom } from "../../app-jotai";
+import { useAtomValue, useSetAtom } from "../../app-jotai";
 import {
   listWorkspaceScenes,
   deleteScene as deleteSceneApi,
@@ -11,7 +11,11 @@ import {
   type Workspace,
   type Collection,
 } from "../../auth/workspaceApi";
-import { navigateToCanvasAtom } from "../Settings/settingsState";
+import {
+  navigateToCanvasAtom,
+  navigateToSceneAtom,
+  currentWorkspaceSlugAtom,
+} from "../Settings/settingsState";
 
 import { SceneCardGrid } from "./SceneCardGrid";
 
@@ -52,17 +56,17 @@ const sortIcon = (
 interface CollectionViewProps {
   workspace: Workspace | null;
   collection: Collection | null;
-  onOpenScene: (scene: WorkspaceScene) => void;
   onNewScene: (collectionId?: string) => void;
 }
 
 export const CollectionView: React.FC<CollectionViewProps> = ({
   workspace,
   collection,
-  onOpenScene,
   onNewScene,
 }) => {
   const navigateToCanvas = useSetAtom(navigateToCanvasAtom);
+  const navigateToScene = useSetAtom(navigateToSceneAtom);
+  const workspaceSlug = useAtomValue(currentWorkspaceSlugAtom);
 
   const [scenes, setScenes] = useState<WorkspaceScene[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -154,12 +158,18 @@ export const CollectionView: React.FC<CollectionViewProps> = ({
     }
   }, []);
 
+  // Navigate to scene via URL - this triggers the popstate handler which loads the scene
   const handleOpenScene = useCallback(
     (scene: WorkspaceScene) => {
-      navigateToCanvas();
-      onOpenScene(scene);
+      if (workspaceSlug) {
+        navigateToScene({
+          sceneId: scene.id,
+          title: scene.title,
+          workspaceSlug,
+        });
+      }
     },
-    [navigateToCanvas, onOpenScene],
+    [navigateToScene, workspaceSlug],
   );
 
   const handleImportScenes = useCallback(() => {

@@ -34,6 +34,7 @@ import {
   navigateToWorkspaceSettingsAtom,
   navigateToMembersAtom,
   navigateToTeamsCollectionsAtom,
+  navigateToSceneAtom,
   activeCollectionIdAtom,
   sidebarModeAtom,
   dashboardViewAtom,
@@ -92,7 +93,6 @@ interface WorkspaceSidebarProps {
   isOpen: boolean;
   onClose: () => void;
   onNewScene: (collectionId?: string) => void;
-  onOpenScene: (scene: WorkspaceScene) => void;
   currentSceneId?: string | null;
   onWorkspaceChange?: (
     workspace: Workspace,
@@ -104,7 +104,6 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
   isOpen,
   onClose,
   onNewScene,
-  onOpenScene,
   currentSceneId,
   onWorkspaceChange,
 }) => {
@@ -132,11 +131,13 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
   );
   const navigateToMembers = useSetAtom(navigateToMembersAtom);
   const navigateToTeamsCollections = useSetAtom(navigateToTeamsCollectionsAtom);
+  const navigateToScene = useSetAtom(navigateToSceneAtom);
   const triggerCollectionsRefresh = useSetAtom(triggerCollectionsRefreshAtom);
   const triggerScenesRefresh = useSetAtom(triggerScenesRefreshAtom);
   // Subscribe to scenes refresh trigger from other components (e.g., App.tsx)
   const scenesRefresh = useAtomValue(scenesRefreshAtom);
   // Sync workspace slug with URL router
+  const currentWorkspaceSlug = useAtomValue(currentWorkspaceSlugAtom);
   const setCurrentWorkspaceSlug = useSetAtom(currentWorkspaceSlugAtom);
 
   // Local state
@@ -608,11 +609,18 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
     [navigateToCollection],
   );
 
+  // Navigate to scene via URL - this triggers the popstate handler which loads the scene
   const handleSceneClick = useCallback(
     (scene: WorkspaceScene) => {
-      onOpenScene(scene);
+      if (currentWorkspaceSlug) {
+        navigateToScene({
+          sceneId: scene.id,
+          title: scene.title,
+          workspaceSlug: currentWorkspaceSlug,
+        });
+      }
     },
-    [onOpenScene],
+    [currentWorkspaceSlug, navigateToScene],
   );
 
   // Filter scenes by search query

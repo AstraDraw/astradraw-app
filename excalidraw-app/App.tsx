@@ -163,7 +163,6 @@ import { WorkspaceMainContent } from "./components/Workspace";
 import {
   createScene,
   updateSceneData,
-  getSceneData,
   listWorkspaces,
   listCollections,
 } from "./auth/workspaceApi";
@@ -173,11 +172,7 @@ import {
   type SceneAccess,
 } from "./data/workspaceSceneLoader";
 
-import type {
-  WorkspaceScene,
-  Workspace,
-  Collection,
-} from "./auth/workspaceApi";
+import type { Workspace, Collection } from "./auth/workspaceApi";
 
 import type { CollabAPI } from "./collab/Collab";
 
@@ -605,6 +600,12 @@ const ExcalidrawWrapper = () => {
   // 3. Syncing URL state to Jotai atoms
   const handleUrlRouteRef = useRef<((route: RouteType) => void) | null>(null);
 
+  // Ref to hold scene loading function - populated by initialization effect
+  // and called by handlePopState for URL-based navigation
+  const loadSceneFromUrlRef = useRef<
+    ((workspaceSlug: string, sceneId: string) => Promise<void>) | null
+  >(null);
+
   useEffect(() => {
     // Define the route handler
     const handleUrlRoute = (route: RouteType) => {
@@ -687,14 +688,18 @@ const ExcalidrawWrapper = () => {
       if (route.type === "scene") {
         // Check if this is a different scene than currently loaded
         if (currentSceneIdRef.current !== route.sceneId) {
-          // Scene will be loaded by the existing handleWorkspaceUrl logic
-          // Just set the workspace slug for now
-          setCurrentWorkspaceSlugAtom(route.workspaceSlug);
-          setCurrentWorkspaceSlug(route.workspaceSlug);
-          navigateToCanvas();
-
-          // The scene loading will be triggered by the main effect
-          // when it detects the URL change
+          // Load the scene using the ref function (populated by initialization effect)
+          if (loadSceneFromUrlRef.current) {
+            await loadSceneFromUrlRef.current(
+              route.workspaceSlug,
+              route.sceneId,
+            );
+          } else {
+            // Fallback: just set state if loader not ready yet
+            setCurrentWorkspaceSlugAtom(route.workspaceSlug);
+            setCurrentWorkspaceSlug(route.workspaceSlug);
+            navigateToCanvas();
+          }
         }
       } else {
         handleUrlRoute(route);
@@ -885,17 +890,16 @@ const ExcalidrawWrapper = () => {
       }
     };
 
-    const handleWorkspaceUrl = async () => {
-      const pathname = window.location.pathname;
-      const hash = window.location.hash;
-      const sceneMatch = pathname.match(SCENE_URL_PATTERN);
-      if (!sceneMatch) {
-        return false;
-      }
-
-      const [, workspaceSlug, sceneId] = sceneMatch;
-      const hashParams = new URLSearchParams(hash.replace(/^#/, ""));
-      const roomKeyFromHash = hashParams.get("key");
+    // Reusable scene loading function - can be called from initial load or navigation
+    const loadSceneFromUrl = async (
+      workspaceSlug: string,
+      sceneId: string,
+      options: {
+        isInitialLoad?: boolean;
+        roomKeyFromHash?: string | null;
+      } = {},
+    ) => {
+      const { isInitialLoad = false, roomKeyFromHash = null } = options;
 
       try {
         const loaded = await loadWorkspaceScene(workspaceSlug, sceneId);
@@ -941,15 +945,17 @@ const ExcalidrawWrapper = () => {
               scene: sceneWithCollaborators as any,
               isExternalScene: false,
             } as any,
-            /* isInitialLoad */ true,
+            /* isInitialLoad */ isInitialLoad,
           );
 
-          initialStatePromiseRef.current.promise.resolve({
-            elements: sceneWithCollaborators.elements || [],
-            appState: sceneWithCollaborators.appState,
-            files: sceneWithCollaborators.files || {},
-          });
-        } else {
+          if (isInitialLoad) {
+            initialStatePromiseRef.current.promise.resolve({
+              elements: sceneWithCollaborators.elements || [],
+              appState: sceneWithCollaborators.appState,
+              files: sceneWithCollaborators.files || {},
+            });
+          }
+        } else if (isInitialLoad) {
           initialStatePromiseRef.current.promise.resolve(null);
         }
 
@@ -985,8 +991,31 @@ const ExcalidrawWrapper = () => {
         setErrorMessage(
           error instanceof Error ? error.message : "Failed to load scene",
         );
-        initialStatePromiseRef.current.promise.resolve(null);
+        if (isInitialLoad) {
+          initialStatePromiseRef.current.promise.resolve(null);
+        }
       }
+    };
+
+    // Expose the scene loader via ref for use by handlePopState
+    loadSceneFromUrlRef.current = loadSceneFromUrl;
+
+    const handleWorkspaceUrl = async () => {
+      const pathname = window.location.pathname;
+      const hash = window.location.hash;
+      const sceneMatch = pathname.match(SCENE_URL_PATTERN);
+      if (!sceneMatch) {
+        return false;
+      }
+
+      const [, workspaceSlug, sceneId] = sceneMatch;
+      const hashParams = new URLSearchParams(hash.replace(/^#/, ""));
+      const roomKeyFromHash = hashParams.get("key");
+
+      await loadSceneFromUrl(workspaceSlug, sceneId, {
+        isInitialLoad: true,
+        roomKeyFromHash,
+      });
 
       return true;
     };
@@ -1391,98 +1420,6 @@ const ExcalidrawWrapper = () => {
     ],
   );
 
-  const handleOpenScene = useCallback(
-    async (scene: WorkspaceScene) => {
-      if (!excalidrawAPI) {
-        return;
-      }
-
-      try {
-        const data = await getSceneData(scene.id);
-        const blob = new Blob([data]);
-        const sceneData = await loadFromBlob(blob, null, null);
-
-        excalidrawAPI.updateScene({
-          elements: sceneData.elements || [],
-          appState: {
-            ...sceneData.appState,
-            // Reset some state
-            collaborators: new Map(),
-          },
-          captureUpdate: CaptureUpdateAction.IMMEDIATELY,
-        });
-
-        // Add files if present
-        if (sceneData.files) {
-          excalidrawAPI.addFiles(Object.values(sceneData.files));
-        }
-
-        setCurrentSceneId(scene.id);
-        setCurrentSceneTitle(scene.title);
-        setCurrentSceneAccess({
-          canView: true,
-          canEdit: scene.canEdit ?? true,
-          canCollaborate: !!scene.roomId && (scene.canEdit ?? true),
-        });
-        setWorkspaceSidebarOpen(false);
-
-        // Sync with Jotai atoms
-        setCurrentSceneIdAtom(scene.id);
-        setCurrentSceneTitleAtom(scene.title);
-
-        if (currentWorkspace?.slug) {
-          const newUrl = buildSceneUrl(currentWorkspace.slug, scene.id);
-          window.history.pushState({ sceneId: scene.id }, "", newUrl);
-          setCurrentWorkspaceSlug(currentWorkspace.slug);
-          setCurrentWorkspaceSlugAtom(currentWorkspace.slug);
-        }
-
-        // Navigate to canvas mode if we're in dashboard
-        navigateToCanvas();
-
-        if (
-          collabAPI &&
-          !isCollabDisabled &&
-          scene.canEdit !== false &&
-          scene.roomId &&
-          !collabAPI.isCollaborating()
-        ) {
-          try {
-            const creds = await getCollaborationCredentials(scene.id);
-            if (creds?.roomId && creds.roomKey) {
-              await collabAPI.startCollaboration({
-                roomId: creds.roomId,
-                roomKey: creds.roomKey,
-              });
-              if (currentWorkspace?.slug) {
-                window.history.replaceState(
-                  {},
-                  "",
-                  `/workspace/${currentWorkspace.slug}/scene/${scene.id}#key=${creds.roomKey}`,
-                );
-              }
-            }
-          } catch (error) {
-            console.error("Failed to auto-join collaboration:", error);
-          }
-        }
-      } catch (error) {
-        console.error("Failed to open scene:", error);
-        setErrorMessage("Failed to open scene");
-      }
-    },
-    [
-      collabAPI,
-      currentWorkspace,
-      excalidrawAPI,
-      isCollabDisabled,
-      navigateToCanvas,
-      setCurrentSceneIdAtom,
-      setCurrentSceneTitleAtom,
-      setCurrentWorkspaceSlugAtom,
-    ],
-  );
-
   const handleSaveToWorkspace = useCallback(async () => {
     if (!excalidrawAPI) {
       return;
@@ -1707,7 +1644,6 @@ const ExcalidrawWrapper = () => {
           isOpen={workspaceSidebarOpen}
           onClose={() => setWorkspaceSidebarOpen(false)}
           onNewScene={handleNewScene}
-          onOpenScene={handleOpenScene}
           currentSceneId={currentSceneId}
           onWorkspaceChange={(workspace, privateColId) => {
             setCurrentWorkspace(workspace);
@@ -1724,7 +1660,6 @@ const ExcalidrawWrapper = () => {
             workspace={currentWorkspace}
             collections={collections}
             isAdmin={isWorkspaceAdmin}
-            onOpenScene={handleOpenScene}
             onNewScene={handleNewScene}
           />
         </div>
@@ -1746,7 +1681,6 @@ const ExcalidrawWrapper = () => {
           isOpen={workspaceSidebarOpen}
           onClose={() => setWorkspaceSidebarOpen(false)}
           onNewScene={handleNewScene}
-          onOpenScene={handleOpenScene}
           currentSceneId={currentSceneId}
           onWorkspaceChange={(workspace, privateColId) => {
             setCurrentWorkspace(workspace);
