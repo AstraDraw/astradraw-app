@@ -19,11 +19,13 @@ import { KEYS, getFrame } from "@excalidraw/common";
 import { useEffect, useRef, useState } from "react";
 
 import { atom, useAtom, useAtomValue } from "../app-jotai";
-import { activeRoomLinkAtom } from "../collab/Collab";
+import { activeRoomLinkAtom, type CollabAPI } from "../collab/Collab";
+import {
+  startCollaboration as startWorkspaceCollaboration,
+  type SceneAccess,
+} from "../data/workspaceSceneLoader";
 
 import "./ShareDialog.scss";
-
-import type { CollabAPI } from "../collab/Collab";
 
 type OnExportToBackend = () => void;
 type ShareDialogType = "share" | "collaborationOnly";
@@ -51,6 +53,12 @@ export type ShareDialogProps = {
   handleClose: () => void;
   onExportToBackend: OnExportToBackend;
   type: ShareDialogType;
+  workspaceSceneContext?: {
+    sceneId: string;
+    workspaceSlug: string;
+    access?: SceneAccess | null;
+    roomId?: string | null;
+  };
 };
 
 const ActiveRoomDialog = ({
@@ -176,10 +184,92 @@ const ActiveRoomDialog = ({
   );
 };
 
+const WorkspaceSceneShare = ({
+  workspaceSlug,
+  sceneId,
+  access,
+  collabAPI,
+}: {
+  workspaceSlug: string;
+  sceneId: string;
+  access?: SceneAccess | null;
+  collabAPI: CollabAPI | null;
+}) => {
+  const { t } = useI18n();
+  const [shareLink, setShareLink] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  if (!access?.canView) {
+    return null;
+  }
+
+  const handleEnable = async () => {
+    setIsLoading(true);
+    try {
+      const { roomId, roomKey } = await startWorkspaceCollaboration(sceneId);
+      const link = `${window.location.origin}/workspace/${workspaceSlug}/scene/${sceneId}#key=${roomKey}`;
+      setShareLink(link);
+      window.history.replaceState({}, "", link);
+      if (collabAPI) {
+        await collabAPI.startCollaboration({ roomId, roomKey });
+      }
+    } catch (error) {
+      console.error("Failed to enable collaboration:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (!access.canCollaborate) {
+    return (
+      <div className="ShareDialog__workspace">
+        <h3>{t("shareDialog.workspaceScene")}</h3>
+        <p>{t("shareDialog.viewOnlyAccess")}</p>
+        <p>{t("shareDialog.contactAdmin")}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="ShareDialog__workspace">
+      <h3>{t("shareDialog.workspaceScene")}</h3>
+      <p>{t("shareDialog.workspaceSceneDescription")}</p>
+
+      {shareLink ? (
+        <div className="ShareDialog__workspace__link">
+          <TextField value={shareLink} readonly />
+          <FilledButton
+            label={t("buttons.copyLink")}
+            icon={copyIcon}
+            onClick={() => copyTextToSystemClipboard(shareLink)}
+          />
+        </div>
+      ) : (
+        <FilledButton
+          label={t("shareDialog.enableCollaboration")}
+          icon={playerPlayIcon}
+          onClick={() => {
+            if (isLoading) {
+              return;
+            }
+            handleEnable();
+          }}
+          status={isLoading ? "loading" : null}
+        />
+      )}
+
+      <p className="ShareDialog__workspace__note">
+        {t("shareDialog.workspacePermissionNote")}
+      </p>
+    </div>
+  );
+};
+
 const ShareDialogPicker = (props: ShareDialogProps) => {
   const { t } = useI18n();
 
   const { collabAPI } = props;
+  const workspaceContext = props.workspaceSceneContext;
 
   const startCollabJSX = collabAPI ? (
     <>
@@ -214,6 +304,15 @@ const ShareDialogPicker = (props: ShareDialogProps) => {
 
   return (
     <>
+      {workspaceContext && (
+        <WorkspaceSceneShare
+          workspaceSlug={workspaceContext.workspaceSlug}
+          sceneId={workspaceContext.sceneId}
+          access={workspaceContext.access}
+          collabAPI={collabAPI}
+        />
+      )}
+
       {startCollabJSX}
 
       {props.type === "share" && (
@@ -265,6 +364,12 @@ const ShareDialogInner = (props: ShareDialogProps) => {
 export const ShareDialog = (props: {
   collabAPI: CollabAPI | null;
   onExportToBackend: OnExportToBackend;
+  workspaceSceneContext?: {
+    sceneId: string;
+    workspaceSlug: string;
+    access: SceneAccess | undefined;
+    roomId: string | null;
+  };
 }) => {
   const [shareDialogState, setShareDialogState] = useAtom(shareDialogStateAtom);
 

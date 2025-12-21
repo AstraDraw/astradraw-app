@@ -10,3 +10,4 @@ export { FullModeNav } from "./FullModeNav";
 export { DashboardView } from "./DashboardView";
 export { CollectionView } from "./CollectionView";
 export { WorkspaceMainContent } from "./WorkspaceMainContent";
+export { CopyMoveDialog } from "./CopyMoveDialog";

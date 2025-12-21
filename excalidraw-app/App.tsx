@@ -157,6 +157,11 @@ import {
   listWorkspaces,
   listCollections,
 } from "./auth/workspaceApi";
+import {
+  loadWorkspaceScene,
+  getCollaborationCredentials,
+  type SceneAccess,
+} from "./data/workspaceSceneLoader";
 
 import type {
   WorkspaceScene,
@@ -215,6 +220,9 @@ if (window.self !== window.top) {
     // ignore
   }
 }
+
+const SCENE_URL_PATTERN = /^\/workspace\/([^/]+)\/scene\/([^/#]+)/;
+const LEGACY_ROOM_PATTERN = /^#room=([a-zA-Z0-9_-]+),([a-zA-Z0-9_-]+)$/;
 
 const shareableLinkConfirmDialog = {
   title: t("overwriteConfirm.modal.shareableLink.title"),
@@ -422,6 +430,18 @@ const ExcalidrawWrapper = () => {
   const [currentWorkspace, setCurrentWorkspace] = useState<Workspace | null>(
     null,
   );
+  const [currentWorkspaceSlug, setCurrentWorkspaceSlug] = useState<
+    string | null
+  >(null);
+  const [currentSceneAccess, setCurrentSceneAccess] =
+    useState<SceneAccess | null>(null);
+  const [isLegacyMode, setIsLegacyMode] = useState<boolean>(() => {
+    const params = new URLSearchParams(window.location.search);
+    return (
+      params.get("mode") === "anonymous" ||
+      !!window.location.hash.match(LEGACY_ROOM_PATTERN)
+    );
+  });
   const [collections, setCollections] = useState<Collection[]>([]);
   const [privateCollectionId, setPrivateCollectionId] = useState<string | null>(
     null,
@@ -450,7 +470,10 @@ const ExcalidrawWrapper = () => {
         // Get user's workspaces
         const workspaces = await listWorkspaces();
         if (workspaces.length > 0) {
-          const workspace = workspaces[0]; // Use first workspace as default
+          const workspace =
+            (currentWorkspaceSlug &&
+              workspaces.find((ws) => ws.slug === currentWorkspaceSlug)) ||
+            workspaces[0]; // Fallback to first workspace as default
           setCurrentWorkspace(workspace);
 
           // Find the private collection in this workspace
@@ -474,7 +497,12 @@ const ExcalidrawWrapper = () => {
     };
 
     loadWorkspaceData();
-  }, [isAuthenticated, activeCollectionId, setActiveCollectionId]);
+  }, [
+    isAuthenticated,
+    activeCollectionId,
+    setActiveCollectionId,
+    currentWorkspaceSlug,
+  ]);
 
   // Save sidebar preference to localStorage
   useEffect(() => {
@@ -487,6 +515,12 @@ const ExcalidrawWrapper = () => {
       // Ignore localStorage errors
     }
   }, [workspaceSidebarOpen]);
+
+  useEffect(() => {
+    if (isLegacyMode) {
+      setWorkspaceSidebarOpen(false);
+    }
+  }, [isLegacyMode]);
 
   // initial state
   // ---------------------------------------------------------------------------
@@ -511,6 +545,23 @@ const ExcalidrawWrapper = () => {
 
   const [excalidrawAPI, excalidrawRefCallback] =
     useCallbackRefState<ExcalidrawImperativeAPI>();
+
+  useEffect(() => {
+    const updateLegacyMode = () => {
+      const params = new URLSearchParams(window.location.search);
+      setIsLegacyMode(
+        params.get("mode") === "anonymous" ||
+          !!window.location.hash.match(LEGACY_ROOM_PATTERN),
+      );
+    };
+
+    window.addEventListener("hashchange", updateLegacyMode);
+    window.addEventListener("popstate", updateLegacyMode);
+    return () => {
+      window.removeEventListener("hashchange", updateLegacyMode);
+      window.removeEventListener("popstate", updateLegacyMode);
+    };
+  }, []);
 
   const [, setShareDialogState] = useAtom(shareDialogStateAtom);
   const [collabAPI] = useAtom(collabAPIAtom);
@@ -587,6 +638,15 @@ const ExcalidrawWrapper = () => {
       return;
     }
 
+    const decodeBase64ToBlob = (base64: string) => {
+      const binary = atob(base64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      return new Blob([bytes], { type: "application/json" });
+    };
+
     const loadImages = (
       data: ResolutionType<typeof initializeScene>,
       isInitialLoad = false,
@@ -658,13 +718,128 @@ const ExcalidrawWrapper = () => {
       }
     };
 
-    initializeScene({ collabAPI, excalidrawAPI }).then(async (data) => {
-      loadImages(data, /* isInitialLoad */ true);
-      initialStatePromiseRef.current.promise.resolve(data.scene);
-    });
+    const handleWorkspaceUrl = async () => {
+      const pathname = window.location.pathname;
+      const hash = window.location.hash;
+      const sceneMatch = pathname.match(SCENE_URL_PATTERN);
+      if (!sceneMatch) {
+        return false;
+      }
+
+      const [, workspaceSlug, sceneId] = sceneMatch;
+      const hashParams = new URLSearchParams(hash.replace(/^#/, ""));
+      const roomKeyFromHash = hashParams.get("key");
+
+      try {
+        const loaded = await loadWorkspaceScene(workspaceSlug, sceneId);
+        setCurrentWorkspaceSlug(workspaceSlug);
+        setCurrentSceneId(loaded.scene.id);
+        setCurrentSceneTitle(loaded.scene.title || "Untitled");
+        setCurrentSceneAccess(loaded.access);
+
+        let restored: RestoredDataState | null = null;
+        if (loaded.data) {
+          const blob = decodeBase64ToBlob(loaded.data);
+          const sceneData = await loadFromBlob(blob, null, null);
+          restored = sceneData;
+        }
+
+        if (restored) {
+          const sceneWithCollaborators = {
+            ...restored,
+            appState: {
+              ...restored.appState,
+              collaborators: new Map(),
+            },
+          };
+
+          excalidrawAPI.updateScene({
+            elements: sceneWithCollaborators.elements || [],
+            appState: sceneWithCollaborators.appState,
+            captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+          });
+
+          // Load files separately
+          if (sceneWithCollaborators.files) {
+            excalidrawAPI.addFiles(Object.values(sceneWithCollaborators.files));
+          }
+
+          loadImages(
+            {
+              scene: sceneWithCollaborators as any,
+              isExternalScene: false,
+            } as any,
+            /* isInitialLoad */ true,
+          );
+
+          initialStatePromiseRef.current.promise.resolve({
+            elements: sceneWithCollaborators.elements || [],
+            appState: sceneWithCollaborators.appState,
+            files: sceneWithCollaborators.files || {},
+          });
+        } else {
+          initialStatePromiseRef.current.promise.resolve(null);
+        }
+
+        if (
+          collabAPI &&
+          !isCollabDisabled &&
+          loaded.access.canCollaborate &&
+          loaded.scene.roomId
+        ) {
+          let roomKey = roomKeyFromHash;
+          if (!roomKey) {
+            const creds = await getCollaborationCredentials(loaded.scene.id);
+            if (creds?.roomId && creds.roomKey) {
+              roomKey = creds.roomKey;
+              window.history.replaceState(
+                {},
+                "",
+                `/workspace/${workspaceSlug}/scene/${sceneId}#key=${roomKey}`,
+              );
+            }
+          }
+          if (roomKey) {
+            await collabAPI.startCollaboration({
+              roomId: loaded.scene.roomId,
+              roomKey,
+            });
+          }
+        }
+
+        navigateToCanvas();
+      } catch (error) {
+        console.error("Failed to load workspace scene:", error);
+        setErrorMessage(
+          error instanceof Error ? error.message : "Failed to load scene",
+        );
+        initialStatePromiseRef.current.promise.resolve(null);
+      }
+
+      return true;
+    };
+
+    const initialize = async () => {
+      const handledWorkspace = await handleWorkspaceUrl();
+      if (handledWorkspace) {
+        return;
+      }
+
+      initializeScene({ collabAPI, excalidrawAPI }).then(async (data) => {
+        loadImages(data, /* isInitialLoad */ true);
+        initialStatePromiseRef.current.promise.resolve(data.scene);
+      });
+    };
+
+    initialize();
 
     const onHashChange = async (event: HashChangeEvent) => {
       event.preventDefault();
+      const pathname = window.location.pathname;
+      if (pathname.match(SCENE_URL_PATTERN)) {
+        // Workspace scene URLs handle collaboration key separately; avoid re-init
+        return;
+      }
       const libraryUrlTokens = parseLibraryTokensFromUrl();
       if (!libraryUrlTokens) {
         if (
@@ -779,7 +954,13 @@ const ExcalidrawWrapper = () => {
         false,
       );
     };
-  }, [isCollabDisabled, collabAPI, excalidrawAPI, setLangCode]);
+  }, [
+    isCollabDisabled,
+    collabAPI,
+    excalidrawAPI,
+    setLangCode,
+    navigateToCanvas,
+  ]);
 
   useEffect(() => {
     const unloadHandler = (event: BeforeUnloadEvent) => {
@@ -1036,16 +1217,60 @@ const ExcalidrawWrapper = () => {
 
         setCurrentSceneId(scene.id);
         setCurrentSceneTitle(scene.title);
+        setCurrentSceneAccess({
+          canView: true,
+          canEdit: scene.canEdit ?? true,
+          canCollaborate: !!scene.roomId && (scene.canEdit ?? true),
+        });
         setWorkspaceSidebarOpen(false);
+
+        if (currentWorkspace?.slug) {
+          const newUrl = `/workspace/${currentWorkspace.slug}/scene/${scene.id}`;
+          window.history.pushState({ sceneId: scene.id }, "", newUrl);
+          setCurrentWorkspaceSlug(currentWorkspace.slug);
+        }
 
         // Navigate to canvas mode if we're in dashboard
         navigateToCanvas();
+
+        if (
+          collabAPI &&
+          !isCollabDisabled &&
+          scene.canEdit !== false &&
+          scene.roomId &&
+          !collabAPI.isCollaborating()
+        ) {
+          try {
+            const creds = await getCollaborationCredentials(scene.id);
+            if (creds?.roomId && creds.roomKey) {
+              await collabAPI.startCollaboration({
+                roomId: creds.roomId,
+                roomKey: creds.roomKey,
+              });
+              if (currentWorkspace?.slug) {
+                window.history.replaceState(
+                  {},
+                  "",
+                  `/workspace/${currentWorkspace.slug}/scene/${scene.id}#key=${creds.roomKey}`,
+                );
+              }
+            }
+          } catch (error) {
+            console.error("Failed to auto-join collaboration:", error);
+          }
+        }
       } catch (error) {
         console.error("Failed to open scene:", error);
         setErrorMessage("Failed to open scene");
       }
     },
-    [excalidrawAPI, navigateToCanvas],
+    [
+      collabAPI,
+      currentWorkspace,
+      excalidrawAPI,
+      isCollabDisabled,
+      navigateToCanvas,
+    ],
   );
 
   const handleSaveToWorkspace = useCallback(async () => {
@@ -1230,7 +1455,7 @@ const ExcalidrawWrapper = () => {
   const isWorkspaceAdmin = currentWorkspace?.role === "ADMIN";
 
   // If in dashboard mode, render the dashboard/collection/settings view
-  if (appMode === "dashboard") {
+  if (appMode === "dashboard" && !isLegacyMode) {
     return (
       <div
         style={{ height: "100%" }}
@@ -1247,6 +1472,7 @@ const ExcalidrawWrapper = () => {
           currentSceneId={currentSceneId}
           onWorkspaceChange={(workspace, privateColId) => {
             setCurrentWorkspace(workspace);
+            setCurrentWorkspaceSlug(workspace.slug);
             setPrivateCollectionId(privateColId);
             // Reload collections when workspace changes
             if (workspace) {
@@ -1280,23 +1506,26 @@ const ExcalidrawWrapper = () => {
       })}
     >
       {/* Workspace Sidebar (Left) - pushes content when open */}
-      <WorkspaceSidebar
-        isOpen={workspaceSidebarOpen}
-        onClose={() => setWorkspaceSidebarOpen(false)}
-        onNewScene={handleNewScene}
-        onOpenScene={handleOpenScene}
-        currentSceneId={currentSceneId}
-        onWorkspaceChange={(workspace, privateColId) => {
-          setCurrentWorkspace(workspace);
-          setPrivateCollectionId(privateColId);
-          // Reload collections when workspace changes
-          if (workspace) {
-            listCollections(workspace.id)
-              .then(setCollections)
-              .catch(console.error);
-          }
-        }}
-      />
+      {!isLegacyMode && (
+        <WorkspaceSidebar
+          isOpen={workspaceSidebarOpen}
+          onClose={() => setWorkspaceSidebarOpen(false)}
+          onNewScene={handleNewScene}
+          onOpenScene={handleOpenScene}
+          currentSceneId={currentSceneId}
+          onWorkspaceChange={(workspace, privateColId) => {
+            setCurrentWorkspace(workspace);
+            setCurrentWorkspaceSlug(workspace.slug);
+            setPrivateCollectionId(privateColId);
+            // Reload collections when workspace changes
+            if (workspace) {
+              listCollections(workspace.id)
+                .then(setCollections)
+                .catch(console.error);
+            }
+          }}
+        />
+      )}
 
       {/* Main content area - shrinks when sidebar is open */}
       <div className="excalidraw-app__main">
@@ -1373,10 +1602,12 @@ const ExcalidrawWrapper = () => {
           }}
         >
           {/* Workspace Sidebar Toggle Button - rendered via tunnel before hamburger menu */}
-          <WorkspaceSidebarTrigger
-            isOpen={workspaceSidebarOpen}
-            onToggle={() => setWorkspaceSidebarOpen(!workspaceSidebarOpen)}
-          />
+          {!isLegacyMode && (
+            <WorkspaceSidebarTrigger
+              isOpen={workspaceSidebarOpen}
+              onToggle={() => setWorkspaceSidebarOpen(!workspaceSidebarOpen)}
+            />
+          )}
           <AppMainMenu
             onCollabDialogOpen={onCollabDialogOpen}
             isCollaborating={isCollaborating}
@@ -1440,13 +1671,25 @@ const ExcalidrawWrapper = () => {
                 }
               }
             }}
+            workspaceSceneContext={
+              currentSceneId && currentWorkspace?.slug
+                ? {
+                    sceneId: currentSceneId,
+                    workspaceSlug: currentWorkspace.slug,
+                    access: currentSceneAccess || undefined,
+                    roomId: null,
+                  }
+                : undefined
+            }
           />
 
-          <AppSidebar
-            excalidrawAPI={excalidrawAPI}
-            sceneId={currentSceneId}
-            onCloseWorkspaceSidebar={() => setWorkspaceSidebarOpen(false)}
-          />
+          {!isLegacyMode && (
+            <AppSidebar
+              excalidrawAPI={excalidrawAPI}
+              sceneId={currentSceneId}
+              onCloseWorkspaceSidebar={() => setWorkspaceSidebarOpen(false)}
+            />
+          )}
 
           {excalidrawAPI && <PenToolbar excalidrawAPI={excalidrawAPI} />}
           {excalidrawAPI && <PresentationMode excalidrawAPI={excalidrawAPI} />}

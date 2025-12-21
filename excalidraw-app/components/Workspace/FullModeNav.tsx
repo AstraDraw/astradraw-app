@@ -84,6 +84,8 @@ interface FullModeNavProps {
   onNewScene: (collectionId?: string) => void;
   onDeleteCollection?: (collectionId: string) => void;
   onEditCollection?: (collection: Collection) => void;
+  onCopyCollection?: (collection: Collection) => void;
+  onMoveCollection?: (collection: Collection) => void;
 }
 
 export const FullModeNav: React.FC<FullModeNavProps> = ({
@@ -101,6 +103,8 @@ export const FullModeNav: React.FC<FullModeNavProps> = ({
   onNewScene,
   onDeleteCollection,
   onEditCollection,
+  onCopyCollection,
+  onMoveCollection,
 }) => {
   const [collectionMenuOpen, setCollectionMenuOpen] = useState<string | null>(
     null,
@@ -287,6 +291,26 @@ export const FullModeNav: React.FC<FullModeNavProps> = ({
                       >
                         {t("workspace.createScene")}
                       </button>
+                      {onCopyCollection && (
+                        <button
+                          onClick={() => {
+                            onCopyCollection(collection);
+                            setCollectionMenuOpen(null);
+                          }}
+                        >
+                          {t("workspace.copyToWorkspace")}
+                        </button>
+                      )}
+                      {onMoveCollection && (
+                        <button
+                          onClick={() => {
+                            onMoveCollection(collection);
+                            setCollectionMenuOpen(null);
+                          }}
+                        >
+                          {t("workspace.moveToWorkspace")}
+                        </button>
+                      )}
                       <button
                         onClick={() => {
                           if (onEditCollection) {

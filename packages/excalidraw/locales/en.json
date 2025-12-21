@@ -230,6 +230,8 @@
     "objectsSnapMode": "Snap to objects",
     "exitZenMode": "Exit zen mode",
     "cancel": "Cancel",
+    "copy": "Copy",
+    "move": "Move",
     "saveLibNames": "Save name(s) and exit",
     "clear": "Clear",
     "remove": "Remove",
@@ -380,7 +382,13 @@
     "sceneContent": "Scene content:"
   },
   "shareDialog": {
-    "or": "Or"
+    "or": "Or",
+    "workspaceScene": "Share this scene",
+    "workspaceSceneDescription": "Team members with access to this collection can collaborate in real-time.",
+    "enableCollaboration": "Enable collaboration",
+    "viewOnlyAccess": "You have view-only access to this scene.",
+    "contactAdmin": "Contact a workspace admin to request edit access.",
+    "workspacePermissionNote": "Only users with access to this collection can join."
   },
   "roomDialog": {
     "desc_intro": "Invite people to collaborate on your drawing.",
@@ -946,7 +954,15 @@
     "dragDropHint": "You can drag & drop excalidraw files here to import them",
     "tip": "TIP:",
     "changeHomePage": "change the default home page in",
-    "preferences": "preferences"
+    "preferences": "preferences",
+    "copyToWorkspace": "Copy to workspace...",
+    "moveToWorkspace": "Move to workspace...",
+    "copyDescription": "Create a copy of \"{{name}}\" in another workspace",
+    "moveDescription": "Move \"{{name}}\" to another workspace. It will no longer be available here.",
+    "selectWorkspace": "Select a workspace",
+    "startAnonymousBoard": "Start anonymous board",
+    "personalWorkspace": "Personal Workspace",
+    "sharedWorkspace": "Shared Workspace"
   },
   "settings": {
     "profile": "Profile",

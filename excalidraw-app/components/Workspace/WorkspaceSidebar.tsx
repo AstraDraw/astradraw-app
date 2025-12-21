@@ -39,6 +39,8 @@ import {
 
 import { EmojiPicker } from "../EmojiPicker";
 
+import { CopyMoveDialog } from "./CopyMoveDialog";
+
 import { BoardModeNav } from "./BoardModeNav";
 import { FullModeNav } from "./FullModeNav";
 import { LoginDialog } from "./LoginDialog";
@@ -131,6 +133,10 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
     null,
   );
   const [collections, setCollections] = useState<Collection[]>([]);
+  const [copyMoveDialogOpen, setCopyMoveDialogOpen] = useState(false);
+  const [copyMoveMode, setCopyMoveMode] = useState<"copy" | "move">("copy");
+  const [copyMoveCollection, setCopyMoveCollection] =
+    useState<Collection | null>(null);
   const [scenes, setScenes] = useState<WorkspaceScene[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showLoginDialog, setShowLoginDialog] = useState(false);
@@ -398,6 +404,34 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
     [activeCollectionId, privateCollection, setActiveCollectionId],
   );
 
+  const openCopyMoveDialog = useCallback(
+    (collection: Collection, mode: "copy" | "move") => {
+      setCopyMoveCollection(collection);
+      setCopyMoveMode(mode);
+      setCopyMoveDialogOpen(true);
+    },
+    [],
+  );
+
+  const handleCopyCollection = useCallback(
+    (collection: Collection) => {
+      openCopyMoveDialog(collection, "copy");
+    },
+    [openCopyMoveDialog],
+  );
+
+  const handleMoveCollection = useCallback(
+    (collection: Collection) => {
+      openCopyMoveDialog(collection, "move");
+    },
+    [openCopyMoveDialog],
+  );
+
+  const handleCopyMoveSuccess = useCallback(() => {
+    loadCollections();
+    loadScenes();
+  }, [loadCollections, loadScenes]);
+
   const handleLoginClick = () => {
     if (oidcConfigured && !localAuthEnabled) {
       login(window.location.pathname);
@@ -617,8 +651,21 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
                 onNewScene={onNewScene}
                 onDeleteCollection={handleDeleteCollection}
                 onEditCollection={handleEditCollection}
+                onCopyCollection={handleCopyCollection}
+                onMoveCollection={handleMoveCollection}
               />
             )}
+
+            <div className="workspace-sidebar__anonymous">
+              <button
+                className="workspace-sidebar__anonymous-button"
+                onClick={() => {
+                  window.location.href = "/?mode=anonymous";
+                }}
+              >
+                {t("workspace.startAnonymousBoard")}
+              </button>
+            </div>
           </>
         )}
       </div>
@@ -786,6 +833,18 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
         isOpen={showLoginDialog}
         onClose={() => setShowLoginDialog(false)}
         onSuccess={handleLoginSuccess}
+      />
+
+      <CopyMoveDialog
+        isOpen={copyMoveDialogOpen && !!copyMoveCollection}
+        onClose={() => {
+          setCopyMoveDialogOpen(false);
+          setCopyMoveCollection(null);
+        }}
+        collectionId={copyMoveCollection?.id || ""}
+        collectionName={copyMoveCollection?.name || ""}
+        mode={copyMoveMode}
+        onSuccess={handleCopyMoveSuccess}
       />
     </div>
   );

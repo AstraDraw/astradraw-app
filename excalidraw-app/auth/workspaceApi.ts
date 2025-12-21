@@ -2,7 +2,7 @@
  * Workspace API client for scene management
  */
 
-const getApiBaseUrl = (): string => {
+export const getApiBaseUrl = (): string => {
   // First check runtime env (Docker) - window.__ENV__ is set by env-config.js
   const runtimeEnv = (window as { __ENV__?: Record<string, string> }).__ENV__;
   if (runtimeEnv?.VITE_APP_HTTP_STORAGE_BACKEND_URL) {
@@ -22,6 +22,7 @@ const getApiBaseUrl = (): string => {
 // ============================================================================
 
 export type WorkspaceRole = "ADMIN" | "MEMBER" | "VIEWER";
+export type WorkspaceType = "PERSONAL" | "SHARED";
 
 export interface Workspace {
   id: string;
@@ -29,6 +30,7 @@ export interface Workspace {
   slug: string;
   avatarUrl: string | null;
   role: WorkspaceRole;
+  type?: WorkspaceType;
   memberCount: number;
   createdAt: string;
   updatedAt: string;
@@ -1327,6 +1329,54 @@ export async function deleteCollection(
       throw new Error("Access denied");
     }
     throw new Error("Failed to delete collection");
+  }
+
+  return response.json();
+}
+
+export async function copyCollectionToWorkspace(
+  collectionId: string,
+  targetWorkspaceId: string,
+): Promise<Collection> {
+  const response = await fetch(
+    `${getApiBaseUrl()}/collections/${collectionId}/copy-to-workspace`,
+    {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ targetWorkspaceId }),
+    },
+  );
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("Not authenticated");
+    }
+    throw new Error("Failed to copy collection");
+  }
+
+  return response.json();
+}
+
+export async function moveCollectionToWorkspace(
+  collectionId: string,
+  targetWorkspaceId: string,
+): Promise<Collection> {
+  const response = await fetch(
+    `${getApiBaseUrl()}/collections/${collectionId}/move-to-workspace`,
+    {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ targetWorkspaceId }),
+    },
+  );
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("Not authenticated");
+    }
+    throw new Error("Failed to move collection");
   }
 
   return response.json();
