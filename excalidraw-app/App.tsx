@@ -1864,6 +1864,10 @@ const ExcalidrawWrapper = () => {
             // Note: Don't reload collections here - WorkspaceSidebar already loads them
             // and calling listCollections here causes an infinite loop
           }}
+          onCurrentSceneTitleChange={(newTitle) => {
+            setCurrentSceneTitle(newTitle);
+            setCurrentSceneTitleAtom(newTitle);
+          }}
         />
       )}
 

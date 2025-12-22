@@ -102,8 +102,10 @@
   transition: background-color 0.2s ease, color 0.2s ease;
   white-space: nowrap;
   // Fixed width to prevent layout shift when status text changes
-  // "Несохранённые изменения" is the longest text (~180px)
-  min-width: 180px;
+  // Longest text is now "Unsaved changes" / "Не сохранено" (~140px with icon)
+  width: 145px;
+  min-width: 145px;
+  max-width: 145px;
   justify-content: flex-start;
 
   &__icon {

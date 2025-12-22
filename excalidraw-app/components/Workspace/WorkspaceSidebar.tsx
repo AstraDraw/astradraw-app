@@ -98,6 +98,7 @@ interface WorkspaceSidebarProps {
     workspace: Workspace,
     privateCollectionId: string | null,
   ) => void;
+  onCurrentSceneTitleChange?: (newTitle: string) => void;
 }
 
 export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
@@ -106,6 +107,7 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
   onNewScene,
   currentSceneId,
   onWorkspaceChange,
+  onCurrentSceneTitleChange,
 }) => {
   const {
     user,
@@ -372,6 +374,10 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
         setScenes((prev) =>
           prev.map((s) => (s.id === sceneId ? updatedScene : s)),
         );
+        // Update the current scene title in the top-right indicator if this is the active scene
+        if (sceneId === currentSceneId && onCurrentSceneTitleChange) {
+          onCurrentSceneTitleChange(newTitle);
+        }
         // Trigger refresh for other components
         triggerScenesRefresh();
       } catch (err) {
@@ -379,7 +385,7 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
         alert("Failed to rename scene");
       }
     },
-    [triggerScenesRefresh],
+    [triggerScenesRefresh, currentSceneId, onCurrentSceneTitleChange],
   );
 
   const handleDuplicateScene = useCallback(
