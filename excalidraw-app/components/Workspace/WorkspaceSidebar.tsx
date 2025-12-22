@@ -277,6 +277,9 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
     ) {
       const privateCol = collections.find((c) => c.isPrivate);
       if (privateCol) {
+        // #region agent log
+        fetch('http://127.0.0.1:7245/ingest/58057f50-4dd5-4eb7-8b3d-e7665811bc2a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WorkspaceSidebar.tsx:setDefaultCollection',message:'Setting default collection to Private (activeCollectionId was null)',data:{privateColId:privateCol.id,privateColName:privateCol.name,currentActiveCollectionId:activeCollectionId},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'C'})}).catch(()=>{});
+        // #endregion
         hasSetDefaultCollectionRef.current = true;
         setActiveCollectionId(privateCol.id);
       }

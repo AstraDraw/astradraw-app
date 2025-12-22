@@ -9,6 +9,14 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.55] - 2025-12-22
+
+### Fixed
+
+- **Scene created in wrong collection** - Creating a scene from CollectionView now correctly assigns it to the selected collection instead of defaulting to Private
+  - Root cause: App.tsx `collections` state wasn't synced when new collections were created from sidebar
+  - Fix: App.tsx now subscribes to `collectionsRefreshAtom` to reload collections when they change
+
 ## [0.18.0-beta0.54] - 2025-12-22
 
 ### Added

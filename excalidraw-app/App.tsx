@@ -154,6 +154,7 @@ import {
   navigateToDashboardAtom,
   activeCollectionIdAtom,
   triggerScenesRefreshAtom,
+  collectionsRefreshAtom,
   currentWorkspaceSlugAtom,
   currentSceneIdAtom,
   currentSceneTitleAtom,
@@ -553,6 +554,29 @@ const ExcalidrawWrapper = () => {
     // Note: Removed activeCollectionId from deps to prevent infinite loop
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, setActiveCollectionId, currentWorkspaceSlug]);
+
+  // Subscribe to collections refresh trigger to reload collections when they change
+  // This ensures App.tsx collections stay in sync with sidebar's collection changes
+  const collectionsRefresh = useAtomValue(collectionsRefreshAtom);
+  useEffect(() => {
+    if (!currentWorkspace || !isAuthenticated) {
+      return;
+    }
+
+    const reloadCollections = async () => {
+      try {
+        const workspaceCollections = await listCollections(currentWorkspace.id);
+        setCollections(workspaceCollections);
+      } catch (error) {
+        console.error("Failed to reload collections:", error);
+      }
+    };
+
+    // Only reload if collectionsRefresh > 0 (meaning it was triggered, not initial mount)
+    if (collectionsRefresh > 0) {
+      reloadCollections();
+    }
+  }, [collectionsRefresh, currentWorkspace, isAuthenticated]);
 
   // Save sidebar preference to localStorage
   useEffect(() => {
