@@ -149,11 +149,12 @@
     transition: background-color 0.15s;
 
     &:hover {
-      background: var(--button-hover-bg, rgba(0, 0, 0, 0.05));
+      background: #f0efff;
     }
 
     &--active {
-      background: var(--color-primary-light, rgba(105, 101, 219, 0.1));
+      background: #6a65db;
+      color: white;
     }
 
     &--danger {

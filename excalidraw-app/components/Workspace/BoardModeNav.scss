@@ -20,7 +20,7 @@
     transition: background-color 0.15s;
 
     &:hover {
-      background: var(--button-hover-bg, rgba(0, 0, 0, 0.05));
+      background: #f0efff;
     }
   }
 
@@ -213,7 +213,7 @@
 .excalidraw-app.theme--dark {
   .board-mode-nav {
     &__dashboard:hover {
-      background: var(--button-hover-bg, rgba(255, 255, 255, 0.1));
+      background: #f0efff;
     }
 
     &__label {

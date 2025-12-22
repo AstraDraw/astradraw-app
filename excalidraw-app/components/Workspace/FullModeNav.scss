@@ -27,11 +27,20 @@
     transition: background-color 0.15s;
 
     &:hover {
-      background: var(--button-hover-bg, rgba(0, 0, 0, 0.05));
+      background: #f0efff;
     }
 
     &--active {
-      background: var(--color-primary-light, rgba(105, 101, 219, 0.1));
+      background: #6a65db;
+      color: white;
+
+      .full-mode-nav__nav-icon {
+        color: white;
+      }
+
+      .full-mode-nav__nav-label {
+        color: white;
+      }
     }
   }
 
@@ -123,11 +132,11 @@
     transition: background-color 0.15s;
 
     &:hover {
-      background: var(--button-hover-bg, rgba(0, 0, 0, 0.05));
+      background: #f0efff;
     }
 
     &--active {
-      background: var(--color-primary, #6965db);
+      background: #6a65db;
 
       .full-mode-nav__collection-icon {
         color: white;
@@ -150,7 +159,7 @@
 
     &--active {
       .full-mode-nav__collection-item {
-        background: var(--color-primary, #6965db);
+        background: #6a65db;
 
         .full-mode-nav__collection-icon {
           color: white;
@@ -247,7 +256,7 @@
       transition: background-color 0.15s;
 
       &:hover {
-        background: var(--button-hover-bg, rgba(0, 0, 0, 0.05));
+        background: #f0efff;
       }
     }
   }
@@ -291,11 +300,20 @@
   .full-mode-nav {
     &__nav-item {
       &:hover {
-        background: var(--button-hover-bg, rgba(255, 255, 255, 0.1));
+        background: #f0efff;
       }
 
       &--active {
-        background: var(--color-primary-light, rgba(165, 161, 255, 0.15));
+        background: #6a65db;
+        color: white;
+
+        .full-mode-nav__nav-icon {
+          color: white;
+        }
+
+        .full-mode-nav__nav-label {
+          color: white;
+        }
       }
     }
 
@@ -305,7 +323,7 @@
 
     &__collection-item {
       &:hover {
-        background: var(--button-hover-bg, rgba(255, 255, 255, 0.1));
+        background: #f0efff;
       }
     }
 
@@ -321,13 +339,13 @@
         color: var(--text-primary-color, #e1e1e1);
 
         &:hover {
-          background: var(--button-hover-bg, rgba(255, 255, 255, 0.1));
+          background: #f0efff;
         }
       }
     }
 
     &__collection-more:hover {
-      background: var(--button-hover-bg, rgba(255, 255, 255, 0.1));
+      background: #f0efff;
     }
   }
 }

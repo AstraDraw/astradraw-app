@@ -658,9 +658,24 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
                       className="teams-collections-page__table-row"
                     >
                       <div className="teams-collections-page__table-cell teams-collections-page__table-cell--collection">
-                        <span className="teams-collections-page__collection-icon">
-                          {collection.icon || "📁"}
-                        </span>
+                        {collection.icon ? (
+                          <span className="teams-collections-page__collection-icon">
+                            {collection.icon}
+                          </span>
+                        ) : (
+                          <span className="teams-collections-page__collection-icon teams-collections-page__collection-icon--default">
+                            <svg
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              aria-hidden="true"
+                            >
+                              <path
+                                d="M20.496 5.627A2.25 2.25 0 0 1 22 7.75v10A4.25 4.25 0 0 1 17.75 22h-10a2.25 2.25 0 0 1-2.123-1.504l2.097.004H17.75a2.75 2.75 0 0 0 2.75-2.75v-10l-.004-.051V5.627ZM17.246 2a2.25 2.25 0 0 1 2.25 2.25v12.997a2.25 2.25 0 0 1-2.25 2.25H4.25A2.25 2.25 0 0 1 2 17.247V4.25A2.25 2.25 0 0 1 4.25 2h12.997Zm0 1.5H4.25a.75.75 0 0 0-.75.75v12.997c0 .414.336.75.75.75h12.997a.75.75 0 0 0 .75-.75V4.25a.75.75 0 0 0-.75-.75Z"
+                                fill="currentColor"
+                              />
+                            </svg>
+                          </span>
+                        )}
                         {editingCollectionId === collection.id ? (
                           <input
                             type="text"
@@ -884,9 +899,24 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
                             toggleCollectionSelection(collection.id)
                           }
                         >
-                          <span className="teams-collections-page__collection-icon">
-                            {collection.icon || "📁"}
-                          </span>
+                          {collection.icon ? (
+                            <span className="teams-collections-page__collection-icon">
+                              {collection.icon}
+                            </span>
+                          ) : (
+                            <span className="teams-collections-page__collection-icon teams-collections-page__collection-icon--default">
+                              <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                aria-hidden="true"
+                              >
+                                <path
+                                  d="M20.496 5.627A2.25 2.25 0 0 1 22 7.75v10A4.25 4.25 0 0 1 17.75 22h-10a2.25 2.25 0 0 1-2.123-1.504l2.097.004H17.75a2.75 2.75 0 0 0 2.75-2.75v-10l-.004-.051V5.627ZM17.246 2a2.25 2.25 0 0 1 2.25 2.25v12.997a2.25 2.25 0 0 1-2.25 2.25H4.25A2.25 2.25 0 0 1 2 17.247V4.25A2.25 2.25 0 0 1 4.25 2h12.997Zm0 1.5H4.25a.75.75 0 0 0-.75.75v12.997c0 .414.336.75.75.75h12.997a.75.75 0 0 0 .75-.75V4.25a.75.75 0 0 0-.75-.75Z"
+                                  fill="currentColor"
+                                />
+                              </svg>
+                            </span>
+                          )}
                           <span className="teams-collections-page__member-name">
                             {collection.name}
                           </span>
@@ -913,8 +943,22 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
                 <div className="teams-collections-page__form-group teams-collections-page__form-group--grow">
                   <label>{t("settings.teamMembersLabel")}</label>
                   <p className="teams-collections-page__form-hint">
-                    {t("settings.teamMembersDialogHint")}
+                    {t("settings.teamMembersDescription")}
                   </p>
+
+                  <div className="teams-collections-page__info-box">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <circle cx="12" cy="12" r="10" />
+                      <line x1="12" y1="16" x2="12" y2="12" />
+                      <line x1="12" y1="8" x2="12.01" y2="8" />
+                    </svg>
+                    <div>{t("settings.teamMembersDialogHint")}</div>
+                  </div>
 
                   <div className="teams-collections-page__member-list">
                     {members.map((member) => {

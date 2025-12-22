@@ -100,13 +100,14 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 24px;
-    border: 1px dashed var(--default-border-color, #e5e5e5);
-    border-radius: 8px;
+    padding: 32px 24px;
+    border: 2px dashed var(--default-border-color, #e5e5e5);
+    border-radius: 12px;
     text-align: center;
     color: var(--text-secondary-color, #6b6b6b);
     font-size: 14px;
-    gap: 12px;
+    gap: 16px;
+    min-height: 260px;
 
     p {
       margin: 0;
@@ -191,7 +192,7 @@
     }
 
     &:hover {
-      background: rgba(0, 0, 0, 0.02);
+      background: #f0efff;
     }
 
     &--clickable {
@@ -256,6 +257,23 @@
   &__collection-icon {
     font-size: 20px;
     flex-shrink: 0;
+
+    &--default {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #f0efff;
+      font-size: 0;
+
+      svg {
+        width: 16px;
+        height: 16px;
+        color: var(--text-secondary-color, #6b6b6b);
+      }
+    }
   }
 
   &__collection-name {
@@ -459,7 +477,7 @@
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
 
     &--wide {
-      max-width: 720px;
+      max-width: 844px;
     }
   }
 
@@ -499,21 +517,21 @@
   }
 
   &__dialog-content {
-    padding: 24px;
+    padding: 40px;
     overflow-y: auto;
     flex: 1;
 
     &--two-column {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 32px;
+      gap: 48px;
     }
   }
 
   &__dialog-column {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 24px;
   }
 
   &__dialog-footer {
@@ -547,24 +565,44 @@
 
       .teams-collections-page__member-list {
         flex: 1;
-        min-height: 150px;
+        min-height: 260px;
+        max-height: 260px;
       }
     }
 
     // Only style direct label children (section titles), not nested labels in member-list
     > label {
       display: block;
-      font-size: 14px;
+      font-size: 18px;
       font-weight: 600;
       color: var(--text-primary-color, #1b1b1f);
-      margin-bottom: 8px;
+      margin-bottom: 16px;
     }
   }
 
   &__form-hint {
-    font-size: 13px;
+    font-size: 14px;
     color: var(--text-secondary-color, #6b6b6b);
-    margin: 0 0 12px;
+    margin: 0 0 16px;
+  }
+
+  &__info-box {
+    display: flex;
+    gap: 12px;
+    padding: 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    margin-bottom: 16px;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    background: rgba(59, 130, 246, 0.08);
+    color: rgb(30, 64, 175);
+
+    svg {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
   }
 
   &__form-row {
@@ -576,6 +614,7 @@
 
   &__input {
     width: 100%;
+    max-width: 100%;
     padding: 12px 16px;
     background: var(--island-bg-color, #ffffff);
     border: 1px solid var(--default-border-color, #e5e5e5);
@@ -584,9 +623,10 @@
     color: var(--text-primary-color, #1b1b1f);
     outline: none;
     transition: border-color 0.15s ease;
+    box-sizing: border-box;
 
     &:focus {
-      border-color: var(--color-primary, #6965db);
+      border-color: #a8a5ff;
     }
 
     &::placeholder {
@@ -605,17 +645,19 @@
     width: 32px;
     height: 32px;
     border-radius: 8px;
-    border: 3px solid transparent;
+    border: 2px solid transparent;
     cursor: pointer;
     transition: all 0.15s ease;
 
     &:hover {
       transform: scale(1.1);
+      border-color: rgba(107, 107, 107, 0.3);
     }
 
     &--selected {
-      border-color: var(--text-primary-color, #1b1b1f);
-      box-shadow: 0 0 0 2px var(--island-bg-color, #ffffff);
+      border-color: rgb(59, 130, 246);
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+      transform: scale(1.05);
     }
   }
 
@@ -623,27 +665,25 @@
   &__member-list {
     display: flex;
     flex-direction: column;
-    border: 1px solid var(--default-border-color, #e5e5e5);
-    border-radius: 8px;
+    border: none;
+    border-radius: 0;
     overflow-y: auto;
-    max-height: 280px;
+    min-height: 260px;
+    max-height: 260px;
   }
 
   &__member-row {
     display: flex !important;
     align-items: center;
     gap: 12px;
-    padding: 12px 14px;
-    border-bottom: 1px solid var(--default-border-color, #e5e5e5);
+    padding: 10px 12px;
     cursor: pointer;
     transition: background 0.15s ease;
-
-    &:last-child {
-      border-bottom: none;
-    }
+    border-radius: 8px;
+    margin: 2px 0;
 
     &:hover {
-      background: rgba(0, 0, 0, 0.03);
+      background: #f0efff;
     }
 
     &--disabled {
@@ -658,11 +698,12 @@
 
   &__row-checkbox {
     margin-left: auto;
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
     cursor: pointer;
     accent-color: var(--color-primary, #6965db);
     flex-shrink: 0;
+    border-radius: 4px;
 
     &:disabled {
       cursor: default;
@@ -673,10 +714,12 @@
     font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
-    padding: 3px 8px;
-    border-radius: 4px;
-    background: rgba(105, 101, 219, 0.15);
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: rgba(105, 101, 219, 0.12);
     color: var(--color-primary, #6965db);
+    margin-left: auto;
+    margin-right: 8px;
   }
 
   // Legacy checkbox list (keeping for backwards compatibility)
@@ -701,7 +744,7 @@
     transition: background 0.15s ease;
 
     &:hover {
-      background: rgba(0, 0, 0, 0.03);
+      background: #f0efff;
     }
 
     &--disabled {
@@ -744,8 +787,8 @@
 
   // Member avatar
   &__member-avatar {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     object-fit: cover;
     flex-shrink: 0;
@@ -756,7 +799,7 @@
       justify-content: center;
       background: var(--color-primary, #6965db);
       color: white;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
     }
   }
@@ -859,6 +902,14 @@
       color: var(--text-primary-color, #e1e1e1);
     }
 
+    &__collection-icon--default {
+      background: rgba(255, 255, 255, 0.1);
+
+      svg {
+        color: var(--text-secondary-color, #9b9b9b);
+      }
+    }
+
     &__collection-name {
       color: var(--text-primary-color, #e1e1e1);
     }
@@ -906,10 +957,20 @@
       color: var(--text-secondary-color, #9b9b9b);
     }
 
+    &__info-box {
+      border-color: rgba(96, 165, 250, 0.3);
+      background: rgba(30, 58, 138, 0.2);
+      color: rgb(147, 197, 253);
+    }
+
     &__input {
       background: var(--default-bg-color, #1e1e24);
       border-color: var(--default-border-color, #3d3d3d);
       color: var(--text-primary-color, #e1e1e1);
+
+      &:focus {
+        border-color: #a8a5ff;
+      }
 
       &::placeholder {
         color: var(--text-secondary-color, #9b9b9b);
@@ -922,25 +983,46 @@
     }
 
     &__color-option--selected {
-      border-color: var(--text-primary-color, #e1e1e1);
-      box-shadow: 0 0 0 2px var(--island-bg-color, #232329);
+      border-color: rgb(96, 165, 250);
+      box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.2);
     }
 
     &__checkbox-list {
       border-color: var(--default-border-color, #3d3d3d);
     }
 
-    &__checkbox-item:hover {
-      background: rgba(255, 255, 255, 0.05);
-    }
+    &__checkbox-item {
+      input[type="checkbox"] {
+        appearance: none;
+        -webkit-appearance: none;
+        background: transparent;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        position: relative;
+        
+        &:checked {
+          background: var(--color-primary, #a5a1ff);
+          border-color: var(--color-primary, #a5a1ff);
+          
+          &::after {
+            content: "";
+            position: absolute;
+            left: 5px;
+            top: 2px;
+            width: 3px;
+            height: 7px;
+            border: solid #1e1e24;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+          }
+        }
+      }
 
-    &__member-list {
-      border-color: var(--default-border-color, #3d3d3d);
+      &:hover {
+        background: rgba(255, 255, 255, 0.05);
+      }
     }
 
     &__member-row {
-      border-color: var(--default-border-color, #3d3d3d);
-
       &:hover {
         background: rgba(255, 255, 255, 0.05);
       }
@@ -957,6 +1039,31 @@
     &__role-badge {
       background: rgba(165, 161, 255, 0.2);
       color: #a5a1ff;
+    }
+
+    &__row-checkbox {
+      appearance: none;
+      -webkit-appearance: none;
+      background: transparent;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      position: relative;
+      
+      &:checked {
+        background: var(--color-primary, #a5a1ff);
+        border-color: var(--color-primary, #a5a1ff);
+        
+        &::after {
+          content: "";
+          position: absolute;
+          left: 6px;
+          top: 3px;
+          width: 4px;
+          height: 8px;
+          border: solid #1e1e24;
+          border-width: 0 2px 2px 0;
+          transform: rotate(45deg);
+        }
+      }
     }
 
     &__access-badge {
