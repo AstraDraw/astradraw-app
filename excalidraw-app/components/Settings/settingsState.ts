@@ -74,6 +74,12 @@ export const currentSceneIdAtom = atom<string | null>(null);
 export const currentSceneTitleAtom = atom<string>("Untitled");
 
 /**
+ * Flag to indicate if current scene is in auto-collaboration mode
+ * (shared collection scene where collaboration can't be stopped)
+ */
+export const isAutoCollabSceneAtom = atom<boolean>(false);
+
+/**
  * Flag to indicate if a collection is private (for URL routing)
  */
 export const isPrivateCollectionAtom = atom<boolean>(false);

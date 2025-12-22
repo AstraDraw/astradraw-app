@@ -179,9 +179,6 @@ export const CollectionView: React.FC<CollectionViewProps> = ({
   }, []);
 
   const handleCreateScene = useCallback(() => {
-    // #region agent log
-    fetch('http://127.0.0.1:7245/ingest/58057f50-4dd5-4eb7-8b3d-e7665811bc2a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CollectionView.tsx:handleCreateScene',message:'Create scene clicked',data:{collectionId:collection?.id,collectionName:collection?.name,isPrivate:collection?.isPrivate},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A'})}).catch(()=>{});
-    // #endregion
     navigateToCanvas();
     onNewScene(collection?.id);
   }, [navigateToCanvas, onNewScene, collection]);

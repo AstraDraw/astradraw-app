@@ -14,6 +14,9 @@ export interface LoadedScene {
   };
   data: string | null; // Base64 encoded
   access: SceneAccess;
+  // Room credentials for auto-collaboration (only if canCollaborate)
+  roomId?: string | null;
+  roomKey?: string | null;
 }
 
 export async function loadWorkspaceScene(

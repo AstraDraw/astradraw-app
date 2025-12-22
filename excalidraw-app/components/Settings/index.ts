@@ -24,6 +24,7 @@ export {
   currentSceneIdAtom,
   currentSceneTitleAtom,
   isPrivateCollectionAtom,
+  isAutoCollabSceneAtom,
   type AppMode,
   type SidebarMode,
   type DashboardView,

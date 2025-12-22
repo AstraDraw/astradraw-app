@@ -160,6 +160,7 @@ import {
   currentSceneTitleAtom,
   dashboardViewAtom,
   isPrivateCollectionAtom,
+  isAutoCollabSceneAtom,
 } from "./components/Settings";
 
 import { parseUrl, buildSceneUrl, type RouteType } from "./router";
@@ -174,7 +175,6 @@ import {
 } from "./auth/workspaceApi";
 import {
   loadWorkspaceScene,
-  getCollaborationCredentials,
   type SceneAccess,
 } from "./data/workspaceSceneLoader";
 
@@ -428,6 +428,8 @@ const ExcalidrawWrapper = () => {
   const setCurrentSceneTitleAtom = useSetAtom(currentSceneTitleAtom);
   const setDashboardView = useSetAtom(dashboardViewAtom);
   const setIsPrivateCollection = useSetAtom(isPrivateCollectionAtom);
+  const setIsAutoCollabScene = useSetAtom(isAutoCollabSceneAtom);
+  const isAutoCollabScene = useAtomValue(isAutoCollabSceneAtom);
 
   // Auth state for auto-open on login
   const { isAuthenticated } = useAuth();
@@ -961,6 +963,12 @@ const ExcalidrawWrapper = () => {
     ) => {
       const { isInitialLoad = false, roomKeyFromHash = null } = options;
 
+      // Leave current collaboration room before switching scenes
+      // This ensures clean room switching when navigating between scenes
+      if (!isInitialLoad && collabAPI?.isCollaborating()) {
+        collabAPI.stopCollaboration(false); // false = don't keep remote state
+      }
+
       try {
         const loaded = await loadWorkspaceScene(workspaceSlug, sceneId);
         setCurrentWorkspaceSlug(workspaceSlug);
@@ -1007,7 +1015,8 @@ const ExcalidrawWrapper = () => {
             source: window.location.href,
             elements: sceneWithCollaborators.elements || [],
             appState: {
-              viewBackgroundColor: sceneWithCollaborators.appState?.viewBackgroundColor,
+              viewBackgroundColor:
+                sceneWithCollaborators.appState?.viewBackgroundColor,
               gridSize: sceneWithCollaborators.appState?.gridSize,
             },
             files: sceneWithCollaborators.files || {},
@@ -1035,30 +1044,35 @@ const ExcalidrawWrapper = () => {
           initialStatePromiseRef.current.promise.resolve(null);
         }
 
+        // Auto-join collaboration for scenes in shared collections
+        // The backend now returns roomId and roomKey directly in the response
+        // if the user has canCollaborate access
         if (
           collabAPI &&
           !isCollabDisabled &&
           loaded.access.canCollaborate &&
-          loaded.scene.roomId
+          loaded.roomId &&
+          loaded.roomKey
         ) {
-          let roomKey = roomKeyFromHash;
-          if (!roomKey) {
-            const creds = await getCollaborationCredentials(loaded.scene.id);
-            if (creds?.roomId && creds.roomKey) {
-              roomKey = creds.roomKey;
-              window.history.replaceState(
-                {},
-                "",
-                `/workspace/${workspaceSlug}/scene/${sceneId}#key=${roomKey}`,
-              );
-            }
-          }
-          if (roomKey) {
-            await collabAPI.startCollaboration({
-              roomId: loaded.scene.roomId,
-              roomKey,
-            });
-          }
+          // Use room key from hash if provided (for shared links), otherwise use the one from backend
+          const roomKey = roomKeyFromHash || loaded.roomKey;
+
+          // For auto-collaboration, we pass isAutoCollab: true to indicate that:
+          // 1. We already loaded the scene from workspace storage
+          // 2. We should keep current elements (not reset scene)
+          // 3. We should save them to room storage for other collaborators
+          // This handles the case where room storage might be empty (first collaborator)
+          await collabAPI.startCollaboration({
+            roomId: loaded.roomId,
+            roomKey,
+            isAutoCollab: true,
+          });
+
+          // Mark this scene as auto-collab (collaboration can't be stopped)
+          setIsAutoCollabScene(true);
+        } else {
+          // Not an auto-collab scene
+          setIsAutoCollabScene(false);
         }
 
         navigateToCanvas();
@@ -1339,9 +1353,9 @@ const ExcalidrawWrapper = () => {
           viewBackgroundColor: appState.viewBackgroundColor,
           gridSize: appState.gridSize,
         },
-        files: files,
+        files,
       });
-      
+
       // Only set unsaved if data actually changed from last save
       if (lastSavedDataRef.current !== currentData) {
         setHasUnsavedChanges(true);
@@ -1968,8 +1982,12 @@ const ExcalidrawWrapper = () => {
           theme={editorTheme}
           renderTopRightUI={(isMobile) => {
             // Show save status indicator when workspace scene is open
+            // Hide it during collaboration - collab has its own save mechanism
             const showSaveStatus =
-              isAuthenticated && currentSceneId && !isLegacyMode;
+              isAuthenticated &&
+              currentSceneId &&
+              !isLegacyMode &&
+              !isCollaborating;
 
             // On mobile with no collab, only show save status if applicable
             if (isMobile) {
@@ -2036,6 +2054,7 @@ const ExcalidrawWrapper = () => {
             onCollabDialogOpen={onCollabDialogOpen}
             isCollaborating={isCollaborating}
             isCollabEnabled={!isCollabDisabled}
+            isAutoCollabScene={isAutoCollabScene}
             theme={appTheme}
             setTheme={(theme) => setAppTheme(theme)}
             refresh={() => forceRefresh((prev) => !prev)}

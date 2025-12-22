@@ -52,7 +52,7 @@ const logoutIcon = (
 );
 
 export const ProfilePage: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, refreshUser } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -105,6 +105,8 @@ export const ProfilePage: React.FC = () => {
       });
       setProfile(updated);
       setIsEditingName(false);
+      // Refresh the global auth user state so sidebar updates
+      await refreshUser();
       showSuccess(t("settings.nameUpdated"));
     } catch (err: any) {
       setError(err.message || "Failed to update name");
@@ -134,6 +136,8 @@ export const ProfilePage: React.FC = () => {
     try {
       const updated = await uploadAvatar(file);
       setProfile(updated);
+      // Refresh the global auth user state so sidebar updates
+      await refreshUser();
       showSuccess(t("settings.avatarUpdated"));
     } catch (err: any) {
       setError(err.message || "Failed to upload avatar");
@@ -156,6 +160,8 @@ export const ProfilePage: React.FC = () => {
     try {
       const updated = await deleteAvatar();
       setProfile(updated);
+      // Refresh the global auth user state so sidebar updates
+      await refreshUser();
       showSuccess(t("settings.avatarRemoved"));
     } catch (err: any) {
       setError(err.message || "Failed to remove avatar");

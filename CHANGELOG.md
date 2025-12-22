@@ -9,6 +9,33 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.56] - 2025-12-22
+
+### Added
+
+- **Auto-Collaboration for Shared Collections** 🎉
+  - Scenes in non-private collections of SHARED workspaces automatically enable real-time collaboration
+  - No need to click "Share" - collaboration starts immediately when opening the scene
+  - Multiple users see each other's cursors and edits in real-time
+  - Works like Google Docs - if you have access, you're automatically collaborating
+
+- **isAutoCollab flag** - Preserves scene data when auto-joining collaboration
+  - Prevents scene reset on first load
+  - Ensures initial data is synced to room storage
+
+- **isAutoCollabSceneAtom** - Jotai atom to track auto-collab state
+
+### Changed
+
+- **SaveStatusIndicator hidden during collaboration** - Collab has its own save mechanism
+- **"End Session" button hidden for auto-collab scenes** - Collaboration can't be stopped for shared scenes
+- **Profile changes now update sidebar immediately** - Added `refreshUser()` call after profile save
+
+### Fixed
+
+- **AES-128-GCM key generation** - Fixed room key to be 22-char base64url (was 40-char nanoid)
+- **Scene data loss on collaboration start** - `isAutoCollab: true` prevents `resetScene()` call
+
 ## [0.18.0-beta0.55] - 2025-12-22
 
 ### Fixed

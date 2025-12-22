@@ -493,7 +493,10 @@ class Collab extends PureComponent<CollabProps, CollabState> {
   private fallbackInitializationHandler: null | (() => any) = null;
 
   startCollaboration = async (
-    existingRoomLinkData: null | { roomId: string; roomKey: string },
+    existingRoomLinkData:
+      | null
+      | { roomId: string; roomKey: string }
+      | { roomId: string; roomKey: string; isAutoCollab: true },
   ) => {
     // Check for authenticated user's profile data
     // If user is authenticated, always prefer their profile name/avatar over localStorage
@@ -539,17 +542,32 @@ class Collab extends PureComponent<CollabProps, CollabState> {
     this.setIsCollaborating(true);
     LocalData.pauseSave("collaboration");
 
+    // Determine if this is auto-collaboration (workspace scene with pre-loaded data)
+    const isAutoCollab =
+      existingRoomLinkData &&
+      "isAutoCollab" in existingRoomLinkData &&
+      existingRoomLinkData.isAutoCollab;
+
     const { default: socketIOClient } = await import(
       /* webpackChunkName: "socketIoClient" */ "socket.io-client"
     );
 
     const fallbackInitializationHandler = () => {
-      this.initializeRoom({
-        roomLinkData: existingRoomLinkData,
-        fetchScene: true,
-      }).then((scene) => {
-        scenePromise.resolve(scene);
-      });
+      // For auto-collab, don't fetch scene - we already have the data from workspace storage
+      if (isAutoCollab) {
+        this.initializeRoom({
+          fetchScene: false,
+        }).then((scene) => {
+          scenePromise.resolve(scene);
+        });
+      } else {
+        this.initializeRoom({
+          roomLinkData: existingRoomLinkData,
+          fetchScene: true,
+        }).then((scene) => {
+          scenePromise.resolve(scene);
+        });
+      }
     };
     this.fallbackInitializationHandler = fallbackInitializationHandler;
 
@@ -569,10 +587,11 @@ class Collab extends PureComponent<CollabProps, CollabState> {
       return null;
     }
 
-    if (existingRoomLinkData) {
-      // when joining existing room, don't merge it with current scene data
+    if (existingRoomLinkData && !isAutoCollab) {
+      // when joining existing room via link, don't merge it with current scene data
       this.excalidrawAPI.resetScene();
     } else {
+      // For new rooms OR auto-collab: keep current elements and save to room storage
       const elements = this.excalidrawAPI.getSceneElements().map((element) => {
         if (isImageElement(element) && element.status === "saved") {
           return newElementWith(element, { status: "pending" });

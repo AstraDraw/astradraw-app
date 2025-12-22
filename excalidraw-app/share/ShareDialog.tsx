@@ -24,6 +24,7 @@ import {
   startCollaboration as startWorkspaceCollaboration,
   type SceneAccess,
 } from "../data/workspaceSceneLoader";
+import { isAutoCollabSceneAtom } from "../components/Settings";
 
 import "./ShareDialog.scss";
 
@@ -65,10 +66,12 @@ const ActiveRoomDialog = ({
   collabAPI,
   activeRoomLink,
   handleClose,
+  isAutoCollab,
 }: {
   collabAPI: CollabAPI;
   activeRoomLink: string;
   handleClose: () => void;
+  isAutoCollab: boolean;
 }) => {
   const { t } = useI18n();
   const [, setJustCopied] = useState(false);
@@ -161,25 +164,27 @@ const ActiveRoomDialog = ({
           </span>
           {t("roomDialog.desc_privacy")}
         </p>
-        <p>{t("roomDialog.desc_exitSession")}</p>
+        {!isAutoCollab && <p>{t("roomDialog.desc_exitSession")}</p>}
       </div>
 
-      <div className="ShareDialog__active__actions">
-        <FilledButton
-          size="large"
-          variant="outlined"
-          color="danger"
-          label={t("roomDialog.button_stopSession")}
-          icon={playerStopFilledIcon}
-          onClick={() => {
-            trackEvent("share", "room closed");
-            collabAPI.stopCollaboration();
-            if (!collabAPI.isCollaborating()) {
-              handleClose();
-            }
-          }}
-        />
-      </div>
+      {!isAutoCollab && (
+        <div className="ShareDialog__active__actions">
+          <FilledButton
+            size="large"
+            variant="outlined"
+            color="danger"
+            label={t("roomDialog.button_stopSession")}
+            icon={playerStopFilledIcon}
+            onClick={() => {
+              trackEvent("share", "room closed");
+              collabAPI.stopCollaboration();
+              if (!collabAPI.isCollaborating()) {
+                handleClose();
+              }
+            }}
+          />
+        </div>
+      )}
     </>
   );
 };
@@ -343,6 +348,7 @@ const ShareDialogPicker = (props: ShareDialogProps) => {
 
 const ShareDialogInner = (props: ShareDialogProps) => {
   const activeRoomLink = useAtomValue(activeRoomLinkAtom);
+  const isAutoCollab = useAtomValue(isAutoCollabSceneAtom);
 
   return (
     <Dialog size="small" onCloseRequest={props.handleClose} title={false}>
@@ -352,6 +358,7 @@ const ShareDialogInner = (props: ShareDialogProps) => {
             collabAPI={props.collabAPI}
             activeRoomLink={activeRoomLink}
             handleClose={props.handleClose}
+            isAutoCollab={isAutoCollab}
           />
         ) : (
           <ShareDialogPicker {...props} />

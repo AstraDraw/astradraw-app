@@ -204,9 +204,6 @@ export async function getSceneData(id: string): Promise<ArrayBuffer> {
 export async function createScene(
   dto: CreateSceneDto,
 ): Promise<WorkspaceScene> {
-  // #region agent log
-  fetch('http://127.0.0.1:7245/ingest/58057f50-4dd5-4eb7-8b3d-e7665811bc2a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'workspaceApi.ts:createScene',message:'API createScene called',data:{dto},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'D'})}).catch(()=>{});
-  // #endregion
   const response = await fetch(`${getApiBaseUrl()}/workspace/scenes`, {
     method: "POST",
     credentials: "include",
