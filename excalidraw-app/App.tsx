@@ -1903,6 +1903,7 @@ const ExcalidrawWrapper = () => {
       className={clsx("excalidraw-app", {
         "is-collaborating": isCollaborating,
         "workspace-sidebar-open": workspaceSidebarOpen,
+        "theme--dark": editorTheme === THEME.DARK,
       })}
     >
       {/* Workspace Sidebar (Left) - shared between both modes */}
@@ -1938,6 +1939,8 @@ const ExcalidrawWrapper = () => {
             collections={collections}
             isAdmin={isWorkspaceAdmin}
             onNewScene={handleNewScene}
+            theme={appTheme}
+            setTheme={setAppTheme}
           />
         </div>
       )}

@@ -213,7 +213,8 @@
 }
 
 // Dark mode
-.excalidraw.theme--dark {
+.excalidraw.theme--dark,
+.excalidraw-app.theme--dark {
   .scene-card {
     background: var(--default-bg-color, #2d2d33);
 

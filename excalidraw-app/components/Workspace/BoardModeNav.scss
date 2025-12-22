@@ -209,7 +209,8 @@
 }
 
 // Dark mode
-.excalidraw.theme--dark {
+.excalidraw.theme--dark,
+.excalidraw-app.theme--dark {
   .board-mode-nav {
     &__dashboard:hover {
       background: var(--button-hover-bg, rgba(255, 255, 255, 0.1));

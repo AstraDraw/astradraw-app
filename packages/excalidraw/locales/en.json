@@ -1029,6 +1029,8 @@
     "signOut": "Sign Out",
     "signOutDescription": "Sign out of your account on this device.",
     "signOutButton": "Sign Out",
+    "myPreferences": "My preferences",
+    "initialAppPage": "Initial app page",
     "save": "Save",
     "cancel": "Cancel",
     "edit": "Edit",

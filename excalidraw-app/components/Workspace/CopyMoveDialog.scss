@@ -32,7 +32,8 @@
   }
 }
 
-.excalidraw.theme--dark {
+.excalidraw.theme--dark,
+.excalidraw-app.theme--dark {
   .copy-move-dialog {
     color: var(--text-primary-color, #f5f5f5);
 

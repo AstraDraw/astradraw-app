@@ -258,7 +258,8 @@
 }
 
 // Dark mode
-.excalidraw.theme--dark {
+.excalidraw.theme--dark,
+.excalidraw-app.theme--dark {
   .emoji-picker {
     &__trigger {
       background: var(--island-bg-color, #2d2d33);

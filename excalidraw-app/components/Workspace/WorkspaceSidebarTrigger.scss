@@ -68,7 +68,8 @@
 }
 
 // Dark mode
-.excalidraw.theme--dark {
+.excalidraw.theme--dark,
+.excalidraw-app.theme--dark {
   .workspace-sidebar-trigger {
     &__button {
       background: var(--color-surface-low, var(--island-bg-color, #232329));

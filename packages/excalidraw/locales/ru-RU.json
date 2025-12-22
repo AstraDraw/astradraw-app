@@ -1029,6 +1029,8 @@
     "signOut": "Выход",
     "signOutDescription": "Выйти из аккаунта на этом устройстве.",
     "signOutButton": "Выйти",
+    "myPreferences": "Мои настройки",
+    "initialAppPage": "Начальная страница",
     "save": "Сохранить",
     "cancel": "Отмена",
     "edit": "Редактировать",

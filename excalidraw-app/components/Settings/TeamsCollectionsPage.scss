@@ -819,7 +819,8 @@
 }
 
 // Dark mode
-.excalidraw.theme--dark {
+.excalidraw.theme--dark,
+.excalidraw-app.theme--dark {
   .teams-collections-page {
     background: var(--default-bg-color, #1e1e24);
 
@@ -854,6 +855,14 @@
       }
     }
 
+    &__team-name {
+      color: var(--text-primary-color, #e1e1e1);
+    }
+
+    &__collection-name {
+      color: var(--text-primary-color, #e1e1e1);
+    }
+
     &__empty-section {
       background: var(--island-bg-color, #232329);
       border-color: var(--default-border-color, #3d3d3d);
@@ -861,19 +870,60 @@
 
     &__empty-list {
       border-color: var(--default-border-color, #3d3d3d);
+      color: var(--text-secondary-color, #9b9b9b);
     }
 
     &__dialog {
       background: var(--island-bg-color, #232329);
     }
 
+    &__dialog-header {
+      border-color: var(--default-border-color, #3d3d3d);
+
+      h2 {
+        color: var(--text-primary-color, #e1e1e1);
+      }
+    }
+
+    &__dialog-close {
+      color: var(--text-secondary-color, #9b9b9b);
+
+      &:hover {
+        background: var(--default-border-color, #3d3d3d);
+        color: var(--text-primary-color, #e1e1e1);
+      }
+    }
+
+    &__dialog-footer {
+      border-color: var(--default-border-color, #3d3d3d);
+    }
+
+    &__form-group > label {
+      color: var(--text-primary-color, #e1e1e1);
+    }
+
+    &__form-hint {
+      color: var(--text-secondary-color, #9b9b9b);
+    }
+
     &__input {
       background: var(--default-bg-color, #1e1e24);
       border-color: var(--default-border-color, #3d3d3d);
+      color: var(--text-primary-color, #e1e1e1);
+
+      &::placeholder {
+        color: var(--text-secondary-color, #9b9b9b);
+      }
     }
 
     &__inline-input {
       background: var(--default-bg-color, #1e1e24);
+      color: var(--text-primary-color, #e1e1e1);
+    }
+
+    &__color-option--selected {
+      border-color: var(--text-primary-color, #e1e1e1);
+      box-shadow: 0 0 0 2px var(--island-bg-color, #232329);
     }
 
     &__checkbox-list {
@@ -896,6 +946,19 @@
       }
     }
 
+    &__member-name {
+      color: var(--text-primary-color, #e1e1e1);
+    }
+
+    &__member-role {
+      color: var(--text-secondary-color, #9b9b9b);
+    }
+
+    &__role-badge {
+      background: rgba(165, 161, 255, 0.2);
+      color: #a5a1ff;
+    }
+
     &__access-badge {
       &--admins-only {
         background: rgba(245, 158, 11, 0.2);
@@ -904,6 +967,25 @@
 
       &--private {
         background: rgba(155, 155, 155, 0.2);
+      }
+    }
+
+    &__action-button {
+      color: var(--text-secondary-color, #9b9b9b);
+
+      &:hover {
+        background: var(--default-border-color, #3d3d3d);
+        color: var(--text-primary-color, #e1e1e1);
+      }
+    }
+
+    &__add-button {
+      border-color: var(--default-border-color, #3d3d3d);
+      color: var(--text-secondary-color, #9b9b9b);
+
+      &:hover {
+        border-color: var(--color-primary-light, #a5a1ff);
+        color: var(--color-primary-light, #a5a1ff);
       }
     }
 

@@ -322,7 +322,8 @@
 }
 
 // Dark mode
-.excalidraw.theme--dark {
+.excalidraw.theme--dark,
+.excalidraw-app.theme--dark {
   .workspace-settings-page {
     background: var(--default-bg-color, #1e1e24);
 
@@ -347,10 +348,54 @@
       border-color: var(--default-border-color, #3d3d3d);
     }
 
+    &__field-value {
+      color: var(--text-primary-color, #e1e1e1);
+    }
+
+    &__field-hint {
+      color: var(--text-secondary-color, #9b9b9b);
+    }
+
     &__input {
       background: var(--island-bg-color, #232329);
       border-color: var(--default-border-color, #3d3d3d);
       color: var(--text-primary-color, #e1e1e1);
+
+      &::placeholder {
+        color: var(--text-secondary-color, #9b9b9b);
+      }
+    }
+
+    &__avatar-info p {
+      color: var(--text-secondary-color, #9b9b9b);
+    }
+
+    &__danger-info {
+      h3 {
+        color: var(--text-primary-color, #e1e1e1);
+      }
+
+      p {
+        color: var(--text-secondary-color, #9b9b9b);
+      }
+    }
+
+    &__edit-button {
+      color: var(--text-secondary-color, #9b9b9b);
+
+      &:hover {
+        background: var(--default-border-color, #3d3d3d);
+        color: var(--text-primary-color, #e1e1e1);
+      }
+    }
+
+    &__button--secondary {
+      border-color: var(--default-border-color, #3d3d3d);
+      color: var(--text-primary-color, #e1e1e1);
+
+      &:hover:not(:disabled) {
+        background: var(--default-border-color, #3d3d3d);
+      }
     }
   }
 }

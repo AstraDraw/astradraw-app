@@ -676,7 +676,8 @@
 // ============================================
 // Dark mode
 // ============================================
-.excalidraw.theme--dark {
+.excalidraw.theme--dark,
+.excalidraw-app.theme--dark {
   .workspace-sidebar {
     background: var(--island-bg-color, #232329);
     border-color: var(--default-border-color, #3d3d3d);

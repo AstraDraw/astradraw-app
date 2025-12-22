@@ -203,7 +203,8 @@
 }
 
 // Dark mode
-.excalidraw.theme--dark {
+.excalidraw.theme--dark,
+.excalidraw-app.theme--dark {
   .login-dialog {
     background: var(--island-bg-color, #232329);
 

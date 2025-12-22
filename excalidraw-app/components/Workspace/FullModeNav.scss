@@ -286,7 +286,8 @@
 }
 
 // Dark mode
-.excalidraw.theme--dark {
+.excalidraw.theme--dark,
+.excalidraw-app.theme--dark {
   .full-mode-nav {
     &__nav-item {
       &:hover {

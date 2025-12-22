@@ -451,7 +451,8 @@
 }
 
 // Dark mode
-.excalidraw.theme--dark {
+.excalidraw.theme--dark,
+.excalidraw-app.theme--dark {
   .members-page {
     background: var(--default-bg-color, #1e1e24);
 
@@ -471,6 +472,14 @@
     &__search {
       background: var(--island-bg-color, #232329);
       border-color: var(--default-border-color, #3d3d3d);
+
+      input {
+        color: var(--text-primary-color, #e1e1e1);
+
+        &::placeholder {
+          color: var(--text-secondary-color, #9b9b9b);
+        }
+      }
     }
 
     &__member {
@@ -481,8 +490,62 @@
       }
     }
 
+    &__member-name {
+      color: var(--text-primary-color, #e1e1e1);
+    }
+
+    &__member-email {
+      color: var(--text-secondary-color, #9b9b9b);
+    }
+
     &__dialog {
       background: var(--island-bg-color, #232329);
+    }
+
+    &__dialog-header {
+      border-color: var(--default-border-color, #3d3d3d);
+
+      h2 {
+        color: var(--text-primary-color, #e1e1e1);
+      }
+    }
+
+    &__dialog-close {
+      color: var(--text-secondary-color, #9b9b9b);
+
+      &:hover {
+        background: var(--default-border-color, #3d3d3d);
+        color: var(--text-primary-color, #e1e1e1);
+      }
+    }
+
+    &__dialog-content > p {
+      color: var(--text-secondary-color, #9b9b9b);
+    }
+
+    &__form-group label {
+      color: var(--text-primary-color, #e1e1e1);
+    }
+
+    &__select {
+      background: var(--default-bg-color, #1e1e24);
+      border-color: var(--default-border-color, #3d3d3d);
+      color: var(--text-primary-color, #e1e1e1);
+
+      option {
+        background: var(--island-bg-color, #232329);
+        color: var(--text-primary-color, #e1e1e1);
+      }
+    }
+
+    &__invite-link input {
+      background: var(--default-bg-color, #1e1e24);
+      border-color: var(--default-border-color, #3d3d3d);
+      color: var(--text-primary-color, #e1e1e1);
+    }
+
+    &__invite-hint {
+      color: var(--text-secondary-color, #9b9b9b);
     }
 
     &__role-badge {

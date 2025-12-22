@@ -242,7 +242,8 @@
 }
 
 // Dark mode
-.excalidraw.theme--dark {
+.excalidraw.theme--dark,
+.excalidraw-app.theme--dark {
   .scene-card-grid {
     &__empty {
       color: var(--text-primary-color, #e1e1e1);

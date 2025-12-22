@@ -237,7 +237,8 @@
 }
 
 // Dark mode support
-.excalidraw.theme--dark {
+.excalidraw.theme--dark,
+.excalidraw-app.theme--dark {
   .save-status-indicator {
     color: var(--text-primary-color, #fff);
   }

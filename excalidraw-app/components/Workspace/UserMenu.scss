@@ -122,7 +122,8 @@
 }
 
 // Dark mode
-.excalidraw.theme--dark {
+.excalidraw.theme--dark,
+.excalidraw-app.theme--dark {
   .user-menu {
     &__trigger {
       background: var(--default-bg-color, #2d2d33);

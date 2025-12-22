@@ -145,7 +145,8 @@
 }
 
 // Dark mode
-.excalidraw.theme--dark {
+.excalidraw.theme--dark,
+.excalidraw-app.theme--dark {
   .dashboard-view {
     background: var(--default-bg-color, #1e1e24);
 

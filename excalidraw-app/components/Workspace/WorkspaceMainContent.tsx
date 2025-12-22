@@ -18,6 +18,7 @@ import { CollectionView } from "./CollectionView";
 import "./WorkspaceMainContent.scss";
 
 import type { Workspace, Collection } from "../../auth/workspaceApi";
+import type { Theme } from "@excalidraw/element/types";
 
 interface WorkspaceMainContentProps {
   workspace: Workspace | null;
@@ -28,6 +29,8 @@ interface WorkspaceMainContentProps {
     name?: string;
     avatarUrl?: string;
   }) => Promise<void>;
+  theme: Theme | "system";
+  setTheme: (theme: Theme | "system") => void;
 }
 
 export const WorkspaceMainContent: React.FC<WorkspaceMainContentProps> = ({
@@ -36,6 +39,8 @@ export const WorkspaceMainContent: React.FC<WorkspaceMainContentProps> = ({
   isAdmin,
   onNewScene,
   onUpdateWorkspace,
+  theme,
+  setTheme,
 }) => {
   const dashboardView = useAtomValue(dashboardViewAtom);
   const activeCollectionId = useAtomValue(activeCollectionIdAtom);
@@ -61,7 +66,7 @@ export const WorkspaceMainContent: React.FC<WorkspaceMainContentProps> = ({
           />
         );
       case "profile":
-        return <ProfilePage />;
+        return <ProfilePage theme={theme} setTheme={setTheme} />;
       case "workspace":
         return (
           <WorkspaceSettingsPage
