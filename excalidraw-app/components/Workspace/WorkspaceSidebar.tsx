@@ -836,17 +836,6 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
                 onMoveCollection={handleMoveCollection}
               />
             )}
-
-            <div className="workspace-sidebar__anonymous">
-              <button
-                className="workspace-sidebar__anonymous-button"
-                onClick={() => {
-                  window.location.href = "/?mode=anonymous";
-                }}
-              >
-                {t("workspace.startAnonymousBoard")}
-              </button>
-            </div>
           </>
         )}
       </div>

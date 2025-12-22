@@ -43,9 +43,17 @@ const teamsIcon = (
 );
 
 const lockIcon = (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    aria-hidden="true"
+    focusable="false"
+    role="img"
+  >
+    <path
+      d="M12 2a4 4 0 0 1 4 4v2h1.75A2.25 2.25 0 0 1 20 10.25v9.5A2.25 2.25 0 0 1 17.75 22H6.25A2.25 2.25 0 0 1 4 19.75v-9.5A2.25 2.25 0 0 1 6.25 8H8V6a4 4 0 0 1 4-4Zm5.75 7.5H6.25a.75.75 0 0 0-.75.75v9.5c0 .414.336.75.75.75h11.5a.75.75 0 0 0 .75-.75v-9.5a.75.75 0 0 0-.75-.75Zm-5.75 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Zm0-10A2.5 2.5 0 0 0 9.5 6v2h5V6A2.5 2.5 0 0 0 12 3.5Z"
+      fill="currentColor"
+    />
   </svg>
 );
 
@@ -244,6 +252,11 @@ export const FullModeNav: React.FC<FullModeNavProps> = ({
             </button>
           )}
 
+          {/* Separator after private collection */}
+          {privateCollection && otherCollections.length > 0 && (
+            <div className="full-mode-nav__collections-separator" />
+          )}
+
           {/* Other collections */}
           {otherCollections.map((collection) => (
             <div
@@ -265,27 +278,29 @@ export const FullModeNav: React.FC<FullModeNavProps> = ({
                 <span className="full-mode-nav__collection-name">
                   {collection.name}
                 </span>
-              </button>
-              {collection.canWrite && (
-                <div
-                  className="full-mode-nav__collection-actions"
-                  ref={collectionMenuOpen === collection.id ? menuRef : null}
-                >
-                  <button
-                    className="full-mode-nav__collection-more"
+                {collection.canWrite && (
+                  <div
+                    className="full-mode-nav__collection-actions"
+                    ref={collectionMenuOpen === collection.id ? menuRef : null}
                     onClick={(e) => {
                       e.stopPropagation();
-                      setCollectionMenuOpen(
-                        collectionMenuOpen === collection.id
-                          ? null
-                          : collection.id,
-                      );
                     }}
                   >
-                    {moreIcon}
-                  </button>
-                  {collectionMenuOpen === collection.id && (
-                    <div className="full-mode-nav__collection-menu">
+                    <button
+                      className="full-mode-nav__collection-more"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setCollectionMenuOpen(
+                          collectionMenuOpen === collection.id
+                            ? null
+                            : collection.id,
+                        );
+                      }}
+                    >
+                      {moreIcon}
+                    </button>
+                    {collectionMenuOpen === collection.id && (
+                      <div className="full-mode-nav__collection-menu">
                       <button
                         onClick={() => {
                           onNewScene(collection.id);
@@ -338,7 +353,8 @@ export const FullModeNav: React.FC<FullModeNavProps> = ({
                     </div>
                   )}
                 </div>
-              )}
+                )}
+              </button>
             </div>
           ))}
         </div>

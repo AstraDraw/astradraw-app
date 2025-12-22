@@ -1,8 +1,6 @@
 .full-mode-nav {
   display: flex;
   flex-direction: column;
-  flex: 1;
-  min-height: 0;
   gap: 16px;
 
   // Navigation items
@@ -68,9 +66,6 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
   }
 
   &__collections-header {
@@ -118,6 +113,12 @@
     gap: 2px;
   }
 
+  &__collections-separator {
+    height: 1px;
+    background: var(--default-border-color, #e5e5e5);
+    margin: 8px 12px;
+  }
+
   &__collection-item {
     display: flex;
     align-items: center;
@@ -145,6 +146,14 @@
       .full-mode-nav__collection-name {
         color: white;
       }
+
+      .full-mode-nav__collection-more {
+        color: white;
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.15);
+        }
+      }
     }
   }
 
@@ -168,6 +177,14 @@
         .full-mode-nav__collection-name {
           color: white;
         }
+
+        .full-mode-nav__collection-more {
+          color: white;
+
+          &:hover {
+            background: rgba(255, 255, 255, 0.15);
+          }
+        }
       }
     }
   }
@@ -189,6 +206,7 @@
 
   &__collection-name {
     flex: 1;
+    min-width: 0;
     font-size: 14px;
     font-weight: 400;
     color: var(--text-primary-color, #1b1b1f);
@@ -199,6 +217,8 @@
 
   &__collection-actions {
     position: relative;
+    margin-left: auto;
+    flex-shrink: 0;
   }
 
   &__collection-more {
@@ -212,8 +232,7 @@
     border-radius: 6px;
     cursor: pointer;
     color: var(--icon-fill-color, #6b6b6b);
-    opacity: 0;
-    transition: opacity 0.15s, background-color 0.15s;
+    transition: background-color 0.15s;
 
     &:hover {
       background: var(--button-hover-bg, rgba(0, 0, 0, 0.05));
@@ -223,10 +242,6 @@
       width: 16px;
       height: 16px;
     }
-  }
-
-  &__collection-row:hover &__collection-more {
-    opacity: 1;
   }
 
   &__collection-menu {
@@ -329,6 +344,10 @@
 
     &__collection-name {
       color: var(--text-primary-color, #e1e1e1);
+    }
+
+    &__collections-separator {
+      background: var(--default-border-color, #3d3d3d);
     }
 
     &__collection-menu {
