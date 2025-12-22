@@ -174,6 +174,21 @@ body.excalidraw-presentation-mode {
     transition: margin-left 0.2s ease-out;
   }
 
+  // Dashboard container visibility - driven by aria-hidden attribute
+  // This respects the CSS Hide/Show pattern in CRITICAL_CSS_HIDE_SHOW_FIX.md
+  
+  // Dashboard hidden (canvas mode)
+  &__dashboard[aria-hidden="true"] {
+    display: none !important;
+  }
+
+  // Dashboard visible (dashboard mode) - flex layout for scrolling
+  &__dashboard[aria-hidden="false"] {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
   // Canvas container - needs position relative for potential overlays
   &__canvas {
     position: relative;

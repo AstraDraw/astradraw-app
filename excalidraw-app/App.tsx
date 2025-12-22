@@ -177,6 +177,7 @@ import {
   loadWorkspaceScene,
   type SceneAccess,
 } from "./data/workspaceSceneLoader";
+import { maybeGenerateAndUploadThumbnail } from "./utils/thumbnailGenerator";
 
 import type { Workspace, Collection } from "./auth/workspaceApi";
 
@@ -1068,10 +1069,16 @@ const ExcalidrawWrapper = () => {
             isAutoCollab: true,
           });
 
+          // Set scene ID for thumbnail generation during collaboration saves
+          collabAPI.setSceneId(sceneId);
+
           // Mark this scene as auto-collab (collaboration can't be stopped)
           setIsAutoCollabScene(true);
         } else {
-          // Not an auto-collab scene
+          // Not an auto-collab scene - clear any previous scene ID
+          if (collabAPI) {
+            collabAPI.setSceneId(null);
+          }
           setIsAutoCollabScene(false);
         }
 
@@ -1262,6 +1269,7 @@ const ExcalidrawWrapper = () => {
     setCurrentWorkspaceSlugAtom,
     setCurrentSceneIdAtom,
     setCurrentSceneTitleAtom,
+    setIsAutoCollabScene,
   ]);
 
   useEffect(() => {
@@ -1649,6 +1657,15 @@ const ExcalidrawWrapper = () => {
       setSaveStatus("saved");
       setLastSavedTime(new Date());
       retryCountRef.current = 0; // Reset retry count on success
+
+      // Fire-and-forget thumbnail generation
+      // This is best-effort and won't affect save status
+      maybeGenerateAndUploadThumbnail(
+        currentSceneId,
+        elements,
+        appState,
+        files,
+      );
 
       return true;
     } catch (error) {

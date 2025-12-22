@@ -9,17 +9,42 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.57] - 2025-12-22
+
+### Added
+
+- **Scene Thumbnail Previews** 🖼️
+  - Canvas thumbnails now appear in scene cards (sidebar, dashboard, collections)
+  - Thumbnails generated automatically after each successful save (solo and collab)
+  - Lightweight hash check to skip redundant generation
+  - 600px PNG format, uploaded to MinIO/S3
+  - Non-blocking, best-effort: errors logged but never block saves
+
+### Changed
+
+- **CSS Hide/Show pattern improved** - Dashboard now uses `aria-hidden` attribute for visibility control
+  - Fixes conflict with `display: flex` layout requirements
+  - Ensures proper scrolling in dashboard content area
+
+### Technical
+
+- New `thumbnailGenerator.ts` utility with `maybeGenerateAndUploadThumbnail()`
+- Added `setSceneId()` to `CollabAPI` for thumbnail generation in collab mode
+- Added `uploadSceneThumbnail()` API function
+
 ## [0.18.0-beta0.56] - 2025-12-22
 
 ### Added
 
 - **Auto-Collaboration for Shared Collections** 🎉
+
   - Scenes in non-private collections of SHARED workspaces automatically enable real-time collaboration
   - No need to click "Share" - collaboration starts immediately when opening the scene
   - Multiple users see each other's cursors and edits in real-time
   - Works like Google Docs - if you have access, you're automatically collaborating
 
 - **isAutoCollab flag** - Preserves scene data when auto-joining collaboration
+
   - Prevents scene reset on first load
   - Ensures initial data is synced to room storage
 

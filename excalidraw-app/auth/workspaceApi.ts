@@ -285,6 +285,43 @@ export async function updateSceneData(
 }
 
 /**
+ * Upload scene thumbnail (PNG image)
+ * Called after successful scene save to update the preview image.
+ * This is a best-effort operation - failures are logged but don't affect save status.
+ */
+export async function uploadSceneThumbnail(
+  id: string,
+  thumbnailBlob: Blob,
+): Promise<{ thumbnailUrl: string }> {
+  const response = await fetch(
+    `${getApiBaseUrl()}/workspace/scenes/${id}/thumbnail`,
+    {
+      method: "PUT",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/octet-stream",
+      },
+      body: thumbnailBlob,
+    },
+  );
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("Not authenticated");
+    }
+    if (response.status === 404) {
+      throw new Error("Scene not found");
+    }
+    if (response.status === 400) {
+      throw new Error("Thumbnail too large");
+    }
+    throw new Error("Failed to upload thumbnail");
+  }
+
+  return response.json();
+}
+
+/**
  * Delete a scene
  */
 export async function deleteScene(id: string): Promise<{ success: boolean }> {

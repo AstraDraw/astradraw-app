@@ -80,6 +80,8 @@ import {
 } from "../data/localStorage";
 import { resetBrowserStateVersions } from "../data/tabSync";
 
+import { maybeGenerateAndUploadThumbnail } from "../utils/thumbnailGenerator";
+
 import { collabErrorIndicatorAtom } from "./CollabError";
 import Portal from "./Portal";
 
@@ -117,6 +119,7 @@ export interface CollabAPI {
   getUsername: CollabInstance["getUsername"];
   getActiveRoomLink: CollabInstance["getActiveRoomLink"];
   setCollabError: CollabInstance["setErrorDialog"];
+  setSceneId: CollabInstance["setSceneId"];
 }
 
 interface CollabProps {
@@ -133,6 +136,12 @@ class Collab extends PureComponent<CollabProps, CollabState> {
   private socketInitializationTimer?: number;
   private lastBroadcastedOrReceivedSceneVersion: number = -1;
   private collaborators = new Map<SocketId, Collaborator>();
+
+  /**
+   * Scene ID for thumbnail generation during collaboration saves.
+   * Set when starting auto-collaboration for a workspace scene.
+   */
+  private sceneId: string | null = null;
 
   constructor(props: CollabProps) {
     super(props);
@@ -255,6 +264,7 @@ class Collab extends PureComponent<CollabProps, CollabState> {
       getUsername: this.getUsername,
       getActiveRoomLink: this.getActiveRoomLink,
       setCollabError: this.setErrorDialog,
+      setSceneId: this.setSceneId,
     };
 
     appJotaiStore.set(collabAPIAtom, collabAPI);
@@ -351,6 +361,17 @@ class Collab extends PureComponent<CollabProps, CollabState> {
         if (storedElements && Array.isArray(storedElements)) {
           this.handleRemoteSceneUpdate(this._reconcileElements(storedElements));
         }
+      }
+
+      // Fire-and-forget thumbnail generation for auto-collab scenes
+      // This is best-effort and won't affect save status
+      if (this.sceneId) {
+        maybeGenerateAndUploadThumbnail(
+          this.sceneId,
+          syncableElements,
+          this.excalidrawAPI.getAppState(),
+          this.excalidrawAPI.getFiles(),
+        );
       }
     } catch (error: any) {
       const errorMessage = /is longer than.*?bytes/.test(error.message)
@@ -1048,6 +1069,14 @@ class Collab extends PureComponent<CollabProps, CollabState> {
   };
 
   getActiveRoomLink = () => this.state.activeRoomLink;
+
+  /**
+   * Set the scene ID for thumbnail generation during collaboration saves.
+   * Call this when starting auto-collaboration for a workspace scene.
+   */
+  setSceneId = (sceneId: string | null) => {
+    this.sceneId = sceneId;
+  };
 
   setErrorIndicator = (errorMessage: string | null) => {
     appJotaiStore.set(collabErrorIndicatorAtom, {
