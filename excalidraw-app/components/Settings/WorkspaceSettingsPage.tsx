@@ -104,6 +104,9 @@ export const WorkspaceSettingsPage: React.FC<WorkspaceSettingsPageProps> = ({
           {t("settings.workspaceSettingsDescription")}
         </p>
 
+        {/* Separator after header */}
+        <div className="workspace-settings-page__separator" />
+
         {/* Success/Error messages */}
         {successMessage && (
           <div className="workspace-settings-page__success">

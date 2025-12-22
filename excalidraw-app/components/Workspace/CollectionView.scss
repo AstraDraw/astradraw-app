@@ -34,7 +34,7 @@
 
   // Header
   &__header {
-    margin-bottom: 24px;
+    margin-bottom: 0;
   }
 
   &__title-row {
@@ -54,6 +54,19 @@
       width: 28px;
       height: 28px;
     }
+
+    &--default {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0;
+
+      svg {
+        width: 24px;
+        height: 24px;
+        color: var(--text-secondary-color, #6b6b6b);
+      }
+    }
   }
 
   &__title {
@@ -68,6 +81,12 @@
     margin: 8px 0 0;
     font-size: 14px;
     color: var(--text-secondary-color, #6b6b6b);
+  }
+
+  &__separator {
+    height: 1px;
+    background: var(--default-border-color, #e5e5e5);
+    margin: 24px 0;
   }
 
   // Sort dropdown
@@ -244,6 +263,16 @@
 
     &__title {
       color: var(--text-primary-color, #e1e1e1);
+    }
+
+    &__icon--default {
+      svg {
+        color: var(--text-secondary-color, #9b9b9b);
+      }
+    }
+
+    &__separator {
+      background: var(--default-border-color, #3d3d3d);
     }
 
     &__sort-trigger {

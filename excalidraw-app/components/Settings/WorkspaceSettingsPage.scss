@@ -30,9 +30,15 @@
   }
 
   &__subtitle {
-    margin: 0 0 32px;
+    margin: 0 0 0;
     font-size: 14px;
     color: var(--text-secondary-color, #6b6b6b);
+  }
+
+  &__separator {
+    height: 1px;
+    background: var(--default-border-color, #e5e5e5);
+    margin: 24px 0 32px;
   }
 
   // Messages
@@ -329,6 +335,10 @@
 
     &__title {
       color: var(--text-primary-color, #e1e1e1);
+    }
+
+    &__separator {
+      background: var(--default-border-color, #3d3d3d);
     }
 
     &__subtitle {

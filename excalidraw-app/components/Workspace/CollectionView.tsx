@@ -197,6 +197,22 @@ export const CollectionView: React.FC<CollectionViewProps> = ({
     ? t("workspace.privateDescription")
     : null;
 
+  // Render icon with default styling if no emoji icon
+  const renderCollectionIcon = () => {
+    if (collection?.isPrivate) {
+      return <span className="collection-view__icon">{lockIcon}</span>;
+    }
+    if (collection?.icon) {
+      return <span className="collection-view__icon">{collection.icon}</span>;
+    }
+    // Default SVG icon with circular background
+    return (
+      <span className="collection-view__icon collection-view__icon--default">
+        {folderIcon}
+      </span>
+    );
+  };
+
   if (isLoading) {
     return (
       <div className="collection-view">
@@ -212,7 +228,7 @@ export const CollectionView: React.FC<CollectionViewProps> = ({
       {/* Header */}
       <header className="collection-view__header">
         <div className="collection-view__title-row">
-          <span className="collection-view__icon">{collectionIcon}</span>
+          {renderCollectionIcon()}
           <h1 className="collection-view__title">{collectionName}</h1>
 
           {/* Sort dropdown */}
@@ -257,6 +273,9 @@ export const CollectionView: React.FC<CollectionViewProps> = ({
           </p>
         )}
       </header>
+
+      {/* Separator after header */}
+      <div className="collection-view__separator" />
 
       {/* Action buttons */}
       <div className="collection-view__actions">

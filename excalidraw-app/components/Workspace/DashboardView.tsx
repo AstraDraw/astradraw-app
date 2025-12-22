@@ -184,6 +184,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </button>
       </header>
 
+      {/* Separator after header */}
+      <div className="dashboard-view__separator" />
+
       {/* Recently modified section */}
       <section className="dashboard-view__section">
         <h2 className="dashboard-view__section-title">

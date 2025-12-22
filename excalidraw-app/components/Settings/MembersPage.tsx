@@ -199,6 +199,9 @@ export const MembersPage: React.FC<MembersPageProps> = ({
           )}
         </div>
 
+        {/* Separator after header */}
+        <div className="members-page__separator" />
+
         {/* Success/Error messages */}
         {successMessage && (
           <div className="members-page__success">{successMessage}</div>

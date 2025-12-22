@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
-
 import { useAtomValue } from "../../app-jotai";
 
 import {
@@ -20,10 +19,8 @@ import {
   type Collection,
   type WorkspaceMember,
   type CollectionTeamAccess,
-  type CollectionAccessLevel,
 } from "../../auth/workspaceApi";
 import { EmojiPicker } from "../EmojiPicker";
-
 import { collectionsRefreshAtom } from "./settingsState";
 
 import "./TeamsCollectionsPage.scss";
@@ -357,26 +354,26 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
     setEditingCollection(null);
   };
 
-  const handleAccessLevelChange = async (
+  const handleToggleCollectionTeamAccess = async (
     collectionId: string,
     teamId: string,
-    accessLevel: string,
+    hasAccess: boolean,
   ) => {
     if (!workspaceId) {
       return;
     }
 
     try {
-      if (accessLevel === "NONE") {
+      if (hasAccess) {
         // Remove access
         await removeCollectionTeamAccess(workspaceId, collectionId, teamId);
       } else {
-        // Add or update access
+        // Add access
         await setCollectionTeamAccess(
           workspaceId,
           collectionId,
           teamId,
-          accessLevel as CollectionAccessLevel,
+          "EDIT",
         );
       }
 
@@ -460,6 +457,9 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
             </button>
           )}
         </div>
+
+        {/* Separator after header */}
+        <div className="teams-collections-page__separator" />
 
         {/* Success/Error messages */}
         {successMessage && (
@@ -658,24 +658,9 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
                       className="teams-collections-page__table-row"
                     >
                       <div className="teams-collections-page__table-cell teams-collections-page__table-cell--collection">
-                        {collection.icon ? (
-                          <span className="teams-collections-page__collection-icon">
-                            {collection.icon}
-                          </span>
-                        ) : (
-                          <span className="teams-collections-page__collection-icon teams-collections-page__collection-icon--default">
-                            <svg
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              aria-hidden="true"
-                            >
-                              <path
-                                d="M20.496 5.627A2.25 2.25 0 0 1 22 7.75v10A4.25 4.25 0 0 1 17.75 22h-10a2.25 2.25 0 0 1-2.123-1.504l2.097.004H17.75a2.75 2.75 0 0 0 2.75-2.75v-10l-.004-.051V5.627ZM17.246 2a2.25 2.25 0 0 1 2.25 2.25v12.997a2.25 2.25 0 0 1-2.25 2.25H4.25A2.25 2.25 0 0 1 2 17.247V4.25A2.25 2.25 0 0 1 4.25 2h12.997Zm0 1.5H4.25a.75.75 0 0 0-.75.75v12.997c0 .414.336.75.75.75h12.997a.75.75 0 0 0 .75-.75V4.25a.75.75 0 0 0-.75-.75Z"
-                                fill="currentColor"
-                              />
-                            </svg>
-                          </span>
-                        )}
+                        <span className="teams-collections-page__collection-icon">
+                          {collection.icon || "📁"}
+                        </span>
                         {editingCollectionId === collection.id ? (
                           <input
                             type="text"
@@ -726,18 +711,11 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
                                 style={{ backgroundColor: ta.teamColor }}
                               >
                                 {ta.teamName}
-                                <span
-                                  className={`teams-collections-page__chip-access-badge teams-collections-page__chip-access-badge--${ta.accessLevel.toLowerCase()}`}
-                                >
-                                  {ta.accessLevel === "VIEW"
-                                    ? t("settings.accessView")
-                                    : t("settings.accessEdit")}
-                                </span>
                               </span>
                             ))}
                           </div>
                         ) : (
-                          <span className="teams-collections-page__access-badge teams-collections-page__access-badge--admins-only">
+                          <span className="teams-collections-page__access-badge teams-collections-page__access-badge--everyone">
                             {t("settings.allMembers")}
                           </span>
                         )}
@@ -899,24 +877,9 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
                             toggleCollectionSelection(collection.id)
                           }
                         >
-                          {collection.icon ? (
-                            <span className="teams-collections-page__collection-icon">
-                              {collection.icon}
-                            </span>
-                          ) : (
-                            <span className="teams-collections-page__collection-icon teams-collections-page__collection-icon--default">
-                              <svg
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                aria-hidden="true"
-                              >
-                                <path
-                                  d="M20.496 5.627A2.25 2.25 0 0 1 22 7.75v10A4.25 4.25 0 0 1 17.75 22h-10a2.25 2.25 0 0 1-2.123-1.504l2.097.004H17.75a2.75 2.75 0 0 0 2.75-2.75v-10l-.004-.051V5.627ZM17.246 2a2.25 2.25 0 0 1 2.25 2.25v12.997a2.25 2.25 0 0 1-2.25 2.25H4.25A2.25 2.25 0 0 1 2 17.247V4.25A2.25 2.25 0 0 1 4.25 2h12.997Zm0 1.5H4.25a.75.75 0 0 0-.75.75v12.997c0 .414.336.75.75.75h12.997a.75.75 0 0 0 .75-.75V4.25a.75.75 0 0 0-.75-.75Z"
-                                  fill="currentColor"
-                                />
-                              </svg>
-                            </span>
-                          )}
+                          <span className="teams-collections-page__collection-icon">
+                            {collection.icon || "📁"}
+                          </span>
                           <span className="teams-collections-page__member-name">
                             {collection.name}
                           </span>
@@ -943,22 +906,8 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
                 <div className="teams-collections-page__form-group teams-collections-page__form-group--grow">
                   <label>{t("settings.teamMembersLabel")}</label>
                   <p className="teams-collections-page__form-hint">
-                    {t("settings.teamMembersDescription")}
+                    {t("settings.teamMembersDialogHint")}
                   </p>
-
-                  <div className="teams-collections-page__info-box">
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    >
-                      <circle cx="12" cy="12" r="10" />
-                      <line x1="12" y1="16" x2="12" y2="12" />
-                      <line x1="12" y1="8" x2="12.01" y2="8" />
-                    </svg>
-                    <div>{t("settings.teamMembersDialogHint")}</div>
-                  </div>
 
                   <div className="teams-collections-page__member-list">
                     {members.map((member) => {
@@ -1106,13 +1055,11 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
                 ) : (
                   <div className="teams-collections-page__member-list">
                     {teams.map((team) => {
-                      const teamAccess = editingCollection.teamAccess?.find(
+                      const hasAccess = editingCollection.teamAccess?.some(
                         (ta) => ta.teamId === team.id,
                       );
-                      const currentAccessLevel =
-                        teamAccess?.accessLevel || "NONE";
                       return (
-                        <div
+                        <label
                           key={team.id}
                           className="teams-collections-page__member-row"
                         >
@@ -1123,28 +1070,19 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
                           <span className="teams-collections-page__member-name">
                             {team.name}
                           </span>
-                          <select
-                            value={currentAccessLevel}
-                            onChange={(e) =>
-                              handleAccessLevelChange(
+                          <input
+                            type="checkbox"
+                            checked={hasAccess}
+                            onChange={() =>
+                              handleToggleCollectionTeamAccess(
                                 editingCollection.id,
                                 team.id,
-                                e.target.value,
+                                hasAccess || false,
                               )
                             }
-                            className={`teams-collections-page__access-select teams-collections-page__access-select--${currentAccessLevel.toLowerCase()}`}
-                          >
-                            <option value="NONE">
-                              {t("settings.accessNone")}
-                            </option>
-                            <option value="VIEW">
-                              {t("settings.accessView")}
-                            </option>
-                            <option value="EDIT">
-                              {t("settings.accessEdit")}
-                            </option>
-                          </select>
-                        </div>
+                            className="teams-collections-page__row-checkbox"
+                          />
+                        </label>
                       );
                     })}
                   </div>

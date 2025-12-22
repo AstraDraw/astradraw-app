@@ -253,6 +253,9 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ theme, setTheme }) => 
       <div className="profile-page__container">
         <h1 className="profile-page__title">{t("settings.myProfile")}</h1>
 
+        {/* Separator after title */}
+        <div className="profile-page__separator" />
+
         {/* Success/Error messages */}
         {successMessage && (
           <div className="profile-page__success">{successMessage}</div>
@@ -437,6 +440,9 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ theme, setTheme }) => 
         {/* Preferences Section */}
         <div className="profile-page__section-divider" />
         <h1 className="profile-page__title">{t("settings.myPreferences")}</h1>
+
+        {/* Separator after preferences title */}
+        <div className="profile-page__separator" />
 
         {/* Theme Section */}
         <section className="profile-page__row">

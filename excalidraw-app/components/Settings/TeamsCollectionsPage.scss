@@ -51,6 +51,12 @@
     color: var(--text-secondary-color, #6b6b6b);
   }
 
+  &__separator {
+    height: 1px;
+    background: var(--default-border-color, #e5e5e5);
+    margin: 24px 0 32px;
+  }
+
   // Messages
   &__success {
     padding: 12px 16px;
@@ -192,7 +198,7 @@
     }
 
     &:hover {
-      background: #f0efff;
+      background: rgba(0, 0, 0, 0.02);
     }
 
     &--clickable {
@@ -257,23 +263,6 @@
   &__collection-icon {
     font-size: 20px;
     flex-shrink: 0;
-
-    &--default {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      background: #f0efff;
-      font-size: 0;
-
-      svg {
-        width: 16px;
-        height: 16px;
-        color: var(--text-secondary-color, #6b6b6b);
-      }
-    }
   }
 
   &__collection-name {
@@ -626,7 +615,7 @@
     box-sizing: border-box;
 
     &:focus {
-      border-color: #a8a5ff;
+      border-color: var(--color-primary, #6965db);
     }
 
     &::placeholder {
@@ -683,7 +672,7 @@
     margin: 2px 0;
 
     &:hover {
-      background: #f0efff;
+      background: rgba(0, 0, 0, 0.03);
     }
 
     &--disabled {
@@ -744,7 +733,7 @@
     transition: background 0.15s ease;
 
     &:hover {
-      background: #f0efff;
+      background: rgba(0, 0, 0, 0.03);
     }
 
     &--disabled {
@@ -871,6 +860,10 @@
       color: var(--text-primary-color, #e1e1e1);
     }
 
+    &__separator {
+      background: var(--default-border-color, #3d3d3d);
+    }
+
     &__subtitle {
       color: var(--text-secondary-color, #9b9b9b);
     }
@@ -900,14 +893,6 @@
 
     &__team-name {
       color: var(--text-primary-color, #e1e1e1);
-    }
-
-    &__collection-icon--default {
-      background: rgba(255, 255, 255, 0.1);
-
-      svg {
-        color: var(--text-secondary-color, #9b9b9b);
-      }
     }
 
     &__collection-name {
@@ -968,10 +953,6 @@
       border-color: var(--default-border-color, #3d3d3d);
       color: var(--text-primary-color, #e1e1e1);
 
-      &:focus {
-        border-color: #a8a5ff;
-      }
-
       &::placeholder {
         color: var(--text-secondary-color, #9b9b9b);
       }
@@ -991,35 +972,8 @@
       border-color: var(--default-border-color, #3d3d3d);
     }
 
-    &__checkbox-item {
-      input[type="checkbox"] {
-        appearance: none;
-        -webkit-appearance: none;
-        background: transparent;
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        position: relative;
-        
-        &:checked {
-          background: var(--color-primary, #a5a1ff);
-          border-color: var(--color-primary, #a5a1ff);
-          
-          &::after {
-            content: "";
-            position: absolute;
-            left: 5px;
-            top: 2px;
-            width: 3px;
-            height: 7px;
-            border: solid #1e1e24;
-            border-width: 0 2px 2px 0;
-            transform: rotate(45deg);
-          }
-        }
-      }
-
-      &:hover {
-        background: rgba(255, 255, 255, 0.05);
-      }
+    &__checkbox-item:hover {
+      background: rgba(255, 255, 255, 0.05);
     }
 
     &__member-row {
@@ -1039,31 +993,6 @@
     &__role-badge {
       background: rgba(165, 161, 255, 0.2);
       color: #a5a1ff;
-    }
-
-    &__row-checkbox {
-      appearance: none;
-      -webkit-appearance: none;
-      background: transparent;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      position: relative;
-      
-      &:checked {
-        background: var(--color-primary, #a5a1ff);
-        border-color: var(--color-primary, #a5a1ff);
-        
-        &::after {
-          content: "";
-          position: absolute;
-          left: 6px;
-          top: 3px;
-          width: 4px;
-          height: 8px;
-          border: solid #1e1e24;
-          border-width: 0 2px 2px 0;
-          transform: rotate(45deg);
-        }
-      }
     }
 
     &__access-badge {

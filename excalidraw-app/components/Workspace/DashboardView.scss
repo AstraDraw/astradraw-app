@@ -34,7 +34,13 @@
 
   // Header
   &__header {
-    margin-bottom: 40px;
+    margin-bottom: 0;
+  }
+
+  &__separator {
+    height: 1px;
+    background: var(--default-border-color, #e5e5e5);
+    margin: 24px 0 40px;
   }
 
   &__title-row {
@@ -157,6 +163,10 @@
 
     &__title {
       color: var(--text-primary-color, #e1e1e1);
+    }
+
+    &__separator {
+      background: var(--default-border-color, #3d3d3d);
     }
 
     &__tip {

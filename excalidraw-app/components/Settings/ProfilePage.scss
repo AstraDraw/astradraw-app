@@ -63,10 +63,16 @@
 
   // Title
   &__title {
-    margin: 0 0 24px;
+    margin: 0 0 0;
     font-size: 24px;
     font-weight: 600;
     color: var(--text-primary-color, #1b1b1f);
+  }
+
+  &__separator {
+    height: 1px;
+    background: var(--default-border-color, #e5e5e5);
+    margin: 24px 0;
   }
 
   // Messages
@@ -425,6 +431,10 @@
 
     &__title {
       color: var(--text-primary-color, #e1e1e1);
+    }
+
+    &__separator {
+      background: var(--default-border-color, #3d3d3d);
     }
 
     &__row {

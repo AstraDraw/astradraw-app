@@ -38,6 +38,12 @@
     color: var(--text-secondary-color, #6b6b6b);
   }
 
+  &__separator {
+    height: 1px;
+    background: var(--default-border-color, #e5e5e5);
+    margin: 24px 0 32px;
+  }
+
   &__invite-button {
     display: flex;
     align-items: center;
@@ -458,6 +464,10 @@
 
     &__title {
       color: var(--text-primary-color, #e1e1e1);
+    }
+
+    &__separator {
+      background: var(--default-border-color, #3d3d3d);
     }
 
     &__subtitle {
