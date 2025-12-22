@@ -67,12 +67,16 @@ ENVEOF
 
 echo "Created runtime environment config at $APP_DIR/env-config.js"
 
-# Inject the env-config.js script into index.html if not already present
-if ! grep -q "env-config.js" "$APP_DIR/index.html"; then
-    # Insert the script tag right after the opening <head> tag
-    sed -i 's|<head>|<head><script src="/env-config.js"></script>|' "$APP_DIR/index.html"
-    echo "Injected env-config.js into index.html"
-fi
+# NOTE: Script tag injection is no longer needed - it's now in index.html source
+# This code is commented out for testing. Remove completely if everything works.
+# --- BEGIN COMMENTED OUT ---
+# # Inject the env-config.js script into index.html if not already present
+# if ! grep -q "env-config.js" "$APP_DIR/index.html"; then
+#     # Insert the script tag right after the opening <head> tag
+#     sed -i 's|<head>|<head><script src="/env-config.js"></script>|' "$APP_DIR/index.html"
+#     echo "Injected env-config.js into index.html"
+# fi
+# --- END COMMENTED OUT ---
 
 echo "Environment configuration complete."
 

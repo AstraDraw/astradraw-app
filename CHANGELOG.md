@@ -9,6 +9,20 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.58] - 2025-12-22
+
+### Changed
+
+- **Runtime environment config** - Added `<script src="/env-config.js">` to `index.html`
+  - Eliminates need for Docker entrypoint to inject script tag
+  - Works for both native development (`just dev`) and Docker deployment
+  - Docker entrypoint now only generates the file content, no HTML modification
+
+### Technical
+
+- Commented out script injection logic in `docker-entrypoint.sh` (to be removed after testing)
+- Added `public/env-config.js` to `.gitignore` (generated at runtime)
+
 ## [0.18.0-beta0.57] - 2025-12-22
 
 ### Added
