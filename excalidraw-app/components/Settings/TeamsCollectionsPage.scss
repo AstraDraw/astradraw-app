@@ -9,10 +9,6 @@
   overflow-y: auto;
   background: var(--default-bg-color, #fafafa);
 
-  // Container
-  &__container {
-    max-width: 900px;
-  }
 
   // Header with title and button
   &__header {

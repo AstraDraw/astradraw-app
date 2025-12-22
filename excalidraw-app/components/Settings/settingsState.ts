@@ -8,6 +8,7 @@ import {
   buildMembersUrl,
   buildTeamsUrl,
   buildProfileUrl,
+  buildPreferencesUrl,
   navigateTo,
 } from "../../router";
 
@@ -30,6 +31,7 @@ export type SidebarMode = "board" | "full";
  * - "home": Dashboard home page with recently modified/visited
  * - "collection": Collection view showing scenes from a specific collection
  * - "profile": User profile settings
+ * - "preferences": User preferences (theme, etc.)
  * - "workspace": Workspace settings (admin only)
  * - "members": Team members management (admin only)
  * - "teams-collections": Teams & collections management (admin only)
@@ -38,6 +40,7 @@ export type DashboardView =
   | "home"
   | "collection"
   | "profile"
+  | "preferences"
   | "workspace"
   | "members"
   | "teams-collections";
@@ -181,6 +184,16 @@ export const navigateToProfileAtom = atom(null, (get, set) => {
   set(appModeAtom, "dashboard");
   set(dashboardViewAtom, "profile");
   navigateTo(buildProfileUrl());
+});
+
+/**
+ * Atom for navigating to preferences
+ * Updates URL to /preferences
+ */
+export const navigateToPreferencesAtom = atom(null, (get, set) => {
+  set(appModeAtom, "dashboard");
+  set(dashboardViewAtom, "preferences");
+  navigateTo(buildPreferencesUrl());
 });
 
 /**

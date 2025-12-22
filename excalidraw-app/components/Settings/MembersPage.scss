@@ -9,10 +9,6 @@
   overflow-y: auto;
   background: var(--default-bg-color, #fafafa);
 
-  // Container (no card style)
-  &__container {
-    max-width: 800px;
-  }
 
   &__header {
     display: flex;

@@ -8,6 +8,7 @@ import {
 } from "../Settings/settingsState";
 
 import { ProfilePage } from "../Settings/ProfilePage";
+import { PreferencesPage } from "../Settings/PreferencesPage";
 import { WorkspaceSettingsPage } from "../Settings/WorkspaceSettingsPage";
 import { MembersPage } from "../Settings/MembersPage";
 import { TeamsCollectionsPage } from "../Settings/TeamsCollectionsPage";
@@ -66,7 +67,9 @@ export const WorkspaceMainContent: React.FC<WorkspaceMainContentProps> = ({
           />
         );
       case "profile":
-        return <ProfilePage theme={theme} setTheme={setTheme} />;
+        return <ProfilePage />;
+      case "preferences":
+        return <PreferencesPage theme={theme} setTheme={setTheme} />;
       case "workspace":
         return (
           <WorkspaceSettingsPage

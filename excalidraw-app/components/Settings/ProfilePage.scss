@@ -57,9 +57,6 @@
   }
 
   // Container
-  &__container {
-    max-width: 900px;
-  }
 
   // Title
   &__title {
@@ -134,7 +131,7 @@
     justify-content: center;
 
     &--avatar {
-      align-items: center;
+      align-items: flex-start;
     }
   }
 

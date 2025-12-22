@@ -1,4 +1,5 @@
 export { ProfilePage } from "./ProfilePage";
+export { PreferencesPage } from "./PreferencesPage";
 export { WorkspaceSettingsPage } from "./WorkspaceSettingsPage";
 export { MembersPage } from "./MembersPage";
 export { TeamsCollectionsPage } from "./TeamsCollectionsPage";
@@ -12,6 +13,7 @@ export {
   navigateToCollectionAtom,
   navigateToCanvasAtom,
   navigateToProfileAtom,
+  navigateToPreferencesAtom,
   navigateToWorkspaceSettingsAtom,
   navigateToMembersAtom,
   navigateToTeamsCollectionsAtom,

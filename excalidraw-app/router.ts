@@ -18,6 +18,7 @@ export type RouteType =
   | { type: "members"; workspaceSlug: string }
   | { type: "teams"; workspaceSlug: string }
   | { type: "profile" }
+  | { type: "preferences" }
   | { type: "invite"; code: string }
   | { type: "anonymous" }
   | { type: "legacy-collab"; roomId: string; roomKey: string }
@@ -39,6 +40,7 @@ const WORKSPACE_TEAMS_PATTERN = /^\/workspace\/([^/]+)\/teams\/?$/;
 
 // Other routes
 const PROFILE_PATTERN = /^\/profile\/?$/;
+const PREFERENCES_PATTERN = /^\/preferences\/?$/;
 const INVITE_PATTERN = /^\/invite\/([a-zA-Z0-9_-]+)\/?$/;
 
 // Legacy collaboration pattern (hash-based)
@@ -77,6 +79,12 @@ export function parseUrl(url: string = window.location.href): RouteType {
   const profileMatch = pathname.match(PROFILE_PATTERN);
   if (profileMatch) {
     return { type: "profile" };
+  }
+
+  // Preferences route
+  const preferencesMatch = pathname.match(PREFERENCES_PATTERN);
+  if (preferencesMatch) {
+    return { type: "preferences" };
   }
 
   // Invite route
@@ -212,6 +220,13 @@ export function buildTeamsUrl(workspaceSlug: string): string {
  */
 export function buildProfileUrl(): string {
   return "/profile";
+}
+
+/**
+ * Build URL for preferences
+ */
+export function buildPreferencesUrl(): string {
+  return "/preferences";
 }
 
 /**

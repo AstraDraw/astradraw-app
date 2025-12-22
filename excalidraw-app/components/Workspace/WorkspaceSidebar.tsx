@@ -31,6 +31,7 @@ import {
   navigateToCollectionAtom,
   navigateToCanvasAtom,
   navigateToProfileAtom,
+  navigateToPreferencesAtom,
   navigateToWorkspaceSettingsAtom,
   navigateToMembersAtom,
   navigateToTeamsCollectionsAtom,
@@ -128,6 +129,7 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
   const navigateToCollection = useSetAtom(navigateToCollectionAtom);
   const navigateToCanvas = useSetAtom(navigateToCanvasAtom);
   const navigateToProfile = useSetAtom(navigateToProfileAtom);
+  const navigateToPreferences = useSetAtom(navigateToPreferencesAtom);
   const navigateToWorkspaceSettings = useSetAtom(
     navigateToWorkspaceSettingsAtom,
   );
@@ -824,6 +826,7 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
                 isAdmin={isAdmin}
                 onDashboardClick={handleDashboardClick}
                 onProfileClick={() => navigateToProfile()}
+                onPreferencesClick={() => navigateToPreferences()}
                 onSettingsClick={() => navigateToWorkspaceSettings()}
                 onMembersClick={() => navigateToMembers()}
                 onTeamsCollectionsClick={() => navigateToTeamsCollections()}

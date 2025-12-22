@@ -80,6 +80,13 @@ const moreIcon = (
   </svg>
 );
 
+const preferencesIcon = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <circle cx="12" cy="12" r="3" />
+    <path d="M12 1v6m0 6v6M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6M5.64 18.36l4.24-4.24m4.24-4.24l4.24-4.24" />
+  </svg>
+);
+
 interface FullModeNavProps {
   collections: Collection[];
   activeCollectionId: string | null;
@@ -87,6 +94,7 @@ interface FullModeNavProps {
   isAdmin: boolean;
   onDashboardClick: () => void;
   onProfileClick: () => void;
+  onPreferencesClick: () => void;
   onSettingsClick: () => void;
   onMembersClick: () => void;
   onTeamsCollectionsClick: () => void;
@@ -106,6 +114,7 @@ export const FullModeNav: React.FC<FullModeNavProps> = ({
   isAdmin,
   onDashboardClick,
   onProfileClick,
+  onPreferencesClick,
   onSettingsClick,
   onMembersClick,
   onTeamsCollectionsClick,
@@ -169,6 +178,21 @@ export const FullModeNav: React.FC<FullModeNavProps> = ({
           <span className="full-mode-nav__nav-icon">{userIcon}</span>
           <span className="full-mode-nav__nav-label">
             {t("settings.profile")}
+          </span>
+        </button>
+
+        {/* Preferences - visible to all users */}
+        <button
+          className={`full-mode-nav__nav-item ${
+            currentView === "preferences"
+              ? "full-mode-nav__nav-item--active"
+              : ""
+          }`}
+          onClick={onPreferencesClick}
+        >
+          <span className="full-mode-nav__nav-icon">{preferencesIcon}</span>
+          <span className="full-mode-nav__nav-label">
+            {t("settings.myPreferences")}
           </span>
         </button>
 

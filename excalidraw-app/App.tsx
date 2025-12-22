@@ -722,6 +722,11 @@ const ExcalidrawWrapper = () => {
           setAppMode("dashboard");
           break;
 
+        case "preferences":
+          setDashboardView("preferences");
+          setAppMode("dashboard");
+          break;
+
         case "scene":
           // Scene loading is handled separately by loadSceneFromUrlRef
           // This just ensures the app mode is correct
