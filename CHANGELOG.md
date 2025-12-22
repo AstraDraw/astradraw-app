@@ -9,6 +9,27 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.54] - 2025-12-22
+
+### Added
+
+- **Autosave Status Indicator** - Google Docs-style save status in top-right corner
+  - Shows save states: saved, saving, pending, error, offline
+  - Editable scene title with inline rename
+  - Debounced autosave (2s) with backup interval (30s)
+  - Offline detection and auto-retry on reconnect
+  - beforeunload warning for unsaved changes
+
+### Fixed
+
+- **Layout shift in top menu** - Fixed widths for save status (145px) and scene title (160px)
+- **Bidirectional title sync** - Renaming in sidebar now updates top-right indicator
+- **False "unsaved" status** - Data comparison prevents false positives from Excalidraw's frequent onChange calls
+
+### Changed
+
+- Shortened Russian save status translations for better fit ("Не сохранено" instead of "Несохранённые изменения")
+
 ## [0.18.0-beta0.53] - 2025-12-22
 
 ### Fixed
