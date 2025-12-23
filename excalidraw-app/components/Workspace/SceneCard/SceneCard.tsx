@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 
-import "./SceneCardGrid.scss";
+import styles from "./SceneCard.module.scss";
 
-import type { WorkspaceScene } from "../../auth/workspaceApi";
+import type { WorkspaceScene } from "../../../auth/workspaceApi";
 
 // Icons
 const playIcon = (
@@ -46,20 +46,24 @@ const trashIcon = (
   </svg>
 );
 
-interface SceneGridCardProps {
+interface SceneCardProps {
   scene: WorkspaceScene;
+  isActive: boolean;
   onOpen: () => void;
   onDelete?: () => void;
   onRename?: (newTitle: string) => void;
-  onDuplicate?: () => void;
+  onDuplicate: () => void;
+  authorName?: string;
 }
 
-const SceneGridCard: React.FC<SceneGridCardProps> = ({
+export const SceneCard: React.FC<SceneCardProps> = ({
   scene,
+  isActive,
   onOpen,
   onDelete,
   onRename,
   onDuplicate,
+  authorName,
 }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
@@ -145,7 +149,6 @@ const SceneGridCard: React.FC<SceneGridCardProps> = ({
   };
 
   const handleRenameKeyDown = (e: React.KeyboardEvent) => {
-    e.stopPropagation();
     if (e.key === "Enter") {
       e.preventDefault();
       handleRenameSubmit();
@@ -158,74 +161,69 @@ const SceneGridCard: React.FC<SceneGridCardProps> = ({
   const handleDuplicateClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setMenuOpen(false);
-    onDuplicate?.();
+    onDuplicate();
   };
 
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setMenuOpen(false);
-    onDelete?.();
+    if (onDelete) {
+      onDelete();
+    }
   };
 
   return (
     <div
-      className="scene-grid-card"
+      className={`${styles.card} ${isActive ? styles.active : ""}`}
       onClick={onOpen}
       onContextMenu={handleContextMenu}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => e.key === "Enter" && !isRenaming && onOpen()}
     >
-      <div className="scene-grid-card__thumbnail">
+      <div className={styles.thumbnail}>
         {scene.thumbnailUrl ? (
           <img src={scene.thumbnailUrl} alt={scene.title} />
         ) : (
-          <div className="scene-grid-card__thumbnail-placeholder">
-            {playIcon}
-          </div>
+          <div className={styles.thumbnailPlaceholder}>{playIcon}</div>
         )}
-        <span className="scene-grid-card__time">
-          {formatDate(scene.updatedAt)}
-        </span>
       </div>
 
-      <div className="scene-grid-card__info">
-        <div className="scene-grid-card__title-row">
+      <div className={styles.info}>
+        <div className={styles.titleRow}>
           {isRenaming ? (
             <input
               ref={renameInputRef}
               type="text"
-              className="scene-grid-card__rename-input"
+              className={styles.renameInput}
               value={renameValue}
               onChange={(e) => setRenameValue(e.target.value)}
               onBlur={handleRenameSubmit}
               onKeyDown={handleRenameKeyDown}
-              onKeyUp={(e) => e.stopPropagation()}
               onClick={(e) => e.stopPropagation()}
             />
           ) : (
-            <h3 className="scene-grid-card__title">{scene.title}</h3>
+            <h3 className={styles.title}>{scene.title}</h3>
           )}
           {!scene.isPublic && !isRenaming && (
-            <span
-              className="scene-grid-card__private"
-              title={t("workspace.private")}
-            >
+            <span className={styles.private} title={t("workspace.private")}>
               {lockIcon}
             </span>
           )}
         </div>
-        <div className="scene-grid-card__meta">
-          <span className="scene-grid-card__author">
-            {t("workspace.byYou")}
-          </span>
+        <div className={styles.meta}>
+          {authorName && (
+            <span className={styles.author}>
+              {t("workspace.byAuthor", { name: authorName })}
+            </span>
+          )}
+          <span className={styles.date}>{formatDate(scene.updatedAt)}</span>
         </div>
       </div>
 
-      {/* Menu trigger */}
-      <div className="scene-grid-card__actions" ref={menuRef}>
+      <div className={styles.actions} ref={menuRef}>
         <button
-          className="scene-grid-card__menu-trigger"
+          className={styles.menuTrigger}
           onClick={handleMenuClick}
           aria-label={t("workspace.moreOptions")}
           title={t("workspace.moreOptions")}
@@ -234,37 +232,23 @@ const SceneGridCard: React.FC<SceneGridCardProps> = ({
         </button>
 
         {menuOpen && (
-          <div className="scene-grid-card__menu">
-            {onRename && (
-              <button
-                className="scene-grid-card__menu-item"
-                onClick={handleRenameClick}
-              >
-                {renameIcon}
-                <span>{t("workspace.rename")}</span>
-              </button>
-            )}
-            {onDuplicate && (
-              <button
-                className="scene-grid-card__menu-item"
-                onClick={handleDuplicateClick}
-              >
-                {duplicateIcon}
-                <span>{t("workspace.duplicate")}</span>
-              </button>
-            )}
-            {(onRename || onDuplicate) && onDelete && (
-              <div className="scene-grid-card__menu-divider" />
-            )}
-            {onDelete && (
-              <button
-                className="scene-grid-card__menu-item scene-grid-card__menu-item--danger"
-                onClick={handleDeleteClick}
-              >
-                {trashIcon}
-                <span>{t("workspace.deleteScene")}</span>
-              </button>
-            )}
+          <div className={styles.menu}>
+            <button className={styles.menuItem} onClick={handleRenameClick}>
+              {renameIcon}
+              <span>{t("workspace.rename")}</span>
+            </button>
+            <button className={styles.menuItem} onClick={handleDuplicateClick}>
+              {duplicateIcon}
+              <span>{t("workspace.duplicate")}</span>
+            </button>
+            <div className={styles.menuDivider} />
+            <button
+              className={`${styles.menuItem} ${styles.menuItemDanger}`}
+              onClick={handleDeleteClick}
+            >
+              {trashIcon}
+              <span>{t("workspace.deleteScene")}</span>
+            </button>
           </div>
         )}
       </div>
@@ -272,60 +256,4 @@ const SceneGridCard: React.FC<SceneGridCardProps> = ({
   );
 };
 
-interface SceneCardGridProps {
-  scenes: WorkspaceScene[];
-  onOpenScene: (scene: WorkspaceScene) => void;
-  onDeleteScene?: (sceneId: string) => void;
-  onRenameScene?: (sceneId: string, newTitle: string) => void;
-  onDuplicateScene?: (sceneId: string) => void;
-  emptyMessage?: string;
-  emptyHint?: string;
-}
-
-export const SceneCardGrid: React.FC<SceneCardGridProps> = ({
-  scenes,
-  onOpenScene,
-  onDeleteScene,
-  onRenameScene,
-  onDuplicateScene,
-  emptyMessage,
-  emptyHint,
-}) => {
-  if (scenes.length === 0) {
-    return (
-      <div className="scene-card-grid__empty">
-        <p>{emptyMessage || t("workspace.noScenes")}</p>
-        {emptyHint && (
-          <span className="scene-card-grid__empty-hint">{emptyHint}</span>
-        )}
-      </div>
-    );
-  }
-
-  return (
-    <div className="scene-card-grid">
-      {scenes.map((scene) => (
-        <SceneGridCard
-          key={scene.id}
-          scene={scene}
-          onOpen={() => onOpenScene(scene)}
-          onDelete={
-            onDeleteScene && scene.canEdit !== false
-              ? () => onDeleteScene(scene.id)
-              : undefined
-          }
-          onRename={
-            onRenameScene && scene.canEdit !== false
-              ? (newTitle) => onRenameScene(scene.id, newTitle)
-              : undefined
-          }
-          onDuplicate={
-            onDuplicateScene ? () => onDuplicateScene(scene.id) : undefined
-          }
-        />
-      ))}
-    </div>
-  );
-};
-
-export default SceneCardGrid;
+export default SceneCard;

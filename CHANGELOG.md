@@ -9,6 +9,33 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.71] - 2025-12-23
+
+### Changed
+
+- **CSS Modules Migration - Batch 3** - Migrated 8 Workspace View components to CSS Modules with folder reorganization
+  - Migrated `DashboardView` (180 lines): dashboard layout, section headers, team empty state
+  - Migrated `CollectionView` (~200 lines): collection header, sort dropdown, action buttons
+  - Migrated `SearchResultsView` (207 lines): search results header, empty state
+  - Migrated `SceneCard` (292 lines): card layout, thumbnail, dropdown menu
+  - Migrated `SceneCardGrid` (305 lines): responsive grid, card items with menus
+  - Migrated `UserMenu` (158 lines): user avatar, dropdown menu
+  - Migrated `CopyMoveDialog` (45 lines): dialog layout, form elements
+  - Migrated `InviteAcceptPage` (238 lines): invite page with loading/error states
+  - Each component now in dedicated folder with `index.ts`, `Component.tsx`, and `Component.module.scss`
+  - Total: ~1,625 lines of SCSS migrated to CSS Modules
+
+### Removed
+
+- `Workspace/DashboardView.tsx`, `Workspace/DashboardView.scss` - Moved to folder structure
+- `Workspace/CollectionView.tsx`, `Workspace/CollectionView.scss` - Moved to folder structure
+- `Workspace/SearchResultsView.tsx`, `Workspace/SearchResultsView.scss` - Moved to folder structure
+- `Workspace/SceneCard.tsx`, `Workspace/SceneCard.scss` - Moved to folder structure
+- `Workspace/SceneCardGrid.tsx`, `Workspace/SceneCardGrid.scss` - Moved to folder structure
+- `Workspace/UserMenu.tsx`, `Workspace/UserMenu.scss` - Moved to folder structure
+- `Workspace/CopyMoveDialog.tsx`, `Workspace/CopyMoveDialog.scss` - Moved to folder structure
+- `Workspace/InviteAcceptPage.tsx`, `Workspace/InviteAcceptPage.scss` - Moved to folder structure
+
 ## [0.18.0-beta0.70] - 2025-12-23
 
 ### Changed

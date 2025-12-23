@@ -8,9 +8,9 @@ import {
   copyCollectionToWorkspace,
   moveCollectionToWorkspace,
   type Workspace,
-} from "../../auth/workspaceApi";
+} from "../../../auth/workspaceApi";
 
-import "./CopyMoveDialog.scss";
+import styles from "./CopyMoveDialog.module.scss";
 
 type Mode = "copy" | "move";
 
@@ -78,14 +78,14 @@ export const CopyMoveDialog: React.FC<CopyMoveDialogProps> = ({
       onCloseRequest={onClose}
       title={t(`workspace.${mode}ToWorkspace` as const)}
     >
-      <div className="copy-move-dialog">
+      <div className={styles.dialog}>
         <p>
           {mode === "copy"
             ? t("workspace.copyDescription", { name: collectionName })
             : t("workspace.moveDescription", { name: collectionName })}
         </p>
 
-        <label className="copy-move-dialog__label">
+        <label className={styles.label}>
           {t("workspace.selectWorkspace")}
           <select
             value={selectedWorkspace}
@@ -102,7 +102,7 @@ export const CopyMoveDialog: React.FC<CopyMoveDialogProps> = ({
           </select>
         </label>
 
-        <div className="copy-move-dialog__actions">
+        <div className={styles.actions}>
           <FilledButton
             variant="outlined"
             onClick={onClose}

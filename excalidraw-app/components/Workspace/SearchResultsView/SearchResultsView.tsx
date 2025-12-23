@@ -1,20 +1,20 @@
 import React, { useCallback, useMemo } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 
-import { useAtom, useAtomValue, useSetAtom } from "../../app-jotai";
-import { type WorkspaceScene } from "../../auth/workspaceApi";
-import { useScenesCache } from "../../hooks/useScenesCache";
+import { useAtom, useAtomValue, useSetAtom } from "../../../app-jotai";
+import { type WorkspaceScene } from "../../../auth/workspaceApi";
+import { useScenesCache } from "../../../hooks/useScenesCache";
 import {
   searchQueryAtom,
   navigateToSceneAtom,
   currentWorkspaceSlugAtom,
   currentWorkspaceAtom,
-} from "../Settings/settingsState";
-import { useSceneActions } from "../../hooks/useSceneActions";
+} from "../../Settings/settingsState";
+import { useSceneActions } from "../../../hooks/useSceneActions";
 
-import { SceneCardGrid } from "./SceneCardGrid";
+import { SceneCardGrid } from "../SceneCardGrid";
 
-import "./SearchResultsView.scss";
+import styles from "./SearchResultsView.module.scss";
 
 // Icons
 const searchIcon = (
@@ -81,27 +81,27 @@ export const SearchResultsView: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="search-results-view">
-        <div className="search-results-view__loading">
-          <div className="search-results-view__spinner" />
+      <div className={styles.view}>
+        <div className={styles.loading}>
+          <div className={styles.spinner} />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="search-results-view">
+    <div className={styles.view}>
       {/* Header */}
-      <header className="search-results-view__header">
-        <div className="search-results-view__title-row">
-          <span className="search-results-view__icon">{searchIcon}</span>
-          <h1 className="search-results-view__title">
+      <header className={styles.header}>
+        <div className={styles.titleRow}>
+          <span className={styles.icon}>{searchIcon}</span>
+          <h1 className={styles.title}>
             {searchQuery.trim()
               ? t("workspace.searchResultsFor", { query: searchQuery })
               : t("workspace.searchResults")}
           </h1>
           <button
-            className="search-results-view__clear"
+            className={styles.clear}
             onClick={handleClearSearch}
             title={t("workspace.clearSearch")}
           >
@@ -109,7 +109,7 @@ export const SearchResultsView: React.FC = () => {
             <span>{t("workspace.clearSearch")}</span>
           </button>
         </div>
-        <p className="search-results-view__count">
+        <p className={styles.count}>
           {filteredScenes.length === 1
             ? `1 ${t("workspace.scenes").toLowerCase()}`
             : `${filteredScenes.length} ${t("workspace.scenes").toLowerCase()}`}
@@ -117,23 +117,20 @@ export const SearchResultsView: React.FC = () => {
       </header>
 
       {/* Separator after header */}
-      <div className="search-results-view__separator" />
+      <div className={styles.separator} />
 
       {/* Results */}
-      <div className="search-results-view__content">
+      <div className={styles.content}>
         {filteredScenes.length === 0 ? (
-          <div className="search-results-view__empty">
-            <div className="search-results-view__empty-icon">{searchIcon}</div>
-            <p className="search-results-view__empty-title">
+          <div className={styles.empty}>
+            <div className={styles.emptyIcon}>{searchIcon}</div>
+            <p className={styles.emptyTitle}>
               {t("workspace.noSearchResults")}
             </p>
-            <p className="search-results-view__empty-hint">
+            <p className={styles.emptyHint}>
               {t("workspace.noSearchResultsHint")}
             </p>
-            <button
-              className="search-results-view__empty-cta"
-              onClick={handleClearSearch}
-            >
+            <button className={styles.emptyCta} onClick={handleClearSearch}>
               {t("workspace.clearSearch")}
             </button>
           </div>

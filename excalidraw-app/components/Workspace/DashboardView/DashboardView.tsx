@@ -1,22 +1,22 @@
 import React, { useCallback, useMemo } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 
-import { useAtomValue, useSetAtom } from "../../app-jotai";
-import { type WorkspaceScene } from "../../auth/workspaceApi";
+import { useAtomValue, useSetAtom } from "../../../app-jotai";
+import { type WorkspaceScene } from "../../../auth/workspaceApi";
 import {
   navigateToCanvasAtom,
   navigateToSceneAtom,
   currentWorkspaceSlugAtom,
   currentWorkspaceAtom,
-} from "../Settings/settingsState";
-import { useScenesCache } from "../../hooks/useScenesCache";
-import { useSceneActions } from "../../hooks/useSceneActions";
+} from "../../Settings/settingsState";
+import { useScenesCache } from "../../../hooks/useScenesCache";
+import { useSceneActions } from "../../../hooks/useSceneActions";
 
-import { SceneCardSkeletonGrid } from "../Skeletons";
+import { SceneCardSkeletonGrid } from "../../Skeletons";
 
-import { SceneCardGrid } from "./SceneCardGrid";
+import { SceneCardGrid } from "../SceneCardGrid";
 
-import "./DashboardView.scss";
+import styles from "./DashboardView.module.scss";
 
 // Icons
 const dashboardIcon = (
@@ -90,23 +90,21 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNewScene }) => {
 
   if (isLoading) {
     return (
-      <div className="dashboard-view">
+      <div className={styles.view}>
         {/* Header */}
-        <header className="dashboard-view__header">
-          <div className="dashboard-view__title-row">
-            <span className="dashboard-view__icon">{dashboardIcon}</span>
-            <h1 className="dashboard-view__title">
-              {t("workspace.dashboard")}
-            </h1>
+        <header className={styles.header}>
+          <div className={styles.titleRow}>
+            <span className={styles.icon}>{dashboardIcon}</span>
+            <h1 className={styles.title}>{t("workspace.dashboard")}</h1>
           </div>
         </header>
 
         {/* Separator after header */}
-        <div className="dashboard-view__separator" />
+        <div className={styles.separator} />
 
         {/* Loading skeleton for recently modified section */}
-        <section className="dashboard-view__section">
-          <h2 className="dashboard-view__section-title">
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>
             {t("workspace.recentlyModified")}
           </h2>
           <SceneCardSkeletonGrid count={6} />
@@ -116,19 +114,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNewScene }) => {
   }
 
   return (
-    <div className="dashboard-view">
+    <div className={styles.view}>
       {/* Header */}
-      <header className="dashboard-view__header">
-        <div className="dashboard-view__title-row">
-          <span className="dashboard-view__icon">{dashboardIcon}</span>
-          <h1 className="dashboard-view__title">{t("workspace.dashboard")}</h1>
+      <header className={styles.header}>
+        <div className={styles.titleRow}>
+          <span className={styles.icon}>{dashboardIcon}</span>
+          <h1 className={styles.title}>{t("workspace.dashboard")}</h1>
         </div>
-        <p className="dashboard-view__tip">
+        <p className={styles.tip}>
           <strong>{t("workspace.tip")}</strong> {t("workspace.changeHomePage")}{" "}
           <a href="#preferences">{t("workspace.preferences")}</a>
         </p>
         <button
-          className="dashboard-view__start-button"
+          className={styles.startButton}
           onClick={() => {
             navigateToCanvas();
             onNewScene();
@@ -140,11 +138,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNewScene }) => {
       </header>
 
       {/* Separator after header */}
-      <div className="dashboard-view__separator" />
+      <div className={styles.separator} />
 
       {/* Recently modified section */}
-      <section className="dashboard-view__section">
-        <h2 className="dashboard-view__section-title">
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>
           {t("workspace.recentlyModified")}
         </h2>
         <SceneCardGrid
@@ -159,8 +157,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNewScene }) => {
       </section>
 
       {/* Recently visited section */}
-      <section className="dashboard-view__section">
-        <h2 className="dashboard-view__section-title">
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>
           {t("workspace.recentlyVisited")}
         </h2>
         <SceneCardGrid
@@ -174,12 +172,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNewScene }) => {
       </section>
 
       {/* Team members section (placeholder) */}
-      <section className="dashboard-view__section">
-        <h2 className="dashboard-view__section-title">
-          {t("workspace.teamMembersAt")}
-        </h2>
-        <div className="dashboard-view__team-empty">
-          <div className="dashboard-view__team-empty-illustration">
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>{t("workspace.teamMembersAt")}</h2>
+        <div className={styles.teamEmpty}>
+          <div className={styles.teamEmptyIllustration}>
             {/* Paper airplane doodle */}
             <svg
               viewBox="0 0 200 120"
@@ -193,9 +189,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNewScene }) => {
               <path d="M170 35 L180 40 L175 50" />
             </svg>
           </div>
-          <p className="dashboard-view__team-empty-text">
-            {t("workspace.noOneActive")}
-          </p>
+          <p className={styles.teamEmptyText}>{t("workspace.noOneActive")}</p>
         </div>
       </section>
     </div>

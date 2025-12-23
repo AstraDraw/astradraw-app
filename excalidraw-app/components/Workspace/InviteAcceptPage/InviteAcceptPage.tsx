@@ -1,14 +1,14 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 
-import { useAuth } from "../../auth";
-import { joinViaInviteLink } from "../../auth/workspaceApi";
+import { useAuth } from "../../../auth";
+import { joinViaInviteLink } from "../../../auth/workspaceApi";
 
-import { LoginDialog } from "./LoginDialog";
+import { LoginDialog } from "../LoginDialog";
 
-import "./InviteAcceptPage.scss";
+import styles from "./InviteAcceptPage.module.scss";
 
-import type { Workspace } from "../../auth/workspaceApi";
+import type { Workspace } from "../../../auth/workspaceApi";
 
 interface InviteAcceptPageProps {
   inviteCode: string;
@@ -95,10 +95,10 @@ export const InviteAcceptPage: React.FC<InviteAcceptPageProps> = ({
   // Show loading while checking auth
   if (authLoading) {
     return (
-      <div className="invite-accept-page">
-        <div className="invite-accept-page__card">
-          <div className="invite-accept-page__loading">
-            <div className="invite-accept-page__spinner" />
+      <div className={styles.page}>
+        <div className={styles.card}>
+          <div className={styles.loading}>
+            <div className={styles.spinner} />
             <p>{t("workspace.invite.joiningWorkspace")}</p>
           </div>
         </div>
@@ -109,9 +109,9 @@ export const InviteAcceptPage: React.FC<InviteAcceptPageProps> = ({
   // Show login dialog for unauthenticated users
   if (!isAuthenticated) {
     return (
-      <div className="invite-accept-page">
-        <div className="invite-accept-page__card">
-          <div className="invite-accept-page__icon">
+      <div className={styles.page}>
+        <div className={styles.card}>
+          <div className={styles.icon}>
             <svg
               viewBox="0 0 24 24"
               fill="none"
@@ -127,17 +127,17 @@ export const InviteAcceptPage: React.FC<InviteAcceptPageProps> = ({
             </svg>
           </div>
           <h1>{t("workspace.invite.loginToJoin")}</h1>
-          <p className="invite-accept-page__description">
+          <p className={styles.description}>
             {t("workspace.invite.loginDescription")}
           </p>
           <button
-            className="invite-accept-page__button invite-accept-page__button--primary"
+            className={`${styles.button} ${styles.buttonPrimary}`}
             onClick={() => setShowLoginDialog(true)}
           >
             {t("workspace.login")}
           </button>
           <button
-            className="invite-accept-page__button invite-accept-page__button--secondary"
+            className={`${styles.button} ${styles.buttonSecondary}`}
             onClick={handleGoHome}
           >
             {t("workspace.invite.cancel")}
@@ -156,9 +156,9 @@ export const InviteAcceptPage: React.FC<InviteAcceptPageProps> = ({
   // Show error state
   if (error) {
     return (
-      <div className="invite-accept-page">
-        <div className="invite-accept-page__card">
-          <div className="invite-accept-page__icon invite-accept-page__icon--error">
+      <div className={styles.page}>
+        <div className={styles.card}>
+          <div className={`${styles.icon} ${styles.iconError}`}>
             <svg
               viewBox="0 0 24 24"
               fill="none"
@@ -173,16 +173,16 @@ export const InviteAcceptPage: React.FC<InviteAcceptPageProps> = ({
             </svg>
           </div>
           <h1>{t("workspace.invite.errorTitle")}</h1>
-          <p className="invite-accept-page__error">{error}</p>
-          <div className="invite-accept-page__actions">
+          <p className={styles.error}>{error}</p>
+          <div className={styles.actions}>
             <button
-              className="invite-accept-page__button invite-accept-page__button--primary"
+              className={`${styles.button} ${styles.buttonPrimary}`}
               onClick={handleRetry}
             >
               {t("workspace.invite.tryAgain")}
             </button>
             <button
-              className="invite-accept-page__button invite-accept-page__button--secondary"
+              className={`${styles.button} ${styles.buttonSecondary}`}
               onClick={handleGoHome}
             >
               {t("workspace.invite.goHome")}
@@ -195,10 +195,10 @@ export const InviteAcceptPage: React.FC<InviteAcceptPageProps> = ({
 
   // Show joining state
   return (
-    <div className="invite-accept-page">
-      <div className="invite-accept-page__card">
-        <div className="invite-accept-page__loading">
-          <div className="invite-accept-page__spinner" />
+    <div className={styles.page}>
+      <div className={styles.card}>
+        <div className={styles.loading}>
+          <div className={styles.spinner} />
           <p>{t("workspace.invite.joiningWorkspace")}</p>
         </div>
       </div>

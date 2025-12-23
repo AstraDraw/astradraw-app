@@ -1,22 +1,25 @@
 import React, { useState, useCallback } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 
-import { useAtomValue, useSetAtom } from "../../app-jotai";
-import { type WorkspaceScene, type Collection } from "../../auth/workspaceApi";
+import { useAtomValue, useSetAtom } from "../../../app-jotai";
+import {
+  type WorkspaceScene,
+  type Collection,
+} from "../../../auth/workspaceApi";
 import {
   navigateToCanvasAtom,
   navigateToSceneAtom,
   currentWorkspaceSlugAtom,
   currentWorkspaceAtom,
-} from "../Settings/settingsState";
-import { useScenesCache } from "../../hooks/useScenesCache";
-import { useSceneActions } from "../../hooks/useSceneActions";
+} from "../../Settings/settingsState";
+import { useScenesCache } from "../../../hooks/useScenesCache";
+import { useSceneActions } from "../../../hooks/useSceneActions";
 
-import { SceneCardSkeletonGrid } from "../Skeletons";
+import { SceneCardSkeletonGrid } from "../../Skeletons";
 
-import { SceneCardGrid } from "./SceneCardGrid";
+import { SceneCardGrid } from "../SceneCardGrid";
 
-import "./CollectionView.scss";
+import styles from "./CollectionView.module.scss";
 
 // Icons
 const lockIcon = (
@@ -137,14 +140,14 @@ export const CollectionView: React.FC<CollectionViewProps> = ({
   // Render icon with default styling if no emoji icon
   const renderCollectionIcon = () => {
     if (collection?.isPrivate) {
-      return <span className="collection-view__icon">{lockIcon}</span>;
+      return <span className={styles.icon}>{lockIcon}</span>;
     }
     if (collection?.icon) {
-      return <span className="collection-view__icon">{collection.icon}</span>;
+      return <span className={styles.icon}>{collection.icon}</span>;
     }
     // Default SVG icon with circular background
     return (
-      <span className="collection-view__icon collection-view__icon--default">
+      <span className={`${styles.icon} ${styles.iconDefault}`}>
         {folderIcon}
       </span>
     );
@@ -152,20 +155,20 @@ export const CollectionView: React.FC<CollectionViewProps> = ({
 
   if (isLoading) {
     return (
-      <div className="collection-view">
+      <div className={styles.view}>
         {/* Header */}
-        <header className="collection-view__header">
-          <div className="collection-view__title-row">
+        <header className={styles.header}>
+          <div className={styles.titleRow}>
             {renderCollectionIcon()}
-            <h1 className="collection-view__title">{collectionName}</h1>
+            <h1 className={styles.title}>{collectionName}</h1>
           </div>
         </header>
 
         {/* Separator after header */}
-        <div className="collection-view__separator" />
+        <div className={styles.separator} />
 
         {/* Loading skeleton */}
-        <div className="collection-view__content">
+        <div className={styles.content}>
           <SceneCardSkeletonGrid count={6} />
         </div>
       </div>
@@ -173,17 +176,17 @@ export const CollectionView: React.FC<CollectionViewProps> = ({
   }
 
   return (
-    <div className="collection-view">
+    <div className={styles.view}>
       {/* Header */}
-      <header className="collection-view__header">
-        <div className="collection-view__title-row">
+      <header className={styles.header}>
+        <div className={styles.titleRow}>
           {renderCollectionIcon()}
-          <h1 className="collection-view__title">{collectionName}</h1>
+          <h1 className={styles.title}>{collectionName}</h1>
 
           {/* Sort dropdown */}
-          <div className="collection-view__sort">
+          <div className={styles.sort}>
             <button
-              className="collection-view__sort-trigger"
+              className={styles.sortTrigger}
               onClick={() => setShowSortMenu(!showSortMenu)}
             >
               {sortBy === "created"
@@ -192,9 +195,9 @@ export const CollectionView: React.FC<CollectionViewProps> = ({
               {sortIcon}
             </button>
             {showSortMenu && (
-              <div className="collection-view__sort-menu">
+              <div className={styles.sortMenu}>
                 <button
-                  className={sortBy === "created" ? "active" : ""}
+                  className={sortBy === "created" ? styles.sortMenuActive : ""}
                   onClick={() => {
                     setSortBy("created");
                     setShowSortMenu(false);
@@ -203,7 +206,7 @@ export const CollectionView: React.FC<CollectionViewProps> = ({
                   {t("workspace.lastCreated")}
                 </button>
                 <button
-                  className={sortBy === "modified" ? "active" : ""}
+                  className={sortBy === "modified" ? styles.sortMenuActive : ""}
                   onClick={() => {
                     setSortBy("modified");
                     setShowSortMenu(false);
@@ -217,29 +220,21 @@ export const CollectionView: React.FC<CollectionViewProps> = ({
         </div>
 
         {collectionDescription && (
-          <p className="collection-view__description">
-            {collectionDescription}
-          </p>
+          <p className={styles.description}>{collectionDescription}</p>
         )}
       </header>
 
       {/* Separator after header */}
-      <div className="collection-view__separator" />
+      <div className={styles.separator} />
 
       {/* Action buttons */}
-      <div className="collection-view__actions">
-        <button
-          className="collection-view__action-button"
-          onClick={handleImportScenes}
-        >
+      <div className={styles.actions}>
+        <button className={styles.actionButton} onClick={handleImportScenes}>
           {importIcon}
           <span>{t("workspace.importScenes")}</span>
           {plusIcon}
         </button>
-        <button
-          className="collection-view__action-button"
-          onClick={handleCreateScene}
-        >
+        <button className={styles.actionButton} onClick={handleCreateScene}>
           {plusIcon}
           <span>{t("workspace.createScene")}</span>
           {plusIcon}
@@ -247,10 +242,10 @@ export const CollectionView: React.FC<CollectionViewProps> = ({
       </div>
 
       {/* Scene grid */}
-      <div className="collection-view__content">
+      <div className={styles.content}>
         {sortedScenes.length === 0 ? (
-          <div className="collection-view__empty">
-            <div className="collection-view__empty-illustration">
+          <div className={styles.empty}>
+            <div className={styles.emptyIllustration}>
               {/* Paper airplane doodle */}
               <svg
                 viewBox="0 0 200 120"
@@ -264,18 +259,13 @@ export const CollectionView: React.FC<CollectionViewProps> = ({
                 <path d="M170 35 L180 40 L175 50" />
               </svg>
             </div>
-            <p className="collection-view__empty-title">
+            <p className={styles.emptyTitle}>
               {t("workspace.emptyCollection")}
             </p>
-            <button
-              className="collection-view__empty-cta"
-              onClick={handleCreateScene}
-            >
+            <button className={styles.emptyCta} onClick={handleCreateScene}>
               {t("workspace.letsChangeThat")}
             </button>
-            <p className="collection-view__empty-hint">
-              {t("workspace.dragDropHint")}
-            </p>
+            <p className={styles.emptyHint}>{t("workspace.dragDropHint")}</p>
           </div>
         ) : (
           <SceneCardGrid

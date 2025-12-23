@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 
-import { useAuth, type User } from "../../auth";
+import { useAuth, type User } from "../../../auth";
 
-import "./UserMenu.scss";
+import styles from "./UserMenu.module.scss";
 
 interface UserMenuProps {
   user: User;
@@ -44,9 +44,9 @@ export const UserMenu: React.FC<UserMenuProps> = ({ user }) => {
   };
 
   return (
-    <div className="user-menu" ref={menuRef}>
+    <div className={styles.menu} ref={menuRef}>
       <button
-        className="user-menu__trigger"
+        className={styles.trigger}
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
       >
@@ -54,21 +54,19 @@ export const UserMenu: React.FC<UserMenuProps> = ({ user }) => {
           <img
             src={user.avatarUrl}
             alt={user.name || user.email}
-            className="user-menu__avatar"
+            className={styles.avatar}
           />
         ) : (
-          <div className="user-menu__avatar user-menu__avatar--initials">
+          <div className={`${styles.avatar} ${styles.avatarInitials}`}>
             {getInitials(user.name, user.email)}
           </div>
         )}
-        <div className="user-menu__info">
-          <span className="user-menu__name">{user.name || user.email}</span>
-          {user.name && <span className="user-menu__email">{user.email}</span>}
+        <div className={styles.info}>
+          <span className={styles.name}>{user.name || user.email}</span>
+          {user.name && <span className={styles.email}>{user.email}</span>}
         </div>
         <svg
-          className={`user-menu__chevron ${
-            isOpen ? "user-menu__chevron--open" : ""
-          }`}
+          className={`${styles.chevron} ${isOpen ? styles.chevronOpen : ""}`}
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -79,9 +77,9 @@ export const UserMenu: React.FC<UserMenuProps> = ({ user }) => {
       </button>
 
       {isOpen && (
-        <div className="user-menu__dropdown">
+        <div className={styles.dropdown}>
           <button
-            className="user-menu__item user-menu__item--logout"
+            className={`${styles.item} ${styles.itemLogout}`}
             onClick={logout}
           >
             <svg

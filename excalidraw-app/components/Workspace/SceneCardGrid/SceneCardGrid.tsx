@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 
-import "./SceneCard.scss";
+import styles from "./SceneCardGrid.module.scss";
 
-import type { WorkspaceScene } from "../../auth/workspaceApi";
+import type { WorkspaceScene } from "../../../auth/workspaceApi";
 
 // Icons
 const playIcon = (
@@ -46,24 +46,20 @@ const trashIcon = (
   </svg>
 );
 
-interface SceneCardProps {
+interface SceneGridCardProps {
   scene: WorkspaceScene;
-  isActive: boolean;
   onOpen: () => void;
   onDelete?: () => void;
   onRename?: (newTitle: string) => void;
-  onDuplicate: () => void;
-  authorName?: string;
+  onDuplicate?: () => void;
 }
 
-export const SceneCard: React.FC<SceneCardProps> = ({
+const SceneGridCard: React.FC<SceneGridCardProps> = ({
   scene,
-  isActive,
   onOpen,
   onDelete,
   onRename,
   onDuplicate,
-  authorName,
 }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
@@ -149,6 +145,7 @@ export const SceneCard: React.FC<SceneCardProps> = ({
   };
 
   const handleRenameKeyDown = (e: React.KeyboardEvent) => {
+    e.stopPropagation();
     if (e.key === "Enter") {
       e.preventDefault();
       handleRenameSubmit();
@@ -161,74 +158,65 @@ export const SceneCard: React.FC<SceneCardProps> = ({
   const handleDuplicateClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setMenuOpen(false);
-    onDuplicate();
+    onDuplicate?.();
   };
 
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setMenuOpen(false);
-    if (onDelete) {
-      onDelete();
-    }
+    onDelete?.();
   };
 
   return (
     <div
-      className={`scene-card ${isActive ? "scene-card--active" : ""}`}
+      className={styles.card}
       onClick={onOpen}
       onContextMenu={handleContextMenu}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => e.key === "Enter" && !isRenaming && onOpen()}
     >
-      <div className="scene-card__thumbnail">
+      <div className={styles.thumbnail}>
         {scene.thumbnailUrl ? (
           <img src={scene.thumbnailUrl} alt={scene.title} />
         ) : (
-          <div className="scene-card__thumbnail-placeholder">{playIcon}</div>
+          <div className={styles.thumbnailPlaceholder}>{playIcon}</div>
         )}
+        <span className={styles.time}>{formatDate(scene.updatedAt)}</span>
       </div>
 
-      <div className="scene-card__info">
-        <div className="scene-card__title-row">
+      <div className={styles.info}>
+        <div className={styles.titleRow}>
           {isRenaming ? (
             <input
               ref={renameInputRef}
               type="text"
-              className="scene-card__rename-input"
+              className={styles.renameInput}
               value={renameValue}
               onChange={(e) => setRenameValue(e.target.value)}
               onBlur={handleRenameSubmit}
               onKeyDown={handleRenameKeyDown}
+              onKeyUp={(e) => e.stopPropagation()}
               onClick={(e) => e.stopPropagation()}
             />
           ) : (
-            <h3 className="scene-card__title">{scene.title}</h3>
+            <h3 className={styles.title}>{scene.title}</h3>
           )}
           {!scene.isPublic && !isRenaming && (
-            <span
-              className="scene-card__private"
-              title={t("workspace.private")}
-            >
+            <span className={styles.private} title={t("workspace.private")}>
               {lockIcon}
             </span>
           )}
         </div>
-        <div className="scene-card__meta">
-          {authorName && (
-            <span className="scene-card__author">
-              {t("workspace.byAuthor", { name: authorName })}
-            </span>
-          )}
-          <span className="scene-card__date">
-            {formatDate(scene.updatedAt)}
-          </span>
+        <div className={styles.meta}>
+          <span className={styles.author}>{t("workspace.byYou")}</span>
         </div>
       </div>
 
-      <div className="scene-card__actions" ref={menuRef}>
+      {/* Menu trigger */}
+      <div className={styles.actions} ref={menuRef}>
         <button
-          className="scene-card__menu-trigger"
+          className={styles.menuTrigger}
           onClick={handleMenuClick}
           aria-label={t("workspace.moreOptions")}
           title={t("workspace.moreOptions")}
@@ -237,29 +225,34 @@ export const SceneCard: React.FC<SceneCardProps> = ({
         </button>
 
         {menuOpen && (
-          <div className="scene-card__menu">
-            <button
-              className="scene-card__menu-item"
-              onClick={handleRenameClick}
-            >
-              {renameIcon}
-              <span>{t("workspace.rename")}</span>
-            </button>
-            <button
-              className="scene-card__menu-item"
-              onClick={handleDuplicateClick}
-            >
-              {duplicateIcon}
-              <span>{t("workspace.duplicate")}</span>
-            </button>
-            <div className="scene-card__menu-divider" />
-            <button
-              className="scene-card__menu-item scene-card__menu-item--danger"
-              onClick={handleDeleteClick}
-            >
-              {trashIcon}
-              <span>{t("workspace.deleteScene")}</span>
-            </button>
+          <div className={styles.menu}>
+            {onRename && (
+              <button className={styles.menuItem} onClick={handleRenameClick}>
+                {renameIcon}
+                <span>{t("workspace.rename")}</span>
+              </button>
+            )}
+            {onDuplicate && (
+              <button
+                className={styles.menuItem}
+                onClick={handleDuplicateClick}
+              >
+                {duplicateIcon}
+                <span>{t("workspace.duplicate")}</span>
+              </button>
+            )}
+            {(onRename || onDuplicate) && onDelete && (
+              <div className={styles.menuDivider} />
+            )}
+            {onDelete && (
+              <button
+                className={`${styles.menuItem} ${styles.menuItemDanger}`}
+                onClick={handleDeleteClick}
+              >
+                {trashIcon}
+                <span>{t("workspace.deleteScene")}</span>
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -267,4 +260,58 @@ export const SceneCard: React.FC<SceneCardProps> = ({
   );
 };
 
-export default SceneCard;
+interface SceneCardGridProps {
+  scenes: WorkspaceScene[];
+  onOpenScene: (scene: WorkspaceScene) => void;
+  onDeleteScene?: (sceneId: string) => void;
+  onRenameScene?: (sceneId: string, newTitle: string) => void;
+  onDuplicateScene?: (sceneId: string) => void;
+  emptyMessage?: string;
+  emptyHint?: string;
+}
+
+export const SceneCardGrid: React.FC<SceneCardGridProps> = ({
+  scenes,
+  onOpenScene,
+  onDeleteScene,
+  onRenameScene,
+  onDuplicateScene,
+  emptyMessage,
+  emptyHint,
+}) => {
+  if (scenes.length === 0) {
+    return (
+      <div className={styles.empty}>
+        <p>{emptyMessage || t("workspace.noScenes")}</p>
+        {emptyHint && <span className={styles.emptyHint}>{emptyHint}</span>}
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.grid}>
+      {scenes.map((scene) => (
+        <SceneGridCard
+          key={scene.id}
+          scene={scene}
+          onOpen={() => onOpenScene(scene)}
+          onDelete={
+            onDeleteScene && scene.canEdit !== false
+              ? () => onDeleteScene(scene.id)
+              : undefined
+          }
+          onRename={
+            onRenameScene && scene.canEdit !== false
+              ? (newTitle) => onRenameScene(scene.id, newTitle)
+              : undefined
+          }
+          onDuplicate={
+            onDuplicateScene ? () => onDuplicateScene(scene.id) : undefined
+          }
+        />
+      ))}
+    </div>
+  );
+};
+
+export default SceneCardGrid;
