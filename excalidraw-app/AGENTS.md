@@ -11,6 +11,7 @@ This is a **monorepo** forked from Excalidraw with AstraDraw-specific additions:
   - `components/Talktrack/` - Video recording feature
   - `components/Presentation/` - Slideshow mode
   - `components/Stickers/` - GIPHY integration
+  - `styles/` - Shared SCSS (variables, mixins, animations) - see `styles/AGENTS.md`
   - `pens/` - Custom pen presets
   - `auth/` - Authentication context and API
 - **`packages/excalidraw/`** - Core React component library
@@ -82,15 +83,25 @@ const data = await apiRequest("/custom-endpoint", {
 });
 ```
 
-### Dark Mode CSS
+### Dark Mode CSS (CSS Modules)
 
-Use both selectors for dark mode styles:
+All components use CSS Modules with the `dark-mode` mixin from shared styles:
 
 ```scss
-.excalidraw.theme--dark,
-.excalidraw-app.theme--dark {
-  // dark mode styles
+// ComponentName.module.scss
+@use "../../styles/mixins" as *;
+
+.card { background: var(--island-bg-color, #fff); }
+
+@include dark-mode {
+  .card { background: var(--island-bg-color, #232329); }
 }
+```
+
+```typescript
+// ComponentName.tsx
+import styles from "./ComponentName.module.scss";
+<div className={styles.card}>
 ```
 
 ## Development Commands
@@ -123,6 +134,7 @@ yarn test:app --run excalidraw-app/tests/hooks/  # Run specific tests
 | `excalidraw-app/auth/api/` | Modular API client (scenes, workspaces, etc.) |
 | `excalidraw-app/auth/workspaceApi.ts` | Re-exports from api/ (backward compat) |
 | `excalidraw-app/env.ts` | Runtime environment helper |
+| `excalidraw-app/styles/` | Shared SCSS (see `styles/AGENTS.md`) |
 
 ## App.tsx Hooks
 
