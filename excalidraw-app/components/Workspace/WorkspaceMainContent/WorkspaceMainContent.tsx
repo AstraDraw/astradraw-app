@@ -98,4 +98,3 @@ export const WorkspaceMainContent: React.FC<WorkspaceMainContentProps> = ({
 };
 
 export default WorkspaceMainContent;
-

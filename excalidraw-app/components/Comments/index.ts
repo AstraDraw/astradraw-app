@@ -5,6 +5,8 @@
  * - Jotai atoms for UI state (commentsState.ts)
  * - Components for comment markers on canvas
  * - Comment creation overlay for click-to-create mode
+ * - Thread popup for viewing/replying to comments
+ * - @mention input with autocomplete
  */
 
 // State management
@@ -36,3 +38,19 @@ export type { ThreadMarkerTooltipProps } from "./ThreadMarkerTooltip";
 
 export { CommentCreationOverlay } from "./CommentCreationOverlay";
 export type { CommentCreationOverlayProps } from "./CommentCreationOverlay";
+
+// Thread popup components
+export { ThreadPopup } from "./ThreadPopup";
+export type { ThreadPopupProps } from "./ThreadPopup";
+
+export { ThreadPopupHeader } from "./ThreadPopupHeader";
+export type { ThreadPopupHeaderProps } from "./ThreadPopupHeader";
+
+export { CommentItem } from "./CommentItem";
+export type { CommentItemProps } from "./CommentItem";
+
+export { CommentInput } from "./CommentInput";
+export type { CommentInputProps } from "./CommentInput";
+
+export { MentionInput } from "./MentionInput";
+export type { MentionInputProps, MentionInputHandle } from "./MentionInput";

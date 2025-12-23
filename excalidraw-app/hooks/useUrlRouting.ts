@@ -38,6 +38,10 @@ export interface UseUrlRoutingOptions {
   ) => void;
   /** Set whether viewing private collection */
   setIsPrivateCollection: (value: boolean) => void;
+  /** Set selected comment thread (for deep links) */
+  setSelectedThreadId?: (threadId: string | null) => void;
+  /** Open the comments sidebar */
+  openCommentsSidebar?: () => void;
 }
 
 /**
@@ -52,6 +56,8 @@ export function useUrlRouting({
   setCurrentWorkspaceSlug,
   setDashboardView,
   setIsPrivateCollection,
+  setSelectedThreadId,
+  openCommentsSidebar,
 }: UseUrlRoutingOptions): void {
   // Ref to hold route handler for use in popstate
   const handleUrlRouteRef = useRef<((route: RouteType) => void) | null>(null);
@@ -122,6 +128,14 @@ export function useUrlRouting({
           // This just ensures the app mode is correct
           setCurrentWorkspaceSlug(route.workspaceSlug);
           setAppMode("canvas");
+
+          // Handle comment deep link (thread and comment params)
+          if (route.threadId && setSelectedThreadId && openCommentsSidebar) {
+            // Open comments sidebar and select the thread
+            openCommentsSidebar();
+            setSelectedThreadId(route.threadId);
+            // TODO: If commentId is present, scroll to that specific comment
+          }
           break;
 
         case "home":
@@ -150,6 +164,12 @@ export function useUrlRouting({
 
           // Load the scene
           await loadSceneFromUrl(route.workspaceSlug, route.sceneId);
+        }
+
+        // Handle comment deep link (thread and comment params)
+        if (route.threadId && setSelectedThreadId && openCommentsSidebar) {
+          openCommentsSidebar();
+          setSelectedThreadId(route.threadId);
         }
       } else {
         handleUrlRoute(route);
@@ -185,5 +205,7 @@ export function useUrlRouting({
     setCurrentWorkspaceSlug,
     setDashboardView,
     setIsPrivateCollection,
+    setSelectedThreadId,
+    openCommentsSidebar,
   ]);
 }

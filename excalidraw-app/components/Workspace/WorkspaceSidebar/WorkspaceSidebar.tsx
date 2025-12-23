@@ -35,8 +35,6 @@ import { BoardModeNav } from "../BoardModeNav";
 import { FullModeNav } from "../FullModeNav";
 import { LoginDialog } from "../LoginDialog";
 
-import "../FullModeNav.scss";
-
 import {
   CreateCollectionDialog,
   EditCollectionDialog,

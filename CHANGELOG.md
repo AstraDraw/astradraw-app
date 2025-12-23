@@ -9,6 +9,22 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.75] - 2025-12-23
+
+### Added
+
+- **Comment System - Phase 4: Comment Popup**
+  - `ThreadPopup` component: positioned popup for viewing/replying to comment threads
+  - `ThreadPopupHeader`: navigation (< >) buttons, resolve/reopen, copy link, delete, close
+  - `CommentItem`: single comment display with avatar, timestamp, edit/delete menu
+  - `MentionInput`: textarea with @mention autocomplete dropdown
+  - `CommentInput`: reply input with emoji button and send button
+  - `useWorkspaceMembers` hook: fetches workspace members for @mention autocomplete
+  - Deep link support: `?thread=xxx&comment=yyy` query params in scene URLs
+  - `buildSceneUrlWithThread()` URL builder for generating shareable links
+  - Translations added for English and Russian locales
+  - Integrated ThreadPopup into App.tsx Excalidraw children
+
 ## [0.18.0-beta0.74] - 2025-12-23
 
 ### Changed

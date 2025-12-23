@@ -1,0 +1,77 @@
+// ThreadPopup styles
+// Popup container for viewing/replying to comment threads
+
+@use "../../../styles/mixins" as *;
+@use "../../../styles/variables" as *;
+
+// Popup dimensions
+$popup-width: 320px;
+$popup-max-height: 400px;
+$comments-max-height: 230px;
+
+.popup {
+  position: absolute;
+  width: $popup-width;
+  max-height: $popup-max-height;
+  background: var(--color-surface-low, #fff);
+  border-radius: $radius-lg;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15), 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 21; // Above markers (z-20 on hover)
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-family: $ui-font;
+
+  // Prevent text selection during interactions
+  user-select: text;
+}
+
+.comments {
+  flex: 1;
+  max-height: $comments-max-height;
+  overflow-y: auto;
+  padding: 0 $spacing-sm;
+
+  @include custom-scrollbar;
+
+  // Empty state
+  &:empty::after {
+    content: "No comments yet";
+    display: block;
+    padding: $spacing-md;
+    text-align: center;
+    color: var(--color-text-secondary, #666);
+    font-size: 14px;
+  }
+}
+
+.resolvedBanner {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-sm $spacing-md;
+  background: var(--color-success-bg, #e6f4ea);
+  color: var(--color-success, #1e8e3e);
+  font-size: 13px;
+  font-weight: 500;
+  border-top: 1px solid var(--color-success-border, #ceead6);
+}
+
+.checkIcon {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+// Dark mode
+@include dark-mode {
+  .popup {
+    background: var(--color-surface-high, #3d3d42);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  .resolvedBanner {
+    background: var(--color-success-bg-dark, #1e3a2f);
+    color: var(--color-success-light, #81c995);
+    border-top-color: var(--color-success-border-dark, #2d4a3e);
+  }
+}

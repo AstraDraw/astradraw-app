@@ -174,8 +174,10 @@ import {
 
 import {
   toggleCommentModeAtom,
+  selectedThreadIdAtom,
   ThreadMarkersLayer,
   CommentCreationOverlay,
+  ThreadPopup,
 } from "./components/Comments";
 
 import { buildSceneUrl } from "./router";
@@ -559,6 +561,16 @@ const ExcalidrawWrapper = () => {
     isCollaborating,
   });
 
+  // Setter for selected thread (for deep links)
+  const setSelectedThreadId = useSetAtom(selectedThreadIdAtom);
+
+  // Open comments sidebar via excalidrawAPI
+  const openCommentsSidebar = useCallback(() => {
+    if (excalidrawAPI) {
+      excalidrawAPI.toggleSidebar({ name: "default", tab: "comments" });
+    }
+  }, [excalidrawAPI]);
+
   // URL routing hook
   useUrlRouting({
     loadSceneFromUrl: async (slug, id) => {
@@ -572,6 +584,8 @@ const ExcalidrawWrapper = () => {
     setCurrentWorkspaceSlug: setCurrentWorkspaceSlugAtom,
     setDashboardView,
     setIsPrivateCollection,
+    setSelectedThreadId,
+    openCommentsSidebar,
   });
 
   // Keyboard shortcuts hook
@@ -1789,14 +1803,17 @@ const ExcalidrawWrapper = () => {
           {excalidrawAPI && <PenToolbar excalidrawAPI={excalidrawAPI} />}
           {excalidrawAPI && <PresentationMode excalidrawAPI={excalidrawAPI} />}
 
-          {/* Comment Thread Markers */}
+          {/* Comment Thread Markers and Popup */}
           {currentSceneId && !isLegacyMode && (
             <>
               <ThreadMarkersLayer
                 sceneId={currentSceneId}
                 appState={excalidrawAPI?.getAppState()}
               />
-              <CommentCreationOverlay
+              <CommentCreationOverlay appState={excalidrawAPI?.getAppState()} />
+              <ThreadPopup
+                sceneId={currentSceneId}
+                workspaceId={currentWorkspace?.id}
                 appState={excalidrawAPI?.getAppState()}
               />
             </>

@@ -1,0 +1,214 @@
+// ThreadPopupHeader styles
+// Header bar with navigation and action buttons
+
+@use "../../../styles/mixins" as *;
+@use "../../../styles/variables" as *;
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-sm $spacing-sm;
+  border-bottom: 1px solid var(--color-border, #e5e5e5);
+  gap: $spacing-sm;
+}
+
+.leftActions,
+.rightActions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+// Navigation buttons
+.navButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: $radius-sm;
+  background: transparent;
+  color: var(--color-text-secondary, #666);
+  cursor: pointer;
+  transition: background $transition-fast, color $transition-fast;
+
+  &:hover:not(:disabled) {
+    background: var(--color-surface-high, #f0f0f0);
+    color: var(--color-text-primary, #333);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+// Action buttons (resolve, link, delete, close)
+.actionButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: $radius-sm;
+  background: transparent;
+  color: var(--color-text-secondary, #666);
+  cursor: pointer;
+  transition: background $transition-fast, color $transition-fast;
+
+  &:hover {
+    background: var(--color-surface-high, #f0f0f0);
+    color: var(--color-text-primary, #333);
+  }
+
+  // Resolved state (checkmark active)
+  &.active {
+    background: var(--color-primary, #6965db);
+    color: white;
+
+    &:hover {
+      background: var(--color-primary-dark, #5754c4);
+      color: white;
+    }
+  }
+}
+
+.deleteButton {
+  &:hover {
+    background: var(--color-danger-bg, #fee2e2);
+    color: var(--color-danger, #dc2626);
+  }
+}
+
+// Delete confirmation overlay
+.confirmOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  border-radius: $radius-lg;
+}
+
+.confirmDialog {
+  background: var(--color-surface-low, #fff);
+  border-radius: $radius-md;
+  padding: $spacing-md;
+  margin: $spacing-md;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  max-width: 280px;
+}
+
+.confirmTitle {
+  margin: 0 0 $spacing-xs 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text-primary, #333);
+}
+
+.confirmMessage {
+  margin: 0 0 $spacing-md 0;
+  font-size: 13px;
+  color: var(--color-text-secondary, #666);
+  line-height: 1.4;
+}
+
+.confirmActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: $spacing-sm;
+}
+
+.cancelButton,
+.confirmDeleteButton {
+  padding: $spacing-xs $spacing-md;
+  border: none;
+  border-radius: $radius-sm;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background $transition-fast;
+}
+
+.cancelButton {
+  background: var(--color-surface-high, #f0f0f0);
+  color: var(--color-text-primary, #333);
+
+  &:hover {
+    background: var(--color-surface-higher, #e5e5e5);
+  }
+}
+
+.confirmDeleteButton {
+  background: var(--color-danger, #dc2626);
+  color: white;
+
+  &:hover {
+    background: var(--color-danger-dark, #b91c1c);
+  }
+}
+
+// Dark mode
+@include dark-mode {
+  .header {
+    border-bottom-color: var(--color-border-dark, #4a4a4f);
+  }
+
+  .navButton,
+  .actionButton {
+    color: var(--color-text-secondary-dark, #aaa);
+
+    &:hover:not(:disabled) {
+      background: var(--color-surface-higher, #4a4a4f);
+      color: var(--color-text-primary-dark, #fff);
+    }
+  }
+
+  .actionButton.active {
+    background: var(--color-primary, #6965db);
+    color: white;
+
+    &:hover {
+      background: var(--color-primary-light, #7d7ae0);
+    }
+  }
+
+  .deleteButton {
+    &:hover {
+      background: var(--color-danger-bg-dark, #4a2020);
+      color: var(--color-danger-light, #f87171);
+    }
+  }
+
+  .confirmDialog {
+    background: var(--color-surface-high, #3d3d42);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  }
+
+  .confirmTitle {
+    color: var(--color-text-primary-dark, #fff);
+  }
+
+  .confirmMessage {
+    color: var(--color-text-secondary-dark, #aaa);
+  }
+
+  .cancelButton {
+    background: var(--color-surface-higher, #4a4a4f);
+    color: var(--color-text-primary-dark, #fff);
+
+    &:hover {
+      background: var(--color-surface-highest, #5a5a5f);
+    }
+  }
+}

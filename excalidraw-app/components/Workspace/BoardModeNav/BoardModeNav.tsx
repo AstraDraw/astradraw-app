@@ -163,4 +163,3 @@ export const BoardModeNav: React.FC<BoardModeNavProps> = ({
 };
 
 export default BoardModeNav;
-

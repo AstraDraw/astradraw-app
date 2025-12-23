@@ -1,0 +1,117 @@
+// CommentInput styles
+// Reply input with emoji and send buttons
+
+@use "../../../styles/mixins" as *;
+@use "../../../styles/variables" as *;
+@use "../../../styles/animations" as *;
+
+.container {
+  padding: $spacing-sm;
+  border-top: 1px solid var(--color-border, #e5e5e5);
+  background: var(--color-surface-lowest, #fafafa);
+}
+
+.inputRow {
+  margin-bottom: $spacing-xs;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.leftTools {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+}
+
+.toolButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: $radius-sm;
+  background: transparent;
+  color: var(--color-text-tertiary, #999);
+  cursor: pointer;
+  transition: background $transition-fast, color $transition-fast;
+
+  &:hover:not(:disabled) {
+    background: var(--color-surface-high, #f0f0f0);
+    color: var(--color-text-secondary, #666);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+.sendButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: $radius-sm;
+  background: var(--color-surface-high, #f0f0f0);
+  color: var(--color-text-tertiary, #999);
+  cursor: not-allowed;
+  transition: background $transition-fast, color $transition-fast;
+
+  &.active {
+    background: var(--color-primary, #6965db);
+    color: white;
+    cursor: pointer;
+
+    &:hover {
+      background: var(--color-primary-dark, #5754c4);
+    }
+  }
+
+  &:disabled:not(.active) {
+    opacity: 0.4;
+  }
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+// Dark mode
+@include dark-mode {
+  .container {
+    border-top-color: var(--color-border-dark, #4a4a4f);
+    background: var(--color-surface-high, #3d3d42);
+  }
+
+  .toolButton {
+    color: var(--color-text-tertiary-dark, #888);
+
+    &:hover:not(:disabled) {
+      background: var(--color-surface-higher, #4a4a4f);
+      color: var(--color-text-secondary-dark, #aaa);
+    }
+  }
+
+  .sendButton {
+    background: var(--color-surface-higher, #4a4a4f);
+    color: var(--color-text-tertiary-dark, #888);
+
+    &.active {
+      background: var(--color-primary, #6965db);
+      color: white;
+
+      &:hover {
+        background: var(--color-primary-light, #7d7ae0);
+      }
+    }
+  }
+}

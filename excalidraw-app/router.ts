@@ -13,7 +13,13 @@ export type RouteType =
   | { type: "dashboard"; workspaceSlug: string }
   | { type: "collection"; workspaceSlug: string; collectionId: string }
   | { type: "private"; workspaceSlug: string }
-  | { type: "scene"; workspaceSlug: string; sceneId: string }
+  | {
+      type: "scene";
+      workspaceSlug: string;
+      sceneId: string;
+      threadId?: string;
+      commentId?: string;
+    }
   | { type: "settings"; workspaceSlug: string }
   | { type: "members"; workspaceSlug: string }
   | { type: "teams"; workspaceSlug: string }
@@ -118,10 +124,16 @@ export function parseUrl(url: string = window.location.href): RouteType {
   // Workspace scene
   const sceneMatch = pathname.match(WORKSPACE_SCENE_PATTERN);
   if (sceneMatch) {
+    // Extract thread and comment from query params (for deep links)
+    const threadId = params.get("thread") || undefined;
+    const commentId = params.get("comment") || undefined;
+
     return {
       type: "scene",
       workspaceSlug: sceneMatch[1],
       sceneId: sceneMatch[2],
+      threadId,
+      commentId,
     };
   }
 
@@ -241,6 +253,35 @@ export function buildInviteUrl(code: string): string {
  */
 export function buildAnonymousUrl(): string {
   return "/?mode=anonymous";
+}
+
+/**
+ * Build URL for a scene with a specific comment thread (deep link)
+ *
+ * @example
+ * buildSceneUrlWithThread("my-workspace", "scene123", "thread456")
+ * // => "/workspace/my-workspace/scene/scene123?thread=thread456"
+ *
+ * buildSceneUrlWithThread("my-workspace", "scene123", "thread456", "comment789")
+ * // => "/workspace/my-workspace/scene/scene123?thread=thread456&comment=comment789"
+ */
+export function buildSceneUrlWithThread(
+  workspaceSlug: string,
+  sceneId: string,
+  threadId: string,
+  commentId?: string,
+): string {
+  const base = `/workspace/${encodeURIComponent(
+    workspaceSlug,
+  )}/scene/${encodeURIComponent(sceneId)}`;
+
+  const params = new URLSearchParams();
+  params.set("thread", threadId);
+  if (commentId) {
+    params.set("comment", commentId);
+  }
+
+  return `${base}?${params.toString()}`;
 }
 
 // ============================================================================
