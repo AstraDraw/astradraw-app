@@ -9,6 +9,17 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.66] - 2025-12-23
+
+### Added
+
+- **Unit Tests for Custom Hooks and API Client** - Added comprehensive test suite for AstraDraw-specific code
+  - Created `tests/testUtils.tsx` with React Query test utilities and mock data factories
+  - Added `tests/api/client.test.ts` - 22 tests for API client error handling, helpers
+  - Added `tests/hooks/useSceneActions.test.tsx` - 16 tests for scene CRUD operations
+  - Added `tests/hooks/useScenesCache.test.tsx` - 13 tests for data fetching and caching
+  - Total: 51 new tests covering critical paths
+
 ## [0.18.0-beta0.65] - 2025-12-23
 
 ### Changed

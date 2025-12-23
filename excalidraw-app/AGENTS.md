@@ -104,6 +104,11 @@ yarn test:typecheck    # TypeScript type checking
 yarn test:other        # Prettier formatting check
 yarn test:code         # ESLint code quality
 yarn fix               # Auto-fix formatting and linting
+
+# Run tests
+yarn test:app          # Run all tests (watch mode)
+yarn test:app --run    # Run all tests once
+yarn test:app --run excalidraw-app/tests/hooks/  # Run specific tests
 ```
 
 ## Key Files
@@ -171,3 +176,59 @@ Environment variables are injected at container startup (not build time):
 
 - `excalidraw-app/env.ts` - Uses `window.__ENV__` with `import.meta.env` fallback
 - `docker-entrypoint.sh` - Generates `/env-config.js` at startup
+
+## Testing
+
+Tests are located in `excalidraw-app/tests/` and use Vitest + React Testing Library.
+
+### Test Structure
+
+```
+excalidraw-app/tests/
+├── testUtils.tsx              # Test utilities for React Query
+├── api/
+│   └── client.test.ts         # API client tests
+└── hooks/
+    ├── useSceneActions.test.tsx   # Scene CRUD tests
+    └── useScenesCache.test.tsx    # Data fetching tests
+```
+
+### Testing Hooks with React Query
+
+Use the test utilities from `testUtils.tsx`:
+
+```typescript
+import { renderHookWithProviders, createMockScenes } from "../testUtils";
+import { useScenesCache } from "../../hooks/useScenesCache";
+
+// Mock the API
+vi.mock("../../auth/workspaceApi", () => ({
+  listWorkspaceScenes: vi.fn(),
+}));
+
+import { listWorkspaceScenes } from "../../auth/workspaceApi";
+
+it("should fetch scenes", async () => {
+  const mockScenes = createMockScenes(3);
+  (listWorkspaceScenes as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+    mockScenes,
+  );
+
+  const { result } = renderHookWithProviders(() =>
+    useScenesCache({ workspaceId: "ws-1", collectionId: "col-1" }),
+  );
+
+  await waitFor(() => {
+    expect(result.current.isLoading).toBe(false);
+  });
+
+  expect(result.current.scenes).toEqual(mockScenes);
+});
+```
+
+### Key Patterns
+
+1. **Mock imports AFTER vi.mock()** - Import mocked modules after the `vi.mock()` call
+2. **Use `renderHookWithProviders`** - Wraps hooks with QueryClientProvider
+3. **Use `createMockScenes()`** - Creates properly typed mock data
+4. **Clear mocks in beforeEach** - Use `vi.clearAllMocks()` to reset between tests
