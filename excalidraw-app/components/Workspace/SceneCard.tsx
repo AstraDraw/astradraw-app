@@ -206,7 +206,10 @@ export const SceneCard: React.FC<SceneCardProps> = ({
             <h3 className="scene-card__title">{scene.title}</h3>
           )}
           {!scene.isPublic && !isRenaming && (
-            <span className="scene-card__private" title="Private">
+            <span
+              className="scene-card__private"
+              title={t("workspace.private")}
+            >
               {lockIcon}
             </span>
           )}
@@ -227,8 +230,8 @@ export const SceneCard: React.FC<SceneCardProps> = ({
         <button
           className="scene-card__menu-trigger"
           onClick={handleMenuClick}
-          aria-label="More options"
-          title="More options"
+          aria-label={t("workspace.moreOptions")}
+          title={t("workspace.moreOptions")}
         >
           {moreIcon}
         </button>

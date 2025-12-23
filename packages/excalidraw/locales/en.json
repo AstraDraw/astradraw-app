@@ -998,6 +998,8 @@
     "workspaceCreated": "Workspace created successfully",
     "workspaceSlugTaken": "This URL is already taken",
     "creating": "Creating...",
+    "moreOptions": "More options",
+    "notSet": "Not set",
     "invite": {
       "joiningWorkspace": "Joining workspace...",
       "loginToJoin": "Sign in to join workspace",
@@ -1011,6 +1013,10 @@
       "goHome": "Go to home",
       "cancel": "Cancel"
     }
+  },
+  "comments": {
+    "promoTitle": "Make comments with AstraDraw",
+    "comingSoon": "Coming soon"
   },
   "saveStatus": {
     "saved": "Saved",

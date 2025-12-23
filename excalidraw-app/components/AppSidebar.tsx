@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 
 import { DefaultSidebar, Sidebar, THEME } from "@excalidraw/excalidraw";
+import { t } from "@excalidraw/excalidraw/i18n";
 import {
   presentationIcon,
   stickerIcon,
@@ -77,9 +78,11 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
               }}
             />
             <div className="app-sidebar-promo-text">
-              Make comments with AstraDraw
+              {t("comments.promoTitle")}
             </div>
-            <div className="app-sidebar-promo-coming-soon">Coming soon</div>
+            <div className="app-sidebar-promo-coming-soon">
+              {t("comments.comingSoon")}
+            </div>
           </div>
         </Sidebar.Tab>
         <Sidebar.Tab tab="presentation">

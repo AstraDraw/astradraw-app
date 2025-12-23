@@ -998,6 +998,8 @@
     "workspaceCreated": "Пространство создано",
     "workspaceSlugTaken": "Этот URL уже занят",
     "creating": "Создание...",
+    "moreOptions": "Ещё",
+    "notSet": "Не указано",
     "invite": {
       "joiningWorkspace": "Присоединение к пространству...",
       "loginToJoin": "Войдите, чтобы присоединиться",
@@ -1011,6 +1013,10 @@
       "goHome": "На главную",
       "cancel": "Отмена"
     }
+  },
+  "comments": {
+    "promoTitle": "Комментируйте с AstraDraw",
+    "comingSoon": "Скоро"
   },
   "saveStatus": {
     "saved": "Сохранено",

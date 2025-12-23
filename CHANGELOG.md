@@ -9,6 +9,19 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.67] - 2025-12-23
+
+### Added
+
+- **Internationalization Audit** - Fixed hardcoded strings across AstraDraw components
+  - Added new translation keys: `workspace.moreOptions`, `workspace.notSet`, `comments.promoTitle`, `comments.comingSoon`
+  - Added Russian translations for all new keys
+  - Updated `ErrorBoundary.tsx` to use translation keys for default fallback
+  - Updated `UserProfileDialog.tsx` - replaced 8 hardcoded strings with `t()` calls
+  - Updated `AppSidebar.tsx` - comments promo text now uses translation keys
+  - Updated `SceneCard.tsx` and `SceneCardGrid.tsx` - tooltips use translation keys
+  - Removed unnecessary fallback strings (e.g., `t("key") || "Fallback"`)
+
 ## [0.18.0-beta0.66] - 2025-12-23
 
 ### Added

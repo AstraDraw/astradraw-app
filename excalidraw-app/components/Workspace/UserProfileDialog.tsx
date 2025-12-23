@@ -79,7 +79,7 @@ export const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
       });
       setProfile(updated);
       setIsEditingName(false);
-      showSuccess("Name updated successfully");
+      showSuccess(t("settings.nameUpdated"));
     } catch (err: any) {
       setError(err.message || "Failed to update name");
     } finally {
@@ -108,7 +108,7 @@ export const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
     try {
       const updated = await uploadAvatar(file);
       setProfile(updated);
-      showSuccess("Avatar updated successfully");
+      showSuccess(t("settings.avatarUpdated"));
     } catch (err: any) {
       setError(err.message || "Failed to upload avatar");
     } finally {
@@ -130,7 +130,7 @@ export const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
     try {
       const updated = await deleteAvatar();
       setProfile(updated);
-      showSuccess("Avatar removed");
+      showSuccess(t("settings.avatarRemoved"));
     } catch (err: any) {
       setError(err.message || "Failed to remove avatar");
     } finally {
@@ -159,7 +159,7 @@ export const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
       <div className="user-profile-dialog" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="user-profile-dialog__header">
-          <h2>{t("workspace.myProfile") || "My Profile"}</h2>
+          <h2>{t("workspace.myProfile")}</h2>
           <button
             className="user-profile-dialog__close"
             onClick={onClose}
@@ -185,7 +185,7 @@ export const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
           ) : error && !profile ? (
             <div className="user-profile-dialog__error">
               <p>{error}</p>
-              <button onClick={loadProfile}>Retry</button>
+              <button onClick={loadProfile}>{t("settings.retry")}</button>
             </div>
           ) : profile ? (
             <>
@@ -196,7 +196,7 @@ export const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
 
               {/* Avatar Section */}
               <div className="user-profile-dialog__section">
-                <h3>{t("workspace.profilePicture") || "Profile Picture"}</h3>
+                <h3>{t("workspace.profilePicture")}</h3>
                 <div className="user-profile-dialog__avatar-section">
                   <div
                     className="user-profile-dialog__avatar"
@@ -234,7 +234,7 @@ export const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
                       onClick={handleAvatarClick}
                       disabled={isSaving}
                     >
-                      {t("workspace.changePhoto") || "Change Photo"}
+                      {t("workspace.changePhoto")}
                     </button>
                     {profile.avatarUrl && (
                       <button
@@ -242,7 +242,7 @@ export const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
                         onClick={handleDeleteAvatar}
                         disabled={isSaving}
                       >
-                        {t("workspace.removePhoto") || "Remove"}
+                        {t("workspace.removePhoto")}
                       </button>
                     )}
                   </div>
@@ -251,7 +251,7 @@ export const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
 
               {/* Name Section */}
               <div className="user-profile-dialog__section">
-                <h3>{t("workspace.profileName") || "Profile Name"}</h3>
+                <h3>{t("workspace.profileName")}</h3>
                 {isEditingName ? (
                   <div className="user-profile-dialog__edit-field">
                     <input
@@ -260,9 +260,7 @@ export const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
                       onChange={(e) => setName(e.target.value)}
                       onKeyDown={stopPropagation}
                       onKeyUp={stopPropagation}
-                      placeholder={
-                        t("workspace.namePlaceholder") || "Your name"
-                      }
+                      placeholder={t("workspace.namePlaceholder")}
                       autoFocus
                     />
                     <div className="user-profile-dialog__edit-actions">
@@ -271,7 +269,7 @@ export const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
                         onClick={handleSaveName}
                         disabled={isSaving}
                       >
-                        {isSaving ? "Saving..." : "Save"}
+                        {isSaving ? t("settings.saving") : t("settings.save")}
                       </button>
                       <button
                         className="user-profile-dialog__button user-profile-dialog__button--secondary"
@@ -281,13 +279,13 @@ export const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
                         }}
                         disabled={isSaving}
                       >
-                        Cancel
+                        {t("settings.cancel")}
                       </button>
                     </div>
                   </div>
                 ) : (
                   <div className="user-profile-dialog__field">
-                    <span>{profile.name || "Not set"}</span>
+                    <span>{profile.name || t("workspace.notSet")}</span>
                     <button
                       className="user-profile-dialog__edit-button"
                       onClick={() => setIsEditingName(true)}
@@ -308,7 +306,7 @@ export const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
 
               {/* Email Section (read-only) */}
               <div className="user-profile-dialog__section">
-                <h3>{t("workspace.email") || "Email"}</h3>
+                <h3>{t("workspace.email")}</h3>
                 <div className="user-profile-dialog__field user-profile-dialog__field--readonly">
                   <span>{profile.email}</span>
                 </div>
@@ -331,7 +329,7 @@ export const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
                   >
                     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
                   </svg>
-                  {t("workspace.logout") || "Sign out"}
+                  {t("workspace.logout")}
                 </button>
               </div>
             </>
