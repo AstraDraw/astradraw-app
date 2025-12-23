@@ -36,7 +36,6 @@ import { FullModeNav } from "../FullModeNav";
 import { LoginDialog } from "../LoginDialog";
 
 import "../WorkspaceSidebar.scss";
-import "../BoardModeNav.scss";
 import "../FullModeNav.scss";
 
 import {

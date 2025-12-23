@@ -14,6 +14,8 @@ import type {
 import { WS_EVENTS, FILE_UPLOAD_TIMEOUT, WS_SUBTYPES } from "../app_constants";
 import { isSyncableElement } from "../data";
 
+import { profileStart, profileEnd } from "./collabProfiling";
+
 import type {
   SocketUpdateData,
   SocketUpdateDataSource,
@@ -88,16 +90,23 @@ class Portal {
     roomId?: string,
   ) {
     if (this.isOpen()) {
+      const tSerialize = profileStart("broadcast:serialize");
       const json = JSON.stringify(data);
       const encoded = new TextEncoder().encode(json);
-      const { encryptedBuffer, iv } = await encryptData(this.roomKey!, encoded);
+      profileEnd("broadcast:serialize", tSerialize);
 
+      const tEncrypt = profileStart("broadcast:encrypt");
+      const { encryptedBuffer, iv } = await encryptData(this.roomKey!, encoded);
+      profileEnd("broadcast:encrypt", tEncrypt);
+
+      const tEmit = profileStart("broadcast:socketEmit");
       this.socket?.emit(
         volatile ? WS_EVENTS.SERVER_VOLATILE : WS_EVENTS.SERVER,
         roomId ?? this.roomId,
         encryptedBuffer,
         iv,
       );
+      profileEnd("broadcast:socketEmit", tEmit);
     }
   }
 

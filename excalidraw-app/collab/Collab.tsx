@@ -83,6 +83,8 @@ import { resetBrowserStateVersions } from "../data/tabSync";
 import { maybeGenerateAndUploadThumbnail } from "../utils/thumbnailGenerator";
 import { showError } from "../utils/toast";
 
+import { profileEnd, profileStart } from "./collabProfiling";
+
 import { collabErrorIndicatorAtom } from "./CollabError";
 import Portal from "./Portal";
 
@@ -497,12 +499,18 @@ class Collab extends PureComponent<CollabProps, CollabState> {
     decryptionKey: string,
   ): Promise<ValueOf<SocketUpdateDataSource>> => {
     try {
+      const t1 = profileStart("decrypt:webCrypto");
       const decrypted = await decryptData(iv, encryptedData, decryptionKey);
+      profileEnd("decrypt:webCrypto", t1);
 
+      const t2 = profileStart("decrypt:decode+parse");
       const decodedData = new TextDecoder("utf-8").decode(
         new Uint8Array(decrypted),
       );
-      return JSON.parse(decodedData);
+      const result = JSON.parse(decodedData);
+      profileEnd("decrypt:decode+parse", t2);
+
+      return result;
     } catch (error) {
       showError(t("alerts.decryptFailed"));
       console.error(error);
@@ -643,18 +651,24 @@ class Collab extends PureComponent<CollabProps, CollabState> {
     this.portal.socket.on(
       "client-broadcast",
       async (encryptedData: ArrayBuffer, iv: Uint8Array<ArrayBuffer>) => {
+        const tTotal = profileStart("client-broadcast:total");
+
         if (!this.portal.roomKey) {
+          profileEnd("client-broadcast:total", tTotal);
           return;
         }
 
+        const tDecrypt = profileStart("client-broadcast:decrypt");
         const decryptedData = await this.decryptPayload(
           iv,
           encryptedData,
           this.portal.roomKey,
         );
+        profileEnd("client-broadcast:decrypt", tDecrypt);
 
         switch (decryptedData.type) {
           case WS_SUBTYPES.INVALID_RESPONSE:
+            profileEnd("client-broadcast:total", tTotal);
             return;
           case WS_SUBTYPES.INIT: {
             if (!this.portal.socketInitialized) {
@@ -677,6 +691,7 @@ class Collab extends PureComponent<CollabProps, CollabState> {
             );
             break;
           case WS_SUBTYPES.MOUSE_LOCATION: {
+            const tMouseLoc = profileStart("client-broadcast:mouseLocation");
             const { pointer, button, username, selectedElementIds, avatarUrl } =
               decryptedData.payload;
 
@@ -692,6 +707,7 @@ class Collab extends PureComponent<CollabProps, CollabState> {
               username,
               avatarUrl: avatarUrl || undefined,
             });
+            profileEnd("client-broadcast:mouseLocation", tMouseLoc);
 
             break;
           }
@@ -745,6 +761,8 @@ class Collab extends PureComponent<CollabProps, CollabState> {
             assertNever(decryptedData, null);
           }
         }
+
+        profileEnd("client-broadcast:total", tTotal);
       },
     );
 
@@ -948,6 +966,7 @@ class Collab extends PureComponent<CollabProps, CollabState> {
   }
 
   updateCollaborator = (socketId: SocketId, updates: Partial<Collaborator>) => {
+    const t1 = profileStart("updateCollaborator:mapClone");
     const collaborators = new Map(this.collaborators);
     const user: Mutable<Collaborator> = Object.assign(
       {},
@@ -959,10 +978,13 @@ class Collab extends PureComponent<CollabProps, CollabState> {
     );
     collaborators.set(socketId, user);
     this.collaborators = collaborators;
+    profileEnd("updateCollaborator:mapClone", t1);
 
+    const t2 = profileStart("updateCollaborator:updateScene");
     this.excalidrawAPI.updateScene({
       collaborators,
     });
+    profileEnd("updateCollaborator:updateScene", t2);
   };
 
   public setLastBroadcastedOrReceivedSceneVersion = (version: number) => {
