@@ -1,11 +1,9 @@
 import React, { useCallback, useMemo } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
-import { useQueryClient } from "@tanstack/react-query";
 
 import { useAtom, useAtomValue, useSetAtom } from "../../app-jotai";
 import { type WorkspaceScene } from "../../auth/workspaceApi";
 import { useScenesCache } from "../../hooks/useScenesCache";
-import { queryKeys } from "../../lib/queryClient";
 import {
   searchQueryAtom,
   navigateToSceneAtom,
@@ -38,27 +36,18 @@ export const SearchResultsView: React.FC = () => {
   const [searchQuery, setSearchQuery] = useAtom(searchQueryAtom);
   const navigateToScene = useSetAtom(navigateToSceneAtom);
   const workspaceSlug = useAtomValue(currentWorkspaceSlugAtom);
-  const queryClient = useQueryClient();
 
   // Use React Query for scenes - fetch all scenes (no collection filter)
-  const {
-    scenes: allScenes,
-    isLoading,
-    updateScenes,
-  } = useScenesCache({
+  const { scenes: allScenes, isLoading } = useScenesCache({
     workspaceId: workspace?.id,
     collectionId: null, // null = all scenes
     enabled: !!workspace?.id,
   });
 
-  // Scene actions hook - centralized delete/rename/duplicate logic
+  // Scene actions hook - centralized delete/rename/duplicate logic with optimistic updates
   const { deleteScene, renameScene, duplicateScene } = useSceneActions({
-    updateScenes: (updater) => {
-      // Update local cache
-      updateScenes(updater);
-      // Invalidate all scenes queries
-      queryClient.invalidateQueries({ queryKey: queryKeys.scenes.all });
-    },
+    workspaceId: workspace?.id,
+    collectionId: null,
   });
 
   // Filter scenes by search query

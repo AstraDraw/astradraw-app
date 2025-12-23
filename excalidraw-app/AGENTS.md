@@ -139,15 +139,23 @@ These hooks use React Query for server state management:
 | `useScenesCache`  | Fetch scenes with caching (React Query)  |
 | `useWorkspaces`   | Workspace loading + Jotai for selection  |
 | `useCollections`  | Collection loading + Jotai for selection |
-| `useSceneActions` | Scene CRUD with cache invalidation       |
+| `useSceneActions` | Scene CRUD with optimistic updates       |
 
 ```typescript
 // Example: Using data hooks
 import { useScenesCache } from "../hooks/useScenesCache";
 import { useWorkspaces } from "../hooks/useWorkspaces";
+import { useSceneActions } from "../hooks/useSceneActions";
 
 const { scenes, isLoading } = useScenesCache({ workspaceId, collectionId });
 const { workspaces, currentWorkspace } = useWorkspaces({ isAuthenticated });
+
+// Scene actions with optimistic updates
+const { deleteScene, renameScene, duplicateScene, isDeleting } =
+  useSceneActions({
+    workspaceId: workspace?.id,
+    collectionId: activeCollectionId,
+  });
 ```
 
 ## Architecture Notes

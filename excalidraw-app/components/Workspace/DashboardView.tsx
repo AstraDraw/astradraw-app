@@ -46,19 +46,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNewScene }) => {
   const workspaceSlug = useAtomValue(currentWorkspaceSlugAtom);
 
   // Use shared scenes cache - fetch all scenes for workspace (no collection filter)
-  const {
-    scenes: allScenes,
-    isLoading,
-    updateScenes,
-  } = useScenesCache({
+  const { scenes: allScenes, isLoading } = useScenesCache({
     workspaceId: workspace?.id,
     collectionId: null, // null = all scenes
     enabled: !!workspace?.id,
   });
 
-  // Scene actions hook - centralized delete/rename/duplicate logic
+  // Scene actions hook - centralized delete/rename/duplicate logic with optimistic updates
   const { deleteScene, renameScene, duplicateScene } = useSceneActions({
-    updateScenes,
+    workspaceId: workspace?.id,
+    collectionId: null,
   });
 
   // Derive recently modified and visited from cached scenes

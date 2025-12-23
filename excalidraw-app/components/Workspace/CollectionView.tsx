@@ -72,15 +72,16 @@ export const CollectionView: React.FC<CollectionViewProps> = ({
   const [showSortMenu, setShowSortMenu] = useState(false);
 
   // Use shared scenes cache for this collection
-  const { scenes, isLoading, updateScenes } = useScenesCache({
+  const { scenes, isLoading } = useScenesCache({
     workspaceId: workspace?.id,
     collectionId: collection?.id,
     enabled: !!workspace?.id && !!collection?.id,
   });
 
-  // Scene actions hook - centralized delete/rename/duplicate logic
+  // Scene actions hook - centralized delete/rename/duplicate logic with optimistic updates
   const { deleteScene, renameScene, duplicateScene } = useSceneActions({
-    updateScenes,
+    workspaceId: workspace?.id,
+    collectionId: collection?.id,
   });
 
   // Sort scenes

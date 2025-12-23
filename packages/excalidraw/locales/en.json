@@ -941,6 +941,7 @@
     "deleteSceneError": "Failed to delete scene",
     "renameSceneError": "Failed to rename scene",
     "duplicateSceneError": "Failed to duplicate scene",
+    "sceneDuplicated": "Scene duplicated",
     "createCollectionError": "Failed to create collection",
     "updateCollectionError": "Failed to update collection",
     "deleteCollectionError": "Failed to delete collection",

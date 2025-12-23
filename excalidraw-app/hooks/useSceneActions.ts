@@ -1,8 +1,8 @@
 import { useCallback } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { showError } from "../utils/toast";
+import { showError, showSuccess } from "../utils/toast";
 import { queryKeys } from "../lib/queryClient";
 import {
   deleteScene as deleteSceneApi,
@@ -13,10 +13,16 @@ import {
 
 interface UseSceneActionsOptions {
   /**
-   * Function to update the local scenes state.
-   * This should update both local state and cache if applicable.
+   * Workspace ID for cache key targeting.
+   * Required for optimistic updates to work correctly.
    */
-  updateScenes: (updater: (prev: WorkspaceScene[]) => WorkspaceScene[]) => void;
+  workspaceId: string | undefined;
+
+  /**
+   * Collection ID for cache key targeting.
+   * Can be null for "all scenes" view.
+   */
+  collectionId?: string | null;
 
   /**
    * Optional callback when a scene is successfully renamed.
@@ -28,25 +34,42 @@ interface UseSceneActionsOptions {
 interface UseSceneActionsResult {
   /**
    * Delete a scene after confirmation.
+   * Uses optimistic update - UI updates immediately, rolls back on error.
    * @returns true if deleted, false if cancelled or failed
    */
   deleteScene: (sceneId: string) => Promise<boolean>;
 
   /**
    * Rename a scene.
+   * Uses optimistic update - UI updates immediately, rolls back on error.
    * @returns true if renamed successfully, false if failed
    */
   renameScene: (sceneId: string, newTitle: string) => Promise<boolean>;
 
   /**
    * Duplicate a scene.
+   * No optimistic update (we don't know the new scene's ID/data until API responds).
    * @returns the new scene if successful, null if failed
    */
   duplicateScene: (sceneId: string) => Promise<WorkspaceScene | null>;
+
+  /** True if a delete operation is in progress */
+  isDeleting: boolean;
+
+  /** True if a rename operation is in progress */
+  isRenaming: boolean;
+
+  /** True if a duplicate operation is in progress */
+  isDuplicating: boolean;
 }
 
 /**
- * Hook for scene CRUD operations with consistent error handling.
+ * Hook for scene CRUD operations with optimistic updates.
+ *
+ * Uses React Query's useMutation with optimistic updates:
+ * - UI updates immediately when user performs action
+ * - If API fails, UI rolls back to previous state
+ * - Toast notification shown on error
  *
  * Centralizes delete/rename/duplicate logic that was previously duplicated in:
  * - WorkspaceSidebar.tsx
@@ -56,14 +79,15 @@ interface UseSceneActionsResult {
  *
  * @example
  * ```typescript
- * const { deleteScene, renameScene, duplicateScene } = useSceneActions({
- *   updateScenes,
+ * const { deleteScene, renameScene, duplicateScene, isDeleting } = useSceneActions({
+ *   workspaceId: workspace?.id,
+ *   collectionId: activeCollectionId,
  * });
  *
- * // Delete with confirmation
+ * // Delete with confirmation (optimistic)
  * await deleteScene(scene.id);
  *
- * // Rename
+ * // Rename (optimistic)
  * await renameScene(scene.id, "New Title");
  *
  * // Duplicate and get new scene
@@ -71,72 +95,214 @@ interface UseSceneActionsResult {
  * ```
  */
 export function useSceneActions({
-  updateScenes,
+  workspaceId,
+  collectionId,
   onSceneRenamed,
 }: UseSceneActionsOptions): UseSceneActionsResult {
   const queryClient = useQueryClient();
 
-  // Invalidate all scenes queries to ensure fresh data across all components
-  const invalidateScenes = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: queryKeys.scenes.all });
-  }, [queryClient]);
+  // Helper to get the query key for the current view
+  const getQueryKey = useCallback(() => {
+    if (!workspaceId) {
+      return null;
+    }
+    return queryKeys.scenes.list(workspaceId, collectionId);
+  }, [workspaceId, collectionId]);
+
+  // ============================================
+  // DELETE SCENE MUTATION (with optimistic update)
+  // ============================================
+  const deleteMutation = useMutation({
+    mutationKey: queryKeys.mutations.deleteScene,
+    mutationFn: async (sceneId: string) => {
+      await deleteSceneApi(sceneId);
+      return sceneId;
+    },
+    onMutate: async (sceneId: string) => {
+      const queryKey = getQueryKey();
+      if (!queryKey) {
+        return { previousScenes: undefined };
+      }
+
+      // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+      await queryClient.cancelQueries({ queryKey });
+
+      // Snapshot the previous value
+      const previousScenes =
+        queryClient.getQueryData<WorkspaceScene[]>(queryKey);
+
+      // Optimistically remove the scene
+      queryClient.setQueryData<WorkspaceScene[]>(queryKey, (old) =>
+        old ? old.filter((s) => s.id !== sceneId) : [],
+      );
+
+      return { previousScenes };
+    },
+    onError: (_err, _sceneId, context) => {
+      // Rollback to the previous value on error
+      const queryKey = getQueryKey();
+      if (queryKey && context?.previousScenes) {
+        queryClient.setQueryData(queryKey, context.previousScenes);
+      }
+      console.error("Failed to delete scene:", _err);
+      showError(t("workspace.deleteSceneError") || "Failed to delete scene");
+    },
+    onSettled: () => {
+      // Always invalidate to ensure fresh data
+      queryClient.invalidateQueries({ queryKey: queryKeys.scenes.all });
+    },
+  });
+
+  // ============================================
+  // RENAME SCENE MUTATION (with optimistic update)
+  // ============================================
+  const renameMutation = useMutation({
+    mutationKey: queryKeys.mutations.renameScene,
+    mutationFn: async ({
+      sceneId,
+      newTitle,
+    }: {
+      sceneId: string;
+      newTitle: string;
+    }) => {
+      const updatedScene = await updateSceneApi(sceneId, { title: newTitle });
+      return updatedScene;
+    },
+    onMutate: async ({ sceneId, newTitle }) => {
+      const queryKey = getQueryKey();
+      if (!queryKey) {
+        return { previousScenes: undefined };
+      }
+
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey });
+
+      // Snapshot the previous value
+      const previousScenes =
+        queryClient.getQueryData<WorkspaceScene[]>(queryKey);
+
+      // Optimistically update the scene title
+      queryClient.setQueryData<WorkspaceScene[]>(queryKey, (old) =>
+        old
+          ? old.map((s) => (s.id === sceneId ? { ...s, title: newTitle } : s))
+          : [],
+      );
+
+      return { previousScenes };
+    },
+    onSuccess: (updatedScene, { sceneId, newTitle }) => {
+      // Call the callback if provided
+      onSceneRenamed?.(sceneId, newTitle);
+
+      // Update cache with the actual server response (has correct updatedAt, etc.)
+      const queryKey = getQueryKey();
+      if (queryKey) {
+        queryClient.setQueryData<WorkspaceScene[]>(queryKey, (old) =>
+          old
+            ? old.map((s) => (s.id === updatedScene.id ? updatedScene : s))
+            : [],
+        );
+      }
+    },
+    onError: (_err, _variables, context) => {
+      // Rollback to the previous value on error
+      const queryKey = getQueryKey();
+      if (queryKey && context?.previousScenes) {
+        queryClient.setQueryData(queryKey, context.previousScenes);
+      }
+      console.error("Failed to rename scene:", _err);
+      showError(t("workspace.renameSceneError") || "Failed to rename scene");
+    },
+    onSettled: () => {
+      // Always invalidate to ensure fresh data
+      queryClient.invalidateQueries({ queryKey: queryKeys.scenes.all });
+    },
+  });
+
+  // ============================================
+  // DUPLICATE SCENE MUTATION (no optimistic update)
+  // ============================================
+  const duplicateMutation = useMutation({
+    mutationKey: queryKeys.mutations.duplicateScene,
+    mutationFn: async (sceneId: string) => {
+      const newScene = await duplicateSceneApi(sceneId);
+      return newScene;
+    },
+    onSuccess: (newScene) => {
+      // Add the new scene to the cache
+      const queryKey = getQueryKey();
+      if (queryKey) {
+        queryClient.setQueryData<WorkspaceScene[]>(queryKey, (old) =>
+          old ? [newScene, ...old] : [newScene],
+        );
+      }
+      showSuccess(t("workspace.sceneDuplicated") || "Scene duplicated");
+    },
+    onError: (_err) => {
+      console.error("Failed to duplicate scene:", _err);
+      showError(
+        t("workspace.duplicateSceneError") || "Failed to duplicate scene",
+      );
+    },
+    onSettled: () => {
+      // Always invalidate to ensure fresh data
+      queryClient.invalidateQueries({ queryKey: queryKeys.scenes.all });
+    },
+  });
+
+  // ============================================
+  // WRAPPER FUNCTIONS
+  // ============================================
 
   const deleteScene = useCallback(
     async (sceneId: string): Promise<boolean> => {
+      // Show confirmation dialog
       if (!confirm(t("workspace.confirmDeleteScene"))) {
         return false;
       }
 
       try {
-        await deleteSceneApi(sceneId);
-        updateScenes((prev) => prev.filter((s) => s.id !== sceneId));
-        invalidateScenes();
+        await deleteMutation.mutateAsync(sceneId);
         return true;
-      } catch (err) {
-        console.error("Failed to delete scene:", err);
-        showError(t("workspace.deleteSceneError") || "Failed to delete scene");
+      } catch {
+        // Error already handled in onError
         return false;
       }
     },
-    [updateScenes, invalidateScenes],
+    [deleteMutation],
   );
 
   const renameScene = useCallback(
     async (sceneId: string, newTitle: string): Promise<boolean> => {
       try {
-        const updatedScene = await updateSceneApi(sceneId, { title: newTitle });
-        updateScenes((prev) =>
-          prev.map((s) => (s.id === sceneId ? updatedScene : s)),
-        );
-        onSceneRenamed?.(sceneId, newTitle);
-        invalidateScenes();
+        await renameMutation.mutateAsync({ sceneId, newTitle });
         return true;
-      } catch (err) {
-        console.error("Failed to rename scene:", err);
-        showError(t("workspace.renameSceneError") || "Failed to rename scene");
+      } catch {
+        // Error already handled in onError
         return false;
       }
     },
-    [updateScenes, onSceneRenamed, invalidateScenes],
+    [renameMutation],
   );
 
   const duplicateScene = useCallback(
     async (sceneId: string): Promise<WorkspaceScene | null> => {
       try {
-        const newScene = await duplicateSceneApi(sceneId);
-        updateScenes((prev) => [newScene, ...prev]);
-        invalidateScenes();
-        return newScene;
-      } catch (err) {
-        console.error("Failed to duplicate scene:", err);
-        showError(
-          t("workspace.duplicateSceneError") || "Failed to duplicate scene",
-        );
+        return await duplicateMutation.mutateAsync(sceneId);
+      } catch {
+        // Error already handled in onError
         return null;
       }
     },
-    [updateScenes, invalidateScenes],
+    [duplicateMutation],
   );
 
-  return { deleteScene, renameScene, duplicateScene };
+  return {
+    deleteScene,
+    renameScene,
+    duplicateScene,
+    isDeleting: deleteMutation.isPending,
+    isRenaming: renameMutation.isPending,
+    isDuplicating: duplicateMutation.isPending,
+  };
 }

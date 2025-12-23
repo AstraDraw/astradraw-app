@@ -941,6 +941,7 @@
     "deleteSceneError": "Не удалось удалить сцену",
     "renameSceneError": "Не удалось переименовать сцену",
     "duplicateSceneError": "Не удалось дублировать сцену",
+    "sceneDuplicated": "Сцена скопирована",
     "createCollectionError": "Не удалось создать коллекцию",
     "updateCollectionError": "Не удалось обновить коллекцию",
     "deleteCollectionError": "Не удалось удалить коллекцию",

@@ -15,7 +15,7 @@ node_modules/
 packages/excalidraw/fonts/
 
 # Locales (exclude all except English and Russian which are actively maintained)
-packages/excalidraw/locales/
+!packages/excalidraw/locales/
 !packages/excalidraw/locales/en.json
 !packages/excalidraw/locales/ru-RU.json
 !packages/excalidraw/locales/percentages.json

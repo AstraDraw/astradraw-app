@@ -69,4 +69,11 @@ export const queryKeys = {
   talktracks: {
     list: (sceneId: string) => ["talktracks", sceneId] as const,
   },
+
+  // Mutations (for useMutation hooks)
+  mutations: {
+    deleteScene: ["deleteScene"] as const,
+    renameScene: ["renameScene"] as const,
+    duplicateScene: ["duplicateScene"] as const,
+  },
 } as const;

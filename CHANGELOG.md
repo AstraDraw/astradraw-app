@@ -9,6 +9,23 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.65] - 2025-12-23
+
+### Changed
+
+- **Optimistic Updates for Scene Actions** - Scene operations now update UI immediately
+  - Rewrote `useSceneActions` hook using React Query's `useMutation` with optimistic updates
+  - Delete and rename operations update UI instantly, roll back on API error
+  - Duplicate shows success toast after server response (needs new scene ID)
+  - Added mutation keys to `lib/queryClient.ts` for tracking
+  - Simplified hook interface: `workspaceId`/`collectionId` instead of `updateScenes` callback
+  - Added loading states: `isDeleting`, `isRenaming`, `isDuplicating`
+  - Updated all consuming components: `DashboardView`, `CollectionView`, `SearchResultsView`, `WorkspaceSidebar`
+
+### Added
+
+- Translation key `workspace.sceneDuplicated` for success toast notification
+
 ## [0.18.0-beta0.64] - 2025-12-23
 
 ### Added

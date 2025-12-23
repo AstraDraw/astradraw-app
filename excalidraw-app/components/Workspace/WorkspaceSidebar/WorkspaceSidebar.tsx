@@ -136,7 +136,6 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
     scenes,
     isLoading: isScenesLoading,
     refetch: refetchScenes,
-    updateScenes,
   } = useScenesCache({
     workspaceId: currentWorkspace?.id,
     collectionId: activeCollectionId,
@@ -146,9 +145,10 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
   // Hook to invalidate scenes cache
   const invalidateScenesCache = useInvalidateScenesCache();
 
-  // Scene actions hook
+  // Scene actions hook with optimistic updates
   const { deleteScene, renameScene, duplicateScene } = useSceneActions({
-    updateScenes,
+    workspaceId: currentWorkspace?.id,
+    collectionId: activeCollectionId,
     onSceneRenamed: useCallback(
       (sceneId: string, newTitle: string) => {
         if (sceneId === currentSceneId && onCurrentSceneTitleChange) {
