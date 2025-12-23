@@ -92,12 +92,31 @@ yarn fix               # Auto-fix formatting and linting
 
 | File | Purpose |
 | --- | --- |
-| `excalidraw-app/App.tsx` | Main app entry point |
+| `excalidraw-app/App.tsx` | Main app orchestrator (uses hooks) |
+| `excalidraw-app/hooks/` | Extracted logic hooks |
 | `excalidraw-app/components/Settings/settingsState.ts` | Jotai state atoms |
 | `excalidraw-app/router.ts` | URL routing logic |
 | `excalidraw-app/auth/api/` | Modular API client (scenes, workspaces, etc.) |
 | `excalidraw-app/auth/workspaceApi.ts` | Re-exports from api/ (backward compat) |
 | `excalidraw-app/env.ts` | Runtime environment helper |
+
+## App.tsx Hooks
+
+App.tsx uses these extracted hooks for better maintainability:
+
+| Hook | Purpose |
+| --- | --- |
+| `useAutoSave` | Save state machine, debounce, retry, offline detection |
+| `useSceneLoader` | Scene loading from workspace URLs, auto-collab |
+| `useUrlRouting` | Popstate handling, URL parsing |
+| `useKeyboardShortcuts` | Ctrl+S, Cmd+P, Cmd+[, Cmd+] handlers |
+| `useWorkspaceData` | Workspace/collections loading |
+
+```typescript
+// Example: Using hooks in new components
+import { useAutoSave } from "../hooks/useAutoSave";
+import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
+```
 
 ## Architecture Notes
 

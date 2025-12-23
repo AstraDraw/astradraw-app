@@ -145,10 +145,7 @@ import {
   QuickSearchModal,
 } from "./components/Workspace";
 
-import {
-  SaveStatusIndicator,
-  type SaveStatus,
-} from "./components/SaveStatusIndicator";
+import { SaveStatusIndicator } from "./components/SaveStatusIndicator";
 
 import {
   appModeAtom,
@@ -156,7 +153,6 @@ import {
   navigateToDashboardAtom,
   activeCollectionIdAtom,
   triggerScenesRefreshAtom,
-  collectionsRefreshAtom,
   currentWorkspaceSlugAtom,
   currentSceneIdAtom,
   currentSceneTitleAtom,
@@ -170,7 +166,7 @@ import {
   toggleWorkspaceSidebarAtom,
 } from "./components/Settings";
 
-import { parseUrl, buildSceneUrl, type RouteType } from "./router";
+import { buildSceneUrl } from "./router";
 
 import { WorkspaceMainContent } from "./components/Workspace";
 import {
@@ -182,29 +178,25 @@ import {
 import {
   createScene,
   updateSceneData,
-  listWorkspaces,
-  listCollections,
   updateWorkspace,
   uploadWorkspaceAvatar,
 } from "./auth/workspaceApi";
-import {
-  loadWorkspaceScene,
-  type SceneAccess,
-} from "./data/workspaceSceneLoader";
-import { maybeGenerateAndUploadThumbnail } from "./utils/thumbnailGenerator";
+import { loadWorkspaceScene } from "./data/workspaceSceneLoader";
 
-import type { Workspace, Collection } from "./auth/workspaceApi";
+// Import extracted hooks
+import { useAutoSave } from "./hooks/useAutoSave";
+import { useSceneLoader } from "./hooks/useSceneLoader";
+import { useUrlRouting } from "./hooks/useUrlRouting";
+import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
+import { useWorkspaceData } from "./hooks/useWorkspaceData";
 
 import type { CollabAPI } from "./collab/Collab";
+
+import type { Workspace } from "./auth/workspaceApi";
 
 polyfill();
 
 window.EXCALIDRAW_THROTTLE_RENDER = true;
-
-// Autosave timing constants
-const AUTOSAVE_DEBOUNCE_MS = 2000; // 2 seconds after last change
-const AUTOSAVE_RETRY_DELAY_MS = 5000; // 5 seconds on error (single retry)
-const BACKUP_SAVE_INTERVAL_MS = 30000; // 30 seconds safety net
 
 declare global {
   interface BeforeInstallPromptEventChoiceResult {
@@ -456,39 +448,7 @@ const ExcalidrawWrapper = () => {
   const openWorkspaceSidebar = useSetAtom(openWorkspaceSidebarAtom);
   const closeWorkspaceSidebar = useSetAtom(closeWorkspaceSidebarAtom);
   const toggleWorkspaceSidebar = useSetAtom(toggleWorkspaceSidebarAtom);
-  const [currentSceneId, setCurrentSceneId] = useState<string | null>(null);
-  const [currentSceneTitle, setCurrentSceneTitle] =
-    useState<string>("Untitled");
 
-  // Ref to access currentSceneId in closures without adding to useEffect deps
-  // Used by syncData to skip localStorage sync for workspace scenes
-  const currentSceneIdRef = useRef<string | null>(null);
-  currentSceneIdRef.current = currentSceneId;
-
-  // Save status state machine for autosave UI
-  const [saveStatus, setSaveStatus] = useState<SaveStatus>("saved");
-  const [lastSavedTime, setLastSavedTime] = useState<Date | null>(null);
-  // isOnline is set by event handlers and used to trigger save on reconnect
-  const [_isOnline, setIsOnline] = useState(navigator.onLine);
-  void _isOnline; // Used in offline detection effect
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const retryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const backupSaveIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
-    null,
-  );
-  const retryCountRef = useRef<number>(0);
-  const lastSavedDataRef = useRef<string | null>(null);
-
-  // Track current workspace and its collections for default scene creation
-  const [currentWorkspace, setCurrentWorkspace] = useState<Workspace | null>(
-    null,
-  );
-  const [currentWorkspaceSlug, setCurrentWorkspaceSlug] = useState<
-    string | null
-  >(null);
-  const [currentSceneAccess, setCurrentSceneAccess] =
-    useState<SceneAccess | null>(null);
   const [isLegacyMode, setIsLegacyMode] = useState<boolean>(() => {
     const params = new URLSearchParams(window.location.search);
     return (
@@ -496,10 +456,6 @@ const ExcalidrawWrapper = () => {
       !!window.location.hash.match(LEGACY_ROOM_PATTERN)
     );
   });
-  const [collections, setCollections] = useState<Collection[]>([]);
-  const [privateCollectionId, setPrivateCollectionId] = useState<string | null>(
-    null,
-  );
 
   // Invite link handling - check URL on initial load
   const [pendingInviteCode, setPendingInviteCode] = useState<string | null>(
@@ -508,119 +464,6 @@ const ExcalidrawWrapper = () => {
       return match ? match[1] : null;
     },
   );
-
-  // Track if we've already set the default active collection to prevent loops
-  const hasSetDefaultActiveCollectionRef = useRef(false);
-
-  // Auto-open sidebar when user logs in
-  useEffect(() => {
-    if (isAuthenticated && !wasAuthenticated.current) {
-      // User just logged in, open sidebar
-      openWorkspaceSidebar();
-      // Reset the flag when user logs in
-      hasSetDefaultActiveCollectionRef.current = false;
-    }
-    wasAuthenticated.current = isAuthenticated;
-  }, [isAuthenticated, openWorkspaceSidebar]);
-
-  // Load current workspace and find private collection when authenticated
-  useEffect(() => {
-    if (!isAuthenticated) {
-      setCurrentWorkspace(null);
-      setCollections([]);
-      setPrivateCollectionId(null);
-      hasSetDefaultActiveCollectionRef.current = false;
-      return;
-    }
-
-    const loadWorkspaceData = async () => {
-      try {
-        // Get user's workspaces
-        const workspaces = await listWorkspaces();
-        if (workspaces.length > 0) {
-          const workspace =
-            (currentWorkspaceSlug &&
-              workspaces.find((ws) => ws.slug === currentWorkspaceSlug)) ||
-            workspaces[0]; // Fallback to first workspace as default
-          setCurrentWorkspace(workspace);
-
-          // Find the private collection in this workspace
-          const workspaceCollections = await listCollections(workspace.id);
-          setCollections(workspaceCollections);
-
-          const privateCollection = workspaceCollections.find(
-            (c) => c.isPrivate,
-          );
-          if (privateCollection) {
-            setPrivateCollectionId(privateCollection.id);
-            // Set as default active collection only once
-            if (!hasSetDefaultActiveCollectionRef.current) {
-              hasSetDefaultActiveCollectionRef.current = true;
-              setActiveCollectionId(privateCollection.id);
-            }
-          }
-        }
-      } catch (error) {
-        console.error("Failed to load workspace data:", error);
-      }
-    };
-
-    loadWorkspaceData();
-    // Note: Removed activeCollectionId from deps to prevent infinite loop
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, setActiveCollectionId, currentWorkspaceSlug]);
-
-  // Subscribe to collections refresh trigger to reload collections when they change
-  // This ensures App.tsx collections stay in sync with sidebar's collection changes
-  const collectionsRefresh = useAtomValue(collectionsRefreshAtom);
-  useEffect(() => {
-    if (!currentWorkspace || !isAuthenticated) {
-      return;
-    }
-
-    const reloadCollections = async () => {
-      try {
-        const workspaceCollections = await listCollections(currentWorkspace.id);
-        setCollections(workspaceCollections);
-      } catch (error) {
-        console.error("Failed to reload collections:", error);
-      }
-    };
-
-    // Only reload if collectionsRefresh > 0 (meaning it was triggered, not initial mount)
-    if (collectionsRefresh > 0) {
-      reloadCollections();
-    }
-  }, [collectionsRefresh, currentWorkspace, isAuthenticated]);
-
-  // Close sidebar in legacy mode
-  useEffect(() => {
-    if (isLegacyMode) {
-      closeWorkspaceSidebar();
-    }
-  }, [isLegacyMode, closeWorkspaceSidebar]);
-
-  // Block Excalidraw keyboard shortcuts when in dashboard mode
-  // This prevents canvas shortcuts from firing when user is typing in dashboard
-  useEffect(() => {
-    if (appMode === "dashboard") {
-      document.body.classList.add("excalidraw-disabled");
-    } else {
-      document.body.classList.remove("excalidraw-disabled");
-    }
-    return () => {
-      document.body.classList.remove("excalidraw-disabled");
-    };
-  }, [appMode]);
-
-  // Auto-open sidebar when switching to dashboard mode
-  // Dashboard mode requires the sidebar to be visible for navigation
-  // Note: Navigation atoms (navigateToDashboard, navigateToCollection) now auto-open sidebar
-  useEffect(() => {
-    if (appMode === "dashboard" && !isLegacyMode) {
-      openWorkspaceSidebar();
-    }
-  }, [appMode, isLegacyMode, openWorkspaceSidebar]);
 
   // initial state
   // ---------------------------------------------------------------------------
@@ -646,6 +489,145 @@ const ExcalidrawWrapper = () => {
   const [excalidrawAPI, excalidrawRefCallback] =
     useCallbackRefState<ExcalidrawImperativeAPI>();
 
+  const [, setShareDialogState] = useAtom(shareDialogStateAtom);
+  const [collabAPI] = useAtom(collabAPIAtom);
+  const [isCollaborating] = useAtomWithInitialValue(isCollaboratingAtom, () => {
+    return isCollaborationLink(window.location.href);
+  });
+  const collabError = useAtomValue(collabErrorIndicatorAtom);
+
+  // =========================================================================
+  // Use extracted hooks
+  // =========================================================================
+
+  // Workspace data hook
+  const {
+    currentWorkspace,
+    setCurrentWorkspace,
+    collections,
+    privateCollectionId,
+    setPrivateCollectionId,
+  } = useWorkspaceData({
+    isAuthenticated,
+    currentWorkspaceSlug: null, // Will be set by scene loader
+    setActiveCollectionId,
+  });
+
+  // Scene loader hook
+  const {
+    currentSceneId,
+    currentSceneTitle,
+    currentSceneAccess,
+    currentWorkspaceSlug,
+    setCurrentSceneId,
+    setCurrentSceneTitle,
+    setCurrentWorkspaceSlug,
+    loadSceneRef,
+    currentSceneIdRef,
+  } = useSceneLoader({
+    excalidrawAPI,
+    collabAPI,
+    isCollabDisabled,
+    setIsAutoCollabScene,
+    navigateToCanvas,
+    onError: setErrorMessage,
+    initializeAutoSave: undefined, // Will be connected after autoSave hook
+  });
+
+  // Autosave hook
+  const {
+    saveStatus,
+    lastSavedTime,
+    handleSaveRetry,
+    markUnsaved,
+    initializeWithLoadedData,
+  } = useAutoSave({
+    currentSceneId,
+    excalidrawAPI,
+    isCollaborating,
+  });
+
+  // URL routing hook
+  useUrlRouting({
+    loadSceneFromUrl: async (slug, id) => {
+      if (loadSceneRef.current) {
+        await loadSceneRef.current(slug, id);
+      }
+    },
+    currentSceneIdRef,
+    setAppMode,
+    setActiveCollectionId,
+    setCurrentWorkspaceSlug: setCurrentWorkspaceSlugAtom,
+    setDashboardView,
+    setIsPrivateCollection,
+  });
+
+  // Keyboard shortcuts hook
+  useKeyboardShortcuts({
+    isAuthenticated,
+    currentSceneId,
+    excalidrawAPI,
+    onSave: () => {
+      if (currentSceneId && excalidrawAPI) {
+        handleSaveToWorkspace();
+      }
+    },
+    toggleWorkspaceSidebar,
+    setQuickSearchOpen,
+  });
+
+  // =========================================================================
+  // Sync Jotai atoms with local state
+  // =========================================================================
+
+  // Sync scene state with Jotai atoms
+  useEffect(() => {
+    setCurrentWorkspaceSlugAtom(currentWorkspaceSlug);
+  }, [currentWorkspaceSlug, setCurrentWorkspaceSlugAtom]);
+
+  useEffect(() => {
+    setCurrentSceneIdAtom(currentSceneId);
+  }, [currentSceneId, setCurrentSceneIdAtom]);
+
+  useEffect(() => {
+    setCurrentSceneTitleAtom(currentSceneTitle);
+  }, [currentSceneTitle, setCurrentSceneTitleAtom]);
+
+  // Auto-open sidebar when user logs in
+  useEffect(() => {
+    if (isAuthenticated && !wasAuthenticated.current) {
+      openWorkspaceSidebar();
+    }
+    wasAuthenticated.current = isAuthenticated;
+  }, [isAuthenticated, openWorkspaceSidebar]);
+
+  // Close sidebar in legacy mode
+  useEffect(() => {
+    if (isLegacyMode) {
+      closeWorkspaceSidebar();
+    }
+  }, [isLegacyMode, closeWorkspaceSidebar]);
+
+  // Block Excalidraw keyboard shortcuts when in dashboard mode
+  useEffect(() => {
+    if (appMode === "dashboard") {
+      document.body.classList.add("excalidraw-disabled");
+    } else {
+      document.body.classList.remove("excalidraw-disabled");
+    }
+    return () => {
+      document.body.classList.remove("excalidraw-disabled");
+    };
+  }, [appMode]);
+
+  // Auto-open sidebar when switching to dashboard mode
+  useEffect(() => {
+    if (appMode === "dashboard" && !isLegacyMode) {
+      openWorkspaceSidebar();
+    }
+  }, [appMode, isLegacyMode, openWorkspaceSidebar]);
+
+  // Update legacy mode on hash changes
   useEffect(() => {
     const updateLegacyMode = () => {
       const params = new URLSearchParams(window.location.search);
@@ -663,174 +645,17 @@ const ExcalidrawWrapper = () => {
     };
   }, []);
 
-  // URL-based navigation sync
-  // This effect handles:
-  // 1. Initial URL parsing on mount
-  // 2. Browser back/forward navigation via popstate
-  // 3. Syncing URL state to Jotai atoms
-  const handleUrlRouteRef = useRef<((route: RouteType) => void) | null>(null);
-
-  // Ref to hold scene loading function - populated by initialization effect
-  // and called by handlePopState for URL-based navigation
-  const loadSceneFromUrlRef = useRef<
-    ((workspaceSlug: string, sceneId: string) => Promise<void>) | null
-  >(null);
-
-  useEffect(() => {
-    // Define the route handler - this is called from popstate, so we should NOT
-    // call navigation atoms that push URLs (that would cause infinite loop).
-    // Instead, we directly set the state atoms.
-    const handleUrlRoute = (route: RouteType) => {
-      // Skip if in legacy mode (anonymous or legacy collab)
-      if (route.type === "anonymous" || route.type === "legacy-collab") {
-        return;
-      }
-
-      // Handle workspace routes - set state directly without pushing URLs
-      switch (route.type) {
-        case "dashboard":
-          setCurrentWorkspaceSlugAtom(route.workspaceSlug);
-          setDashboardView("home");
-          setAppMode("dashboard");
-          break;
-
-        case "collection":
-          setCurrentWorkspaceSlugAtom(route.workspaceSlug);
-          setActiveCollectionId(route.collectionId);
-          setIsPrivateCollection(false);
-          setDashboardView("collection");
-          setAppMode("dashboard");
-          break;
-
-        case "private":
-          setCurrentWorkspaceSlugAtom(route.workspaceSlug);
-          setIsPrivateCollection(true);
-          setDashboardView("collection");
-          setAppMode("dashboard");
-          break;
-
-        case "settings":
-          setCurrentWorkspaceSlugAtom(route.workspaceSlug);
-          setDashboardView("workspace");
-          setAppMode("dashboard");
-          break;
-
-        case "members":
-          setCurrentWorkspaceSlugAtom(route.workspaceSlug);
-          setDashboardView("members");
-          setAppMode("dashboard");
-          break;
-
-        case "teams":
-          setCurrentWorkspaceSlugAtom(route.workspaceSlug);
-          setDashboardView("teams-collections");
-          setAppMode("dashboard");
-          break;
-
-        case "profile":
-          setDashboardView("profile");
-          setAppMode("dashboard");
-          break;
-
-        case "preferences":
-          setDashboardView("preferences");
-          setAppMode("dashboard");
-          break;
-
-        case "scene":
-          // Scene loading is handled separately by loadSceneFromUrlRef
-          // This just ensures the app mode is correct
-          setCurrentWorkspaceSlugAtom(route.workspaceSlug);
-          setAppMode("canvas");
-          break;
-
-        case "home":
-          // Root URL - check if authenticated and redirect to dashboard or stay on canvas
-          // This is handled by the main app logic
-          break;
-
-        default:
-          break;
-      }
-    };
-
-    handleUrlRouteRef.current = handleUrlRoute;
-
-    // Handle popstate for browser back/forward navigation
-    const handlePopState = async (event: PopStateEvent) => {
-      const route = parseUrl();
-
-      // If navigating to a scene URL, we need to load the scene
-      if (route.type === "scene") {
-        // Check if this is a different scene than currently loaded
-        if (currentSceneIdRef.current !== route.sceneId) {
-          // First, switch to canvas mode so the UI updates immediately
-          setAppMode("canvas");
-          setCurrentWorkspaceSlugAtom(route.workspaceSlug);
-
-          // Load the scene using the ref function (populated by initialization effect)
-          if (loadSceneFromUrlRef.current) {
-            await loadSceneFromUrlRef.current(
-              route.workspaceSlug,
-              route.sceneId,
-            );
-          } else {
-            // Fallback: just set state if loader not ready yet
-            setCurrentWorkspaceSlug(route.workspaceSlug);
-          }
-        }
-      } else {
-        handleUrlRoute(route);
-      }
-    };
-
-    window.addEventListener("popstate", handlePopState);
-
-    // Parse initial URL on mount and set the correct app state
-    const initialRoute = parseUrl();
-    if (
-      initialRoute.type !== "anonymous" &&
-      initialRoute.type !== "legacy-collab" &&
-      initialRoute.type !== "home"
-    ) {
-      // For dashboard routes, set state immediately (scene loading is handled separately)
-      if (initialRoute.type !== "scene") {
-        handleUrlRoute(initialRoute);
-      } else {
-        // For scene routes, just set the workspace slug - scene loading happens in the other useEffect
-        setCurrentWorkspaceSlugAtom(initialRoute.workspaceSlug);
-      }
-    }
-
-    return () => {
-      window.removeEventListener("popstate", handlePopState);
-    };
-  }, [
-    setAppMode,
-    setActiveCollectionId,
-    setCurrentWorkspaceSlugAtom,
-    setDashboardView,
-    setIsPrivateCollection,
-  ]);
-
-  const [, setShareDialogState] = useAtom(shareDialogStateAtom);
-  const [collabAPI] = useAtom(collabAPIAtom);
-  const [isCollaborating] = useAtomWithInitialValue(isCollaboratingAtom, () => {
-    return isCollaborationLink(window.location.href);
-  });
-  const collabError = useAtomValue(collabErrorIndicatorAtom);
+  // =========================================================================
+  // Library handling
+  // =========================================================================
 
   useHandleLibrary({
     excalidrawAPI,
     adapter: LibraryIndexedDBAdapter,
-    // TODO maybe remove this in several months (shipped: 24-03-11)
     migrationAdapter: LibraryLocalStorageMigrationAdapter,
-    // AstraDraw: Allow libraries from astrateam.net subdomains and upstream sources
     validateLibraryUrl: (url: string) => {
       try {
         const { hostname } = new URL(url);
-        // Allow any subdomain of astrateam.net (e.g., libraries.astrateam.net)
-        // Also allow upstream excalidraw sources for compatibility
         const allowedDomains = [
           "astrateam.net",
           "excalidraw.com",
@@ -845,8 +670,7 @@ const ExcalidrawWrapper = () => {
     },
   });
 
-  // AstraDraw: Load pre-bundled libraries from Docker volume mount
-  // These are .excalidrawlib files placed in /app/libraries/ directory
+  // Load pre-bundled libraries from Docker volume mount
   useEffect(() => {
     if (!excalidrawAPI) {
       return;
@@ -860,7 +684,6 @@ const ExcalidrawWrapper = () => {
           defaultStatus: "published",
         })
         .catch((error) => {
-          // eslint-disable-next-line no-console
           console.error("AstraDraw: Failed to load bundled libraries:", error);
         });
     }
@@ -882,6 +705,10 @@ const ExcalidrawWrapper = () => {
       forceRefresh((prev) => !prev);
     }
   }, [excalidrawAPI]);
+
+  // =========================================================================
+  // Scene initialization and sync
+  // =========================================================================
 
   useEffect(() => {
     if (!excalidrawAPI || (!isCollabDisabled && !collabAPI)) {
@@ -961,15 +788,13 @@ const ExcalidrawWrapper = () => {
                 });
               });
           }
-          // on fresh load, clear unused files from IDB (from previous
-          // session)
           LocalData.fileStorage.clearObsoleteFiles({ currentFileIds: fileIds });
         }
       }
     };
 
-    // Reusable scene loading function - can be called from initial load or navigation
-    const loadSceneFromUrl = async (
+    // Scene loading function for workspace URLs
+    const loadSceneFromWorkspaceUrl = async (
       workspaceSlug: string,
       sceneId: string,
       options: {
@@ -979,10 +804,8 @@ const ExcalidrawWrapper = () => {
     ) => {
       const { isInitialLoad = false, roomKeyFromHash = null } = options;
 
-      // Leave current collaboration room before switching scenes
-      // This ensures clean room switching when navigating between scenes
       if (!isInitialLoad && collabAPI?.isCollaborating()) {
-        collabAPI.stopCollaboration(false); // false = don't keep remote state
+        collabAPI.stopCollaboration(false);
       }
 
       try {
@@ -990,12 +813,6 @@ const ExcalidrawWrapper = () => {
         setCurrentWorkspaceSlug(workspaceSlug);
         setCurrentSceneId(loaded.scene.id);
         setCurrentSceneTitle(loaded.scene.title || "Untitled");
-        setCurrentSceneAccess(loaded.access);
-
-        // Sync with Jotai atoms for URL-based navigation
-        setCurrentWorkspaceSlugAtom(workspaceSlug);
-        setCurrentSceneIdAtom(loaded.scene.id);
-        setCurrentSceneTitleAtom(loaded.scene.title || "Untitled");
 
         let restored: RestoredDataState | null = null;
         if (loaded.data) {
@@ -1019,12 +836,11 @@ const ExcalidrawWrapper = () => {
             captureUpdate: CaptureUpdateAction.IMMEDIATELY,
           });
 
-          // Load files separately
           if (sceneWithCollaborators.files) {
             excalidrawAPI.addFiles(Object.values(sceneWithCollaborators.files));
           }
 
-          // Initialize lastSavedDataRef with loaded data to prevent false "unsaved" status
+          // Initialize autosave with loaded data
           const loadedSceneData = JSON.stringify({
             type: "excalidraw",
             version: 2,
@@ -1037,16 +853,14 @@ const ExcalidrawWrapper = () => {
             },
             files: sceneWithCollaborators.files || {},
           });
-          lastSavedDataRef.current = loadedSceneData;
-          setHasUnsavedChanges(false);
-          setSaveStatus("saved");
+          initializeWithLoadedData(loadedSceneData);
 
           loadImages(
             {
               scene: sceneWithCollaborators as any,
               isExternalScene: false,
             } as any,
-            /* isInitialLoad */ isInitialLoad,
+            isInitialLoad,
           );
 
           if (isInitialLoad) {
@@ -1060,9 +874,7 @@ const ExcalidrawWrapper = () => {
           initialStatePromiseRef.current.promise.resolve(null);
         }
 
-        // Auto-join collaboration for scenes in shared collections
-        // The backend now returns roomId and roomKey directly in the response
-        // if the user has canCollaborate access
+        // Auto-join collaboration
         if (
           collabAPI &&
           !isCollabDisabled &&
@@ -1070,27 +882,17 @@ const ExcalidrawWrapper = () => {
           loaded.roomId &&
           loaded.roomKey
         ) {
-          // Use room key from hash if provided (for shared links), otherwise use the one from backend
           const roomKey = roomKeyFromHash || loaded.roomKey;
 
-          // For auto-collaboration, we pass isAutoCollab: true to indicate that:
-          // 1. We already loaded the scene from workspace storage
-          // 2. We should keep current elements (not reset scene)
-          // 3. We should save them to room storage for other collaborators
-          // This handles the case where room storage might be empty (first collaborator)
           await collabAPI.startCollaboration({
             roomId: loaded.roomId,
             roomKey,
             isAutoCollab: true,
           });
 
-          // Set scene ID for thumbnail generation during collaboration saves
           collabAPI.setSceneId(sceneId);
-
-          // Mark this scene as auto-collab (collaboration can't be stopped)
           setIsAutoCollabScene(true);
         } else {
-          // Not an auto-collab scene - clear any previous scene ID
           if (collabAPI) {
             collabAPI.setSceneId(null);
           }
@@ -1109,8 +911,8 @@ const ExcalidrawWrapper = () => {
       }
     };
 
-    // Expose the scene loader via ref for use by handlePopState
-    loadSceneFromUrlRef.current = loadSceneFromUrl;
+    // Expose scene loader via ref
+    loadSceneRef.current = loadSceneFromWorkspaceUrl;
 
     const handleWorkspaceUrl = async () => {
       const pathname = window.location.pathname;
@@ -1124,7 +926,7 @@ const ExcalidrawWrapper = () => {
       const hashParams = new URLSearchParams(hash.replace(/^#/, ""));
       const roomKeyFromHash = hashParams.get("key");
 
-      await loadSceneFromUrl(workspaceSlug, sceneId, {
+      await loadSceneFromWorkspaceUrl(workspaceSlug, sceneId, {
         isInitialLoad: true,
         roomKeyFromHash,
       });
@@ -1139,7 +941,7 @@ const ExcalidrawWrapper = () => {
       }
 
       initializeScene({ collabAPI, excalidrawAPI }).then(async (data) => {
-        loadImages(data, /* isInitialLoad */ true);
+        loadImages(data, true);
         initialStatePromiseRef.current.promise.resolve(data.scene);
       });
     };
@@ -1150,7 +952,6 @@ const ExcalidrawWrapper = () => {
       event.preventDefault();
       const pathname = window.location.pathname;
       if (pathname.match(SCENE_URL_PATTERN)) {
-        // Workspace scene URLs handle collaboration key separately; avoid re-init
         return;
       }
       const libraryUrlTokens = parseLibraryTokensFromUrl();
@@ -1182,8 +983,6 @@ const ExcalidrawWrapper = () => {
       }
 
       // Skip localStorage sync when working on a workspace scene
-      // This prevents overwriting scene data with stale localStorage data
-      // Workspace scenes are loaded/saved only via backend API
       if (currentSceneIdRef.current) {
         return;
       }
@@ -1192,7 +991,6 @@ const ExcalidrawWrapper = () => {
         !document.hidden &&
         ((collabAPI && !collabAPI.isCollaborating()) || isCollabDisabled)
       ) {
-        // don't sync if local state is newer or identical to browser state
         if (isBrowserStorageStateNewer(STORAGE_KEYS.VERSION_DATA_STATE)) {
           const localDataState = importFromLocalStorage();
           const username = importUsernameFromLocalStorage();
@@ -1218,7 +1016,6 @@ const ExcalidrawWrapper = () => {
             elements?.reduce((acc, element) => {
               if (
                 isInitializedImageElement(element) &&
-                // only load and update images that aren't already loaded
                 !currFiles[element.fileId]
               ) {
                 return acc.concat(element.fileId);
@@ -1281,17 +1078,23 @@ const ExcalidrawWrapper = () => {
     excalidrawAPI,
     setLangCode,
     navigateToCanvas,
-    setCurrentWorkspaceSlugAtom,
-    setCurrentSceneIdAtom,
-    setCurrentSceneTitleAtom,
+    setCurrentWorkspaceSlug,
+    setCurrentSceneId,
+    setCurrentSceneTitle,
     setIsAutoCollabScene,
+    initializeWithLoadedData,
+    loadSceneRef,
+    currentSceneIdRef,
   ]);
+
+  // =========================================================================
+  // Before unload handler
+  // =========================================================================
 
   useEffect(() => {
     const unloadHandler = (event: BeforeUnloadEvent) => {
       LocalData.flushSave();
 
-      // Check for unsaved workspace scene changes
       if (
         currentSceneId &&
         (saveStatus === "pending" || saveStatus === "saving")
@@ -1322,6 +1125,10 @@ const ExcalidrawWrapper = () => {
     };
   }, [excalidrawAPI, currentSceneId, saveStatus]);
 
+  // =========================================================================
+  // onChange handler
+  // =========================================================================
+
   const onChange = (
     elements: readonly OrderedExcalidrawElement[],
     appState: AppState,
@@ -1331,8 +1138,6 @@ const ExcalidrawWrapper = () => {
       collabAPI.syncElements(elements);
     }
 
-    // this check is redundant, but since this is a hot path, it's best
-    // not to evaludate the nested expression every time
     if (!LocalData.isSavePaused()) {
       LocalData.save(elements, appState, files, () => {
         if (excalidrawAPI) {
@@ -1364,9 +1169,8 @@ const ExcalidrawWrapper = () => {
     }
 
     // Mark as having unsaved changes for auto-save
-    // Only mark as changed if the actual scene data differs from last saved
     if (currentSceneId && !collabAPI?.isCollaborating()) {
-      const files = excalidrawAPI?.getFiles() || {};
+      const currentFiles = excalidrawAPI?.getFiles() || {};
       const currentData = JSON.stringify({
         type: "excalidraw",
         version: 2,
@@ -1376,13 +1180,9 @@ const ExcalidrawWrapper = () => {
           viewBackgroundColor: appState.viewBackgroundColor,
           gridSize: appState.gridSize,
         },
-        files,
+        files: currentFiles,
       });
-
-      // Only set unsaved if data actually changed from last save
-      if (lastSavedDataRef.current !== currentData) {
-        setHasUnsavedChanges(true);
-      }
+      markUnsaved(currentData);
     }
 
     // Render the debug scene if the debug canvas is available
@@ -1395,6 +1195,10 @@ const ExcalidrawWrapper = () => {
       );
     }
   };
+
+  // =========================================================================
+  // Export and share handlers
+  // =========================================================================
 
   const [latestShareableLink, setLatestShareableLink] = useState<string | null>(
     null,
@@ -1454,7 +1258,6 @@ const ExcalidrawWrapper = () => {
   };
 
   const isOffline = useAtomValue(isOfflineAtom);
-
   const localStorageQuotaExceeded = useAtomValue(localStorageQuotaExceededAtom);
 
   const onCollabDialogOpen = useCallback(
@@ -1462,7 +1265,10 @@ const ExcalidrawWrapper = () => {
     [setShareDialogState],
   );
 
+  // =========================================================================
   // Workspace handlers
+  // =========================================================================
+
   const handleNewScene = useCallback(
     async (collectionId?: string) => {
       if (!excalidrawAPI) {
@@ -1470,52 +1276,36 @@ const ExcalidrawWrapper = () => {
       }
 
       try {
-        // Generate a title with timestamp
         const title = `${t(
           "workspace.untitled",
         )} ${new Date().toLocaleTimeString()}`;
 
-        // Use provided collectionId, or fall back to user's private collection
         const targetCollectionId =
           collectionId || privateCollectionId || undefined;
 
-        // Create scene in backend immediately (with collection if provided)
         const scene = await createScene({
           title,
           collectionId: targetCollectionId,
         });
 
-        // Clear the canvas
         excalidrawAPI.resetScene();
-
-        // Set the new scene as current (so auto-save works)
         setCurrentSceneId(scene.id);
         setCurrentSceneTitle(title);
 
-        // Sync with Jotai atoms
-        setCurrentSceneIdAtom(scene.id);
-        setCurrentSceneTitleAtom(title);
-
-        // Set the active collection so sidebar shows scenes from this collection
         if (targetCollectionId) {
           setActiveCollectionId(targetCollectionId);
         }
 
-        // Keep sidebar open to show the new scene in the list
         openWorkspaceSidebar();
 
-        // Update URL to reflect the new scene
         const workspaceSlug = currentWorkspace?.slug || currentWorkspaceSlug;
         if (workspaceSlug) {
           const newUrl = buildSceneUrl(workspaceSlug, scene.id);
           window.history.pushState({ sceneId: scene.id }, "", newUrl);
         }
 
-        // Switch to canvas mode (important when called from dashboard)
-        // Sidebar will automatically switch to "board" mode showing scenes
         navigateToCanvas();
 
-        // Save empty scene data to establish storage
         const emptySceneData = {
           type: "excalidraw",
           version: 2,
@@ -1531,7 +1321,6 @@ const ExcalidrawWrapper = () => {
         });
         await updateSceneData(scene.id, blob);
 
-        // Trigger refresh for other components (e.g., sidebar scene list)
         triggerScenesRefresh();
 
         excalidrawAPI.setToast({
@@ -1539,11 +1328,9 @@ const ExcalidrawWrapper = () => {
         });
       } catch (error) {
         console.error("Failed to create new scene:", error);
-        // Fallback: just clear canvas without backend save
         excalidrawAPI.resetScene();
         setCurrentSceneId(null);
         setCurrentSceneTitle("Untitled");
-        // Still switch to canvas mode on error
         navigateToCanvas();
       }
     },
@@ -1555,13 +1342,12 @@ const ExcalidrawWrapper = () => {
       triggerScenesRefresh,
       currentWorkspace?.slug,
       currentWorkspaceSlug,
-      setCurrentSceneIdAtom,
-      setCurrentSceneTitleAtom,
+      setCurrentSceneId,
+      setCurrentSceneTitle,
       openWorkspaceSidebar,
     ],
   );
 
-  // Handler for updating workspace settings (name, etc.)
   const handleUpdateWorkspace = useCallback(
     async (data: { name?: string }) => {
       if (!currentWorkspace) {
@@ -1571,15 +1357,13 @@ const ExcalidrawWrapper = () => {
       const updated = await updateWorkspace(currentWorkspace.id, data);
       setCurrentWorkspace(updated);
 
-      // If slug changed, update the URL
       if (updated.slug !== currentWorkspace.slug) {
         setCurrentWorkspaceSlug(updated.slug);
       }
     },
-    [currentWorkspace],
+    [currentWorkspace, setCurrentWorkspace, setCurrentWorkspaceSlug],
   );
 
-  // Handler for uploading workspace avatar
   const handleUploadWorkspaceAvatar = useCallback(
     async (file: File) => {
       if (!currentWorkspace) {
@@ -1589,7 +1373,7 @@ const ExcalidrawWrapper = () => {
       const updated = await uploadWorkspaceAvatar(currentWorkspace.id, file);
       setCurrentWorkspace(updated);
     },
-    [currentWorkspace],
+    [currentWorkspace, setCurrentWorkspace],
   );
 
   const handleSaveToWorkspace = useCallback(async () => {
@@ -1602,7 +1386,6 @@ const ExcalidrawWrapper = () => {
       const appState = excalidrawAPI.getAppState();
       const files = excalidrawAPI.getFiles();
 
-      // Create blob from scene data
       const sceneData = {
         type: "excalidraw",
         version: 2,
@@ -1619,28 +1402,19 @@ const ExcalidrawWrapper = () => {
         type: "application/json",
       });
 
-      // Generate thumbnail (simplified - just use a placeholder for now)
-      const thumbnail = null; // TODO: Generate actual thumbnail
-
       if (currentSceneId) {
-        // Update existing scene
         await updateSceneData(currentSceneId, blob);
         excalidrawAPI.setToast({ message: `${t("workspace.saveScene")} ✓` });
       } else {
-        // Create new scene with auto-generated title
-        // Use current title or generate one with timestamp
         const title =
           currentSceneTitle ||
           `${t("workspace.untitled")} ${new Date().toLocaleString()}`;
 
-        // Save to private collection by default
         const scene = await createScene({
           title,
-          thumbnail: thumbnail || undefined,
           collectionId: privateCollectionId || undefined,
         });
 
-        // Save the data
         await updateSceneData(scene.id, blob);
 
         setCurrentSceneId(scene.id);
@@ -1651,101 +1425,15 @@ const ExcalidrawWrapper = () => {
       console.error("Failed to save scene:", error);
       setErrorMessage("Failed to save scene to workspace");
     }
-  }, [excalidrawAPI, currentSceneId, currentSceneTitle, privateCollectionId]);
+  }, [
+    excalidrawAPI,
+    currentSceneId,
+    currentSceneTitle,
+    privateCollectionId,
+    setCurrentSceneId,
+    setCurrentSceneTitle,
+  ]);
 
-  // Core save function - used by autosave, retry, and immediate save
-  const performSave = useCallback(async (): Promise<boolean> => {
-    if (!currentSceneId || !excalidrawAPI) {
-      return false;
-    }
-
-    // Check if offline
-    if (!navigator.onLine) {
-      setSaveStatus("offline");
-      return false;
-    }
-
-    try {
-      const elements = excalidrawAPI.getSceneElements();
-      const appState = excalidrawAPI.getAppState();
-      const files = excalidrawAPI.getFiles();
-
-      // Create scene data for comparison
-      const sceneData = {
-        type: "excalidraw",
-        version: 2,
-        source: window.location.href,
-        elements,
-        appState: {
-          viewBackgroundColor: appState.viewBackgroundColor,
-          gridSize: appState.gridSize,
-        },
-        files: files || {},
-      };
-
-      const dataString = JSON.stringify(sceneData);
-
-      // Skip if data hasn't changed
-      if (lastSavedDataRef.current === dataString) {
-        setHasUnsavedChanges(false);
-        setSaveStatus("saved");
-        return true;
-      }
-
-      setSaveStatus("saving");
-
-      const blob = new Blob([dataString], {
-        type: "application/json",
-      });
-
-      await updateSceneData(currentSceneId, blob);
-      lastSavedDataRef.current = dataString;
-      setHasUnsavedChanges(false);
-      setSaveStatus("saved");
-      setLastSavedTime(new Date());
-      retryCountRef.current = 0; // Reset retry count on success
-
-      // Fire-and-forget thumbnail generation
-      // This is best-effort and won't affect save status
-      maybeGenerateAndUploadThumbnail(
-        currentSceneId,
-        elements,
-        appState,
-        files,
-      );
-
-      return true;
-    } catch (error) {
-      console.error("Auto-save failed:", error);
-      setSaveStatus("error");
-      return false;
-    }
-  }, [currentSceneId, excalidrawAPI]);
-
-  // Immediate save function - bypasses debounce, used before navigation
-  // TODO: Expose via context/atom for use in navigation components
-  const saveSceneImmediately = useCallback(async (): Promise<boolean> => {
-    // Clear any pending debounced save
-    if (autoSaveTimeoutRef.current) {
-      clearTimeout(autoSaveTimeoutRef.current);
-      autoSaveTimeoutRef.current = null;
-    }
-    if (retryTimeoutRef.current) {
-      clearTimeout(retryTimeoutRef.current);
-      retryTimeoutRef.current = null;
-    }
-
-    return performSave();
-  }, [performSave]);
-  void saveSceneImmediately; // Reserved for future navigation integration
-
-  // Manual retry function - called when user clicks on error status
-  const handleSaveRetry = useCallback(async () => {
-    retryCountRef.current = 0; // Reset retry count for manual retry
-    await performSave();
-  }, [performSave]);
-
-  // Handle scene title change - separate API call from autosave
   const handleSceneTitleChange = useCallback(
     async (newTitle: string) => {
       if (!currentSceneId) {
@@ -1757,239 +1445,23 @@ const ExcalidrawWrapper = () => {
       );
       await updateSceneApi(currentSceneId, { title: newTitle });
       setCurrentSceneTitle(newTitle);
-      setCurrentSceneTitleAtom(newTitle);
-      // Refresh sidebar scene list to show updated title
       triggerScenesRefresh();
     },
-    [currentSceneId, setCurrentSceneTitleAtom, triggerScenesRefresh],
+    [currentSceneId, setCurrentSceneTitle, triggerScenesRefresh],
   );
 
-  // Auto-save effect - triggers after debounce period
-  useEffect(() => {
-    if (!hasUnsavedChanges || !currentSceneId || !excalidrawAPI) {
-      return;
-    }
+  // =========================================================================
+  // Invite handling
+  // =========================================================================
 
-    // Clear any existing timeout
-    if (autoSaveTimeoutRef.current) {
-      clearTimeout(autoSaveTimeoutRef.current);
-    }
-
-    // Set pending status when changes are detected (only if currently saved)
-    // Use functional update to avoid stale closure issues
-    setSaveStatus((current) => (current === "saved" ? "pending" : current));
-
-    // Schedule auto-save after debounce period
-    autoSaveTimeoutRef.current = setTimeout(async () => {
-      const success = await performSave();
-
-      // If save failed and we haven't retried yet, schedule a retry
-      if (!success && retryCountRef.current < 1) {
-        retryCountRef.current++;
-        if (retryTimeoutRef.current) {
-          clearTimeout(retryTimeoutRef.current);
-        }
-        retryTimeoutRef.current = setTimeout(() => {
-          performSave();
-        }, AUTOSAVE_RETRY_DELAY_MS);
-      }
-    }, AUTOSAVE_DEBOUNCE_MS);
-
-    return () => {
-      if (autoSaveTimeoutRef.current) {
-        clearTimeout(autoSaveTimeoutRef.current);
-      }
-    };
-  }, [hasUnsavedChanges, currentSceneId, excalidrawAPI, performSave]);
-
-  // Backup save interval - safety net every 30 seconds
-  // Use refs to access current values without adding to dependencies
-  const hasUnsavedChangesRef = useRef(hasUnsavedChanges);
-  hasUnsavedChangesRef.current = hasUnsavedChanges;
-  const saveStatusRef = useRef(saveStatus);
-  saveStatusRef.current = saveStatus;
-
-  useEffect(() => {
-    if (!currentSceneId || !excalidrawAPI) {
-      return;
-    }
-
-    backupSaveIntervalRef.current = setInterval(() => {
-      if (hasUnsavedChangesRef.current && saveStatusRef.current !== "saving") {
-        performSave();
-      }
-    }, BACKUP_SAVE_INTERVAL_MS);
-
-    return () => {
-      if (backupSaveIntervalRef.current) {
-        clearInterval(backupSaveIntervalRef.current);
-      }
-    };
-  }, [currentSceneId, excalidrawAPI, performSave]);
-
-  // Offline detection - update save status based on network state
-  useEffect(() => {
-    const handleOnline = () => {
-      setIsOnline(true);
-      // If we were offline with pending changes, trigger save
-      if (saveStatus === "offline" && hasUnsavedChanges) {
-        performSave();
-      }
-    };
-
-    const handleOffline = () => {
-      setIsOnline(false);
-      if (saveStatus === "pending" || saveStatus === "saving") {
-        setSaveStatus("offline");
-      }
-    };
-
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
-
-    return () => {
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
-    };
-  }, [saveStatus, hasUnsavedChanges, performSave]);
-
-  // Reset save state when scene changes
-  useEffect(() => {
-    lastSavedDataRef.current = null;
-    setHasUnsavedChanges(false);
-    setSaveStatus("saved");
-    retryCountRef.current = 0;
-    // Clear any pending timeouts
-    if (autoSaveTimeoutRef.current) {
-      clearTimeout(autoSaveTimeoutRef.current);
-    }
-    if (retryTimeoutRef.current) {
-      clearTimeout(retryTimeoutRef.current);
-    }
-  }, [currentSceneId]);
-
-  // Keyboard shortcut handler for Ctrl+S
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Ctrl+S or Cmd+S
-      if ((e.ctrlKey || e.metaKey) && e.key === "s") {
-        // Only intercept if we have a workspace scene open
-        if (currentSceneId && excalidrawAPI) {
-          e.preventDefault();
-          e.stopPropagation();
-          handleSaveToWorkspace();
-        }
-      }
-    };
-
-    // Use capture phase to intercept before Excalidraw
-    window.addEventListener("keydown", handleKeyDown, { capture: true });
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown, { capture: true });
-    };
-  }, [currentSceneId, excalidrawAPI, handleSaveToWorkspace]);
-
-  // Keyboard shortcut handler for Cmd+P (Quick Search)
-  // This works in both canvas and dashboard modes because both are always mounted (CSS Hide/Show pattern)
-  // Only available for authenticated users
-  useEffect(() => {
-    if (!isAuthenticated) {
-      return; // Don't register hotkey for unauthenticated users
-    }
-
-    const handleQuickSearchHotkey = (e: KeyboardEvent) => {
-      // Cmd+P (Mac) or Ctrl+P (Windows/Linux)
-      if ((e.metaKey || e.ctrlKey) && e.key === "p") {
-        e.preventDefault(); // Prevent browser print dialog
-        e.stopPropagation();
-        setQuickSearchOpen(true);
-      }
-    };
-
-    // Use capture phase to intercept before other handlers
-    window.addEventListener("keydown", handleQuickSearchHotkey, {
-      capture: true,
-    });
-    return () => {
-      window.removeEventListener("keydown", handleQuickSearchHotkey, {
-        capture: true,
-      });
-    };
-  }, [isAuthenticated, setQuickSearchOpen]);
-
-  // Keyboard shortcut handler for Cmd+[ (Toggle Left Sidebar) and Cmd+] (Toggle Right Sidebar)
-  // Only available for authenticated users
-  useEffect(() => {
-    if (!isAuthenticated) {
-      return;
-    }
-
-    const handleSidebarHotkeys = (e: KeyboardEvent) => {
-      // Don't trigger if user is typing in an input
-      const target = e.target as HTMLElement;
-      if (
-        target.tagName === "INPUT" ||
-        target.tagName === "TEXTAREA" ||
-        target.isContentEditable
-      ) {
-        return;
-      }
-
-      // Cmd+[ (Mac) or Ctrl+[ (Windows/Linux) to toggle LEFT sidebar
-      if ((e.metaKey || e.ctrlKey) && e.key === "[" && !e.altKey) {
-        e.preventDefault();
-        e.stopPropagation();
-        toggleWorkspaceSidebar();
-        return;
-      }
-
-      // Cmd+] (Mac) or Ctrl+] (Windows/Linux) to toggle RIGHT sidebar
-      if ((e.metaKey || e.ctrlKey) && e.key === "]" && !e.altKey) {
-        e.preventDefault();
-        e.stopPropagation();
-
-        if (!excalidrawAPI) {
-          return;
-        }
-
-        const appState = excalidrawAPI.getAppState();
-        const sidebarIsOpen = appState.openSidebar?.name === "default";
-
-        if (sidebarIsOpen) {
-          // Sidebar is open - close it
-          excalidrawAPI.updateScene({
-            appState: { openSidebar: null },
-          });
-        } else {
-          // Sidebar is closed - open to library tab
-          excalidrawAPI.updateScene({
-            appState: { openSidebar: { name: "default", tab: "library" } },
-          });
-        }
-      }
-    };
-
-    window.addEventListener("keydown", handleSidebarHotkeys, {
-      capture: true,
-    });
-    return () => {
-      window.removeEventListener("keydown", handleSidebarHotkeys, {
-        capture: true,
-      });
-    };
-  }, [isAuthenticated, excalidrawAPI, toggleWorkspaceSidebar]);
-
-  // Handle invite link success - navigate to the joined workspace's dashboard
   const handleInviteSuccess = useCallback(
     (workspace: Workspace) => {
       setCurrentWorkspace(workspace);
       setCurrentWorkspaceSlug(workspace.slug);
       setPendingInviteCode(null);
-      // Navigate to dashboard to show the new workspace
-      // Note: navigateToDashboard now auto-opens sidebar
       navigateToDashboard();
     },
-    [navigateToDashboard],
+    [navigateToDashboard, setCurrentWorkspace, setCurrentWorkspaceSlug],
   );
 
   const handleInviteCancel = useCallback(() => {
@@ -1997,9 +1469,10 @@ const ExcalidrawWrapper = () => {
     window.history.replaceState({}, document.title, "/");
   }, []);
 
-  // browsers generally prevent infinite self-embedding, there are
-  // cases where it still happens, and while we disallow self-embedding
-  // by not whitelisting our own origin, this serves as an additional guard
+  // =========================================================================
+  // Render
+  // =========================================================================
+
   if (isSelfEmbedding) {
     return (
       <div
@@ -2016,9 +1489,6 @@ const ExcalidrawWrapper = () => {
     );
   }
 
-  // AstraDraw: Removed Excalidraw+ commands - will be replaced with AstraDraw+ later
-
-  // Render invite acceptance page if we have a pending invite code
   if (pendingInviteCode) {
     return (
       <InviteAcceptPage
@@ -2029,11 +1499,8 @@ const ExcalidrawWrapper = () => {
     );
   }
 
-  // Determine if current user is admin of the workspace
   const isWorkspaceAdmin = currentWorkspace?.role === "ADMIN";
 
-  // CSS Hide/Show pattern: Both dashboard and canvas are always mounted
-  // This prevents Excalidraw from unmounting/remounting and losing state
   return (
     <div
       style={{ height: "100%" }}
@@ -2054,7 +1521,7 @@ const ExcalidrawWrapper = () => {
         }}
       />
 
-      {/* Workspace Sidebar (Left) - shared between both modes */}
+      {/* Workspace Sidebar (Left) */}
       {!isLegacyMode && (
         <ErrorBoundary
           fallback={(props) => <SidebarErrorFallback {...props} />}
@@ -2070,24 +1537,20 @@ const ExcalidrawWrapper = () => {
               setCurrentWorkspace(workspace);
               setCurrentWorkspaceSlug(workspace.slug);
               setPrivateCollectionId(privateColId);
-              // Note: Don't reload collections here - WorkspaceSidebar already loads them
-              // and calling listCollections here causes an infinite loop
             }}
             onCurrentSceneTitleChange={(newTitle) => {
               setCurrentSceneTitle(newTitle);
-              setCurrentSceneTitleAtom(newTitle);
             }}
           />
         </ErrorBoundary>
       )}
 
-      {/* Quick Search Modal - works in both canvas and dashboard modes */}
-      {/* Only available for authenticated users */}
+      {/* Quick Search Modal */}
       {!isLegacyMode && isAuthenticated && (
         <QuickSearchModal workspace={currentWorkspace} />
       )}
 
-      {/* Dashboard Content - hidden when in canvas mode */}
+      {/* Dashboard Content */}
       {!isLegacyMode && (
         <div
           className="excalidraw-app__main excalidraw-app__dashboard"
@@ -2119,8 +1582,7 @@ const ExcalidrawWrapper = () => {
         </div>
       )}
 
-      {/* Canvas Content - hidden when in dashboard mode */}
-      {/* Using CSS display:none + inert to keep Excalidraw mounted but inactive */}
+      {/* Canvas Content */}
       <div
         className="excalidraw-app__main excalidraw-app__canvas"
         style={{
@@ -2175,15 +1637,12 @@ const ExcalidrawWrapper = () => {
           autoFocus={appMode === "canvas"}
           theme={editorTheme}
           renderTopRightUI={(isMobile) => {
-            // Show save status indicator when workspace scene is open
-            // Hide it during collaboration - collab has its own save mechanism
             const showSaveStatus =
               isAuthenticated &&
               currentSceneId &&
               !isLegacyMode &&
               !isCollaborating;
 
-            // On mobile with no collab, only show save status if applicable
             if (isMobile) {
               if (!showSaveStatus) {
                 return null;
@@ -2202,7 +1661,6 @@ const ExcalidrawWrapper = () => {
               );
             }
 
-            // Desktop: show save status + collab
             return (
               <div className="excalidraw-ui-top-right">
                 {showSaveStatus && (
@@ -2237,7 +1695,6 @@ const ExcalidrawWrapper = () => {
             }
           }}
         >
-          {/* Workspace Sidebar Toggle Button - rendered via tunnel before hamburger menu */}
           {!isLegacyMode && <WorkspaceSidebarTrigger />}
           <AppMainMenu
             onCollabDialogOpen={onCollabDialogOpen}
@@ -2256,7 +1713,6 @@ const ExcalidrawWrapper = () => {
           <OverwriteConfirmDialog>
             <OverwriteConfirmDialog.Actions.ExportToImage />
             <OverwriteConfirmDialog.Actions.SaveToDisk />
-            {/* AstraDraw+: Disabled until user functionality is implemented */}
           </OverwriteConfirmDialog>
           <AppFooter
             onChange={() => excalidrawAPI?.refresh()}
@@ -2430,8 +1886,6 @@ const ExcalidrawWrapper = () => {
                   if (pwaEvent) {
                     pwaEvent.prompt();
                     pwaEvent.userChoice.then(() => {
-                      // event cannot be reused, but we'll hopefully
-                      // grab new one as the event should be fired again
                       pwaEvent = null;
                     });
                   }

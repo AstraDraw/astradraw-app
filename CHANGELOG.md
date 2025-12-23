@@ -9,6 +9,19 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.62] - 2025-12-23
+
+### Changed
+
+- **App.tsx Refactoring** - Split monolithic App.tsx (2,473 lines) into focused hooks
+  - `useAutoSave.ts` - Save state machine, debounce, retry, offline detection (~230 lines)
+  - `useSceneLoader.ts` - Scene loading from workspace URLs, auto-collab (~250 lines)
+  - `useUrlRouting.ts` - Popstate handling, URL parsing (~120 lines)
+  - `useKeyboardShortcuts.ts` - Ctrl+S, Cmd+P, Cmd+[, Cmd+] (~130 lines)
+  - `useWorkspaceData.ts` - Workspace/collections loading (~150 lines)
+  - App.tsx now acts as orchestrator wiring hooks together
+  - Each hook has single responsibility and is testable in isolation
+
 ## [0.18.0-beta0.61] - 2025-12-23
 
 ### Changed
