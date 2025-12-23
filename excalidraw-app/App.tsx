@@ -178,6 +178,7 @@ import {
   ThreadMarkersLayer,
   CommentCreationOverlay,
   ThreadPopup,
+  NewThreadPopup,
 } from "./components/Comments";
 
 import { buildSceneUrl } from "./router";
@@ -1812,6 +1813,11 @@ const ExcalidrawWrapper = () => {
               />
               <CommentCreationOverlay appState={excalidrawAPI?.getAppState()} />
               <ThreadPopup
+                sceneId={currentSceneId}
+                workspaceId={currentWorkspace?.id}
+                appState={excalidrawAPI?.getAppState()}
+              />
+              <NewThreadPopup
                 sceneId={currentSceneId}
                 workspaceId={currentWorkspace?.id}
                 appState={excalidrawAPI?.getAppState()}

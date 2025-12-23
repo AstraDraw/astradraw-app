@@ -1,0 +1,97 @@
+// NewThreadPopup styles
+// Popup for creating a new comment thread
+
+@use "../../../styles/mixins" as *;
+@use "../../../styles/variables" as *;
+
+$popup-width: 320px;
+
+.popup {
+  position: absolute;
+  width: $popup-width;
+  background: var(--color-surface-low, #fff);
+  border-radius: $radius-lg;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15), 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 22; // Above ThreadPopup (z-21)
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-family: $ui-font;
+
+  // Animation
+  animation: popupSlideIn 0.15s ease-out;
+}
+
+@keyframes popupSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-sm $spacing-md;
+  border-bottom: 1px solid var(--color-border-light, #e8e8e8);
+}
+
+.title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary-color, #1b1b1f);
+}
+
+.closeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  border-radius: $radius-sm;
+  color: var(--color-text-secondary, #666);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover {
+    background: var(--color-surface-high, #f5f5f5);
+    color: var(--text-primary-color, #1b1b1f);
+  }
+}
+
+.body {
+  padding: $spacing-sm;
+}
+
+// Dark mode
+@include dark-mode {
+  .popup {
+    background: var(--color-surface-high, #3d3d42);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  .header {
+    border-bottom-color: var(--color-border-dark, #4a4a4f);
+  }
+
+  .title {
+    color: var(--text-primary-color, #e1e1e1);
+  }
+
+  .closeButton {
+    color: var(--color-text-secondary, #999);
+
+    &:hover {
+      background: var(--color-surface-higher, #4a4a4f);
+      color: var(--text-primary-color, #e1e1e1);
+    }
+  }
+}

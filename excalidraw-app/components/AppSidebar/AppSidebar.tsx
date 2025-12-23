@@ -1,8 +1,8 @@
 import { useState, useCallback } from "react";
 
-import { DefaultSidebar, Sidebar, THEME } from "@excalidraw/excalidraw";
-import { t } from "@excalidraw/excalidraw/i18n";
+import { DefaultSidebar, Sidebar } from "@excalidraw/excalidraw";
 import {
+  messageCircleIcon,
   presentationIcon,
   stickerIcon,
   videoIcon,
@@ -11,11 +11,10 @@ import { useUIAppState } from "@excalidraw/excalidraw/context/ui-appState";
 
 import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 
+import { CommentsSidebar } from "../Comments";
 import { PresentationPanel } from "../Presentation";
 import { StickersPanel } from "../Stickers";
 import { TalktrackPanel, TalktrackManager } from "../Talktrack";
-
-import styles from "./AppSidebar.module.scss";
 
 export interface AppSidebarProps {
   excalidrawAPI: ExcalidrawImperativeAPI | null;
@@ -26,7 +25,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
   excalidrawAPI,
   sceneId,
 }) => {
-  const { theme, openSidebar } = useUIAppState();
+  const { openSidebar } = useUIAppState();
   const [isRecordingDialogOpen, setIsRecordingDialogOpen] = useState(false);
   const [recordingsRefreshKey, setRecordingsRefreshKey] = useState(0);
 
@@ -48,6 +47,12 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
       <DefaultSidebar>
         <DefaultSidebar.TabTriggers>
           <Sidebar.TabTrigger
+            tab="comments"
+            style={{ opacity: openSidebar?.tab === "comments" ? 1 : 0.4 }}
+          >
+            {messageCircleIcon}
+          </Sidebar.TabTrigger>
+          <Sidebar.TabTrigger
             tab="stickers"
             style={{ opacity: openSidebar?.tab === "stickers" ? 1 : 0.4 }}
           >
@@ -67,21 +72,10 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
           </Sidebar.TabTrigger>
         </DefaultSidebar.TabTriggers>
         <Sidebar.Tab tab="comments">
-          <div className={styles.promoContainer}>
-            <div
-              className={styles.promoImage}
-              style={{
-                ["--image-source" as string]: `url(/oss_promo_comments_${
-                  theme === THEME.DARK ? "dark" : "light"
-                }.jpg)`,
-                opacity: 0.7,
-              }}
-            />
-            <div className={styles.promoText}>{t("comments.promoTitle")}</div>
-            <div className={styles.promoComingSoon}>
-              {t("comments.comingSoon")}
-            </div>
-          </div>
+          <CommentsSidebar
+            sceneId={sceneId ?? undefined}
+            excalidrawAPI={excalidrawAPI}
+          />
         </Sidebar.Tab>
         <Sidebar.Tab tab="presentation">
           <PresentationPanel excalidrawAPI={excalidrawAPI} />

@@ -1,0 +1,171 @@
+/**
+ * NewThreadPopup - Popup for creating a new comment thread
+ *
+ * Appears when user clicks on canvas in comment mode.
+ * Shows an input for the first comment, then creates the thread.
+ */
+
+import { useRef, useEffect, useCallback } from "react";
+import { sceneCoordsToViewportCoords } from "@excalidraw/common";
+import { t } from "@excalidraw/excalidraw/i18n";
+
+import type { AppState } from "@excalidraw/excalidraw/types";
+
+import { useAtomValue, useSetAtom } from "../../../app-jotai";
+import {
+  pendingCommentPositionAtom,
+  cancelCommentCreationAtom,
+} from "../commentsState";
+import { useCommentMutations } from "../../../hooks/useCommentThreads";
+import { CommentInput } from "../CommentInput";
+
+import styles from "./NewThreadPopup.module.scss";
+
+export interface NewThreadPopupProps {
+  /** Scene ID for the new thread */
+  sceneId: string;
+  /** Workspace ID for @mentions */
+  workspaceId: string | undefined;
+  /** Excalidraw app state (for coordinate transformation) */
+  appState: AppState | undefined;
+}
+
+export function NewThreadPopup({
+  sceneId,
+  workspaceId,
+  appState,
+}: NewThreadPopupProps) {
+  const pendingPosition = useAtomValue(pendingCommentPositionAtom);
+  const cancelCreation = useSetAtom(cancelCommentCreationAtom);
+  const popupRef = useRef<HTMLDivElement>(null);
+
+  const { createThread, isCreatingThread } = useCommentMutations(sceneId);
+
+  // Handle click outside to close
+  useEffect(() => {
+    if (!pendingPosition) {
+      return;
+    }
+
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (popupRef.current?.contains(target)) {
+        return;
+      }
+      cancelCreation();
+    };
+
+    // Add listener with a small delay to avoid immediate close from the creation click
+    const timeoutId = setTimeout(() => {
+      document.addEventListener("mousedown", handleClickOutside);
+    }, 100);
+
+    return () => {
+      clearTimeout(timeoutId);
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [pendingPosition, cancelCreation]);
+
+  // Handle ESC to close
+  useEffect(() => {
+    if (!pendingPosition) {
+      return;
+    }
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        cancelCreation();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown, true);
+    return () => document.removeEventListener("keydown", handleKeyDown, true);
+  }, [pendingPosition, cancelCreation]);
+
+  // Handle submit - create thread with first comment
+  const handleSubmit = useCallback(
+    async (content: string, mentions: string[]) => {
+      if (!pendingPosition) {
+        return;
+      }
+
+      await createThread({
+        x: pendingPosition.x,
+        y: pendingPosition.y,
+        content,
+        mentions,
+      });
+
+      // Close popup on success
+      cancelCreation();
+    },
+    [pendingPosition, createThread, cancelCreation],
+  );
+
+  // Don't render if no pending position or no appState
+  if (!pendingPosition || !appState) {
+    return null;
+  }
+
+  // Convert scene coords to viewport coords for positioning
+  const viewportPos = sceneCoordsToViewportCoords(
+    { sceneX: pendingPosition.x, sceneY: pendingPosition.y },
+    appState,
+  );
+
+  return (
+    <div
+      ref={popupRef}
+      className={styles.popup}
+      style={{
+        left: viewportPos.x + 20,
+        top: viewportPos.y - 16,
+      }}
+    >
+      <div className={styles.header}>
+        <span className={styles.title}>{t("comments.newComment")}</span>
+        <button
+          type="button"
+          className={styles.closeButton}
+          onClick={cancelCreation}
+          title={t("buttons.close")}
+        >
+          <CloseIcon />
+        </button>
+      </div>
+
+      <div className={styles.body}>
+        <CommentInput
+          onSubmit={handleSubmit}
+          isSubmitting={isCreatingThread}
+          workspaceId={workspaceId}
+          placeholder={t("comments.writeComment")}
+        />
+      </div>
+    </div>
+  );
+}
+
+// -----------------------------------------------------------------------------
+// Icons
+// -----------------------------------------------------------------------------
+
+function CloseIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  );
+}

@@ -1038,7 +1038,25 @@
     "noMembersToMention": "Нет участников для упоминания",
     "loadingMembers": "Загрузка участников...",
     "noMembersFound": "Участники не найдены",
-    "typeToSearch": "Введите для поиска"
+    "typeToSearch": "Введите для поиска",
+    "searchPlaceholder": "Поиск комментариев",
+    "filterComments": "Фильтр комментариев",
+    "sortLabel": "Сортировка",
+    "sortByDate": "По дате",
+    "sortByUnread": "Непрочитанные",
+    "showAll": "Показать все",
+    "showResolved": "Только решённые",
+    "showUnresolved": "Только открытые",
+    "noComments": "Комментариев пока нет",
+    "noCommentsDescription": "Начните обсуждение, нажав C и кликнув на холст",
+    "noMatchingComments": "Комментарии не найдены",
+    "tryDifferentSearch": "Попробуйте другой поисковый запрос или измените фильтры",
+    "openSceneFirst": "Откройте сцену для просмотра комментариев",
+    "openSceneDescription": "Комментарии привязаны к сценам. Сначала откройте или создайте сцену.",
+    "reply": "{{count}} ответ",
+    "replies": "{{count}} ответов",
+    "newComment": "Новый комментарий",
+    "writeComment": "Напишите комментарий..."
   },
   "saveStatus": {
     "saved": "Сохранено",
@@ -1191,5 +1209,11 @@
     "showDetails": "Показать детали ошибки",
     "retry": "Попробовать снова",
     "goHome": "На главную"
+  },
+  "time": {
+    "justNow": "Только что",
+    "minutesAgo": "{{count}} мин назад",
+    "hoursAgo": "{{count}} ч назад",
+    "daysAgo": "{{count}} д назад"
   }
 }

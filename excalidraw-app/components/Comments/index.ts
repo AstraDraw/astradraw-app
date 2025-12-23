@@ -43,6 +43,9 @@ export type { CommentCreationOverlayProps } from "./CommentCreationOverlay";
 export { ThreadPopup } from "./ThreadPopup";
 export type { ThreadPopupProps } from "./ThreadPopup";
 
+export { NewThreadPopup } from "./NewThreadPopup";
+export type { NewThreadPopupProps } from "./NewThreadPopup";
+
 export { ThreadPopupHeader } from "./ThreadPopupHeader";
 export type { ThreadPopupHeaderProps } from "./ThreadPopupHeader";
 
@@ -54,3 +57,13 @@ export type { CommentInputProps } from "./CommentInput";
 
 export { MentionInput } from "./MentionInput";
 export type { MentionInputProps, MentionInputHandle } from "./MentionInput";
+
+// Sidebar components
+export { CommentsSidebar } from "./CommentsSidebar";
+export type { CommentsSidebarProps } from "./CommentsSidebar";
+
+export { CommentsSidebarHeader } from "./CommentsSidebarHeader";
+export type { CommentsSidebarHeaderProps } from "./CommentsSidebarHeader";
+
+export { ThreadListItem } from "./ThreadListItem";
+export type { ThreadListItemProps } from "./ThreadListItem";

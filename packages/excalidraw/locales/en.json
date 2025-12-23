@@ -1038,7 +1038,25 @@
     "noMembersToMention": "No members to mention",
     "loadingMembers": "Loading members...",
     "noMembersFound": "No members found",
-    "typeToSearch": "Type to search members"
+    "typeToSearch": "Type to search members",
+    "searchPlaceholder": "Search comments",
+    "filterComments": "Filter comments",
+    "sortLabel": "Sort by",
+    "sortByDate": "Date",
+    "sortByUnread": "Unread",
+    "showAll": "Show all",
+    "showResolved": "Resolved only",
+    "showUnresolved": "Unresolved only",
+    "noComments": "No comments yet",
+    "noCommentsDescription": "Start a conversation by pressing C and clicking on the canvas",
+    "noMatchingComments": "No matching comments",
+    "tryDifferentSearch": "Try a different search term or adjust filters",
+    "openSceneFirst": "Open a scene to view comments",
+    "openSceneDescription": "Comments are tied to scenes. Open or create a scene first.",
+    "reply": "{{count}} reply",
+    "replies": "{{count}} replies",
+    "newComment": "New comment",
+    "writeComment": "Write a comment..."
   },
   "saveStatus": {
     "saved": "Saved",
@@ -1191,5 +1209,11 @@
     "showDetails": "Show error details",
     "retry": "Try again",
     "goHome": "Go to home"
+  },
+  "time": {
+    "justNow": "Just now",
+    "minutesAgo": "{{count}}m ago",
+    "hoursAgo": "{{count}}h ago",
+    "daysAgo": "{{count}}d ago"
   }
 }
