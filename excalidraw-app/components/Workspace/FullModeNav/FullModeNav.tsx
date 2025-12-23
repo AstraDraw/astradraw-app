@@ -1,15 +1,17 @@
 import React, { useState, useEffect, useRef } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 
-import { useAtomValue } from "../../app-jotai";
+import { useAtomValue } from "../../../app-jotai";
 import {
   collectionsAtom,
   activeCollectionIdAtom,
-} from "../Settings/settingsState";
-import { CollectionItemSkeletonList } from "../Skeletons";
+} from "../../Settings/settingsState";
+import { CollectionItemSkeletonList } from "../../Skeletons";
 
-import type { Collection } from "../../auth/workspaceApi";
-import type { DashboardView } from "../Settings/settingsState";
+import styles from "./FullModeNav.module.scss";
+
+import type { Collection } from "../../../auth/workspaceApi";
+import type { DashboardView } from "../../Settings/settingsState";
 
 // Icons
 const dashboardIcon = (
@@ -162,88 +164,74 @@ export const FullModeNav: React.FC<FullModeNavProps> = ({
   const otherCollections = collections.filter((c) => !c.isPrivate);
 
   return (
-    <div className="full-mode-nav">
+    <div className={styles.nav}>
       {/* Navigation items */}
-      <nav className="full-mode-nav__nav">
+      <nav className={styles.navList}>
         <button
-          className={`full-mode-nav__nav-item ${
-            currentView === "home" ? "full-mode-nav__nav-item--active" : ""
+          className={`${styles.navItem} ${
+            currentView === "home" ? styles.navItemActive : ""
           }`}
           onClick={onDashboardClick}
         >
-          <span className="full-mode-nav__nav-icon">{dashboardIcon}</span>
-          <span className="full-mode-nav__nav-label">
-            {t("workspace.dashboard")}
-          </span>
+          <span className={styles.navIcon}>{dashboardIcon}</span>
+          <span className={styles.navLabel}>{t("workspace.dashboard")}</span>
         </button>
 
         {/* Profile - visible to all users */}
         <button
-          className={`full-mode-nav__nav-item ${
-            currentView === "profile" ? "full-mode-nav__nav-item--active" : ""
+          className={`${styles.navItem} ${
+            currentView === "profile" ? styles.navItemActive : ""
           }`}
           onClick={onProfileClick}
         >
-          <span className="full-mode-nav__nav-icon">{userIcon}</span>
-          <span className="full-mode-nav__nav-label">
-            {t("settings.profile")}
-          </span>
+          <span className={styles.navIcon}>{userIcon}</span>
+          <span className={styles.navLabel}>{t("settings.profile")}</span>
         </button>
 
         {/* Preferences - visible to all users */}
         <button
-          className={`full-mode-nav__nav-item ${
-            currentView === "preferences"
-              ? "full-mode-nav__nav-item--active"
-              : ""
+          className={`${styles.navItem} ${
+            currentView === "preferences" ? styles.navItemActive : ""
           }`}
           onClick={onPreferencesClick}
         >
-          <span className="full-mode-nav__nav-icon">{preferencesIcon}</span>
-          <span className="full-mode-nav__nav-label">
-            {t("settings.myPreferences")}
-          </span>
+          <span className={styles.navIcon}>{preferencesIcon}</span>
+          <span className={styles.navLabel}>{t("settings.myPreferences")}</span>
         </button>
 
         {/* Admin-only settings */}
         {isAdmin && (
           <>
             <button
-              className={`full-mode-nav__nav-item ${
-                currentView === "workspace"
-                  ? "full-mode-nav__nav-item--active"
-                  : ""
+              className={`${styles.navItem} ${
+                currentView === "workspace" ? styles.navItemActive : ""
               }`}
               onClick={onSettingsClick}
             >
-              <span className="full-mode-nav__nav-icon">{settingsIcon}</span>
-              <span className="full-mode-nav__nav-label">
+              <span className={styles.navIcon}>{settingsIcon}</span>
+              <span className={styles.navLabel}>
                 {t("workspace.workspaceSettings")}
               </span>
             </button>
             <button
-              className={`full-mode-nav__nav-item ${
-                currentView === "members"
-                  ? "full-mode-nav__nav-item--active"
-                  : ""
+              className={`${styles.navItem} ${
+                currentView === "members" ? styles.navItemActive : ""
               }`}
               onClick={onMembersClick}
             >
-              <span className="full-mode-nav__nav-icon">{usersIcon}</span>
-              <span className="full-mode-nav__nav-label">
+              <span className={styles.navIcon}>{usersIcon}</span>
+              <span className={styles.navLabel}>
                 {t("workspace.teamMembers")}
               </span>
             </button>
             <button
-              className={`full-mode-nav__nav-item ${
-                currentView === "teams-collections"
-                  ? "full-mode-nav__nav-item--active"
-                  : ""
+              className={`${styles.navItem} ${
+                currentView === "teams-collections" ? styles.navItemActive : ""
               }`}
               onClick={onTeamsCollectionsClick}
             >
-              <span className="full-mode-nav__nav-icon">{teamsIcon}</span>
-              <span className="full-mode-nav__nav-label">
+              <span className={styles.navIcon}>{teamsIcon}</span>
+              <span className={styles.navLabel}>
                 {t("settings.teamsCollections")}
               </span>
             </button>
@@ -252,13 +240,13 @@ export const FullModeNav: React.FC<FullModeNavProps> = ({
       </nav>
 
       {/* Collections section */}
-      <div className="full-mode-nav__collections">
-        <div className="full-mode-nav__collections-header">
-          <span className="full-mode-nav__collections-title">
+      <div className={styles.collections}>
+        <div className={styles.collectionsHeader}>
+          <span className={styles.collectionsTitle}>
             {t("workspace.collections")}
           </span>
           <button
-            className="full-mode-nav__add-collection"
+            className={styles.addCollection}
             onClick={onCreateCollection}
             title={t("workspace.createCollection")}
           >
@@ -266,7 +254,7 @@ export const FullModeNav: React.FC<FullModeNavProps> = ({
           </button>
         </div>
 
-        <div className="full-mode-nav__collections-list">
+        <div className={styles.collectionsList}>
           {/* Loading skeleton */}
           {isCollectionsLoading && collections.length === 0 ? (
             <CollectionItemSkeletonList count={4} />
@@ -275,18 +263,16 @@ export const FullModeNav: React.FC<FullModeNavProps> = ({
               {/* Private collection (always first, if exists) */}
               {privateCollection && (
                 <button
-                  className={`full-mode-nav__collection-item ${
+                  className={`${styles.collectionItem} ${
                     activeCollectionId === privateCollection.id &&
                     currentView === "collection"
-                      ? "full-mode-nav__collection-item--active"
+                      ? styles.collectionItemActive
                       : ""
                   }`}
                   onClick={() => onCollectionClick(privateCollection.id, true)}
                 >
-                  <span className="full-mode-nav__collection-icon">
-                    {lockIcon}
-                  </span>
-                  <span className="full-mode-nav__collection-name">
+                  <span className={styles.collectionIcon}>{lockIcon}</span>
+                  <span className={styles.collectionName}>
                     {t("workspace.private")}
                   </span>
                 </button>
@@ -294,40 +280,40 @@ export const FullModeNav: React.FC<FullModeNavProps> = ({
 
               {/* Separator after private collection */}
               {privateCollection && otherCollections.length > 0 && (
-                <div className="full-mode-nav__collections-separator" />
+                <div className={styles.collectionsSeparator} />
               )}
 
               {/* Other collections */}
               {otherCollections.map((collection) => (
                 <div
                   key={collection.id}
-                  className={`full-mode-nav__collection-row ${
+                  className={`${styles.collectionRow} ${
                     activeCollectionId === collection.id &&
                     currentView === "collection"
-                      ? "full-mode-nav__collection-row--active"
+                      ? styles.collectionRowActive
                       : ""
                   }`}
                 >
                   <button
-                    className="full-mode-nav__collection-item"
+                    className={styles.collectionItem}
                     onClick={() => onCollectionClick(collection.id, false)}
                   >
-                    <span className="full-mode-nav__collection-icon">
+                    <span className={styles.collectionIcon}>
                       {collection.icon || folderIcon}
                     </span>
-                    <span className="full-mode-nav__collection-name">
+                    <span className={styles.collectionName}>
                       {collection.name}
                     </span>
                   </button>
                   {collection.canWrite && (
                     <div
-                      className="full-mode-nav__collection-actions"
+                      className={styles.collectionActions}
                       ref={
                         collectionMenuOpen === collection.id ? menuRef : null
                       }
                     >
                       <button
-                        className="full-mode-nav__collection-more"
+                        className={styles.collectionMore}
                         onClick={(e) => {
                           e.stopPropagation();
                           setCollectionMenuOpen(
@@ -340,7 +326,7 @@ export const FullModeNav: React.FC<FullModeNavProps> = ({
                         {moreIcon}
                       </button>
                       {collectionMenuOpen === collection.id && (
-                        <div className="full-mode-nav__collection-menu">
+                        <div className={styles.collectionMenu}>
                           <button
                             onClick={() => {
                               onNewScene(collection.id);
@@ -381,7 +367,7 @@ export const FullModeNav: React.FC<FullModeNavProps> = ({
                           </button>
                           {collection.isOwner && onDeleteCollection && (
                             <button
-                              className="full-mode-nav__menu-item--danger"
+                              className={styles.menuItemDanger}
                               onClick={() => {
                                 onDeleteCollection(collection.id);
                                 setCollectionMenuOpen(null);

@@ -18,15 +18,15 @@ import { useI18n } from "@excalidraw/excalidraw/i18n";
 import { KEYS, getFrame } from "@excalidraw/common";
 import { useEffect, useRef, useState } from "react";
 
-import { atom, useAtom, useAtomValue } from "../app-jotai";
-import { activeRoomLinkAtom, type CollabAPI } from "../collab/Collab";
+import { atom, useAtom, useAtomValue } from "../../app-jotai";
+import { activeRoomLinkAtom, type CollabAPI } from "../../collab/Collab";
 import {
   startCollaboration as startWorkspaceCollaboration,
   type SceneAccess,
-} from "../data/workspaceSceneLoader";
-import { isAutoCollabSceneAtom } from "../components/Settings";
+} from "../../data/workspaceSceneLoader";
+import { isAutoCollabSceneAtom } from "../../components/Settings";
 
-import "./ShareDialog.scss";
+import styles from "./ShareDialog.module.scss";
 
 type OnExportToBackend = () => void;
 type ShareDialogType = "share" | "collaborationOnly";
@@ -114,7 +114,7 @@ const ActiveRoomDialog = ({
 
   return (
     <>
-      <h3 className="ShareDialog__active__header">
+      <h3 className={styles.activeHeader}>
         {t("labels.liveCollaboration").replace(/\./g, "")}
       </h3>
       <TextField
@@ -124,7 +124,7 @@ const ActiveRoomDialog = ({
         onChange={collabAPI.setUsername}
         onKeyDown={(event) => event.key === KEYS.ENTER && handleClose()}
       />
-      <div className="ShareDialog__active__linkRow">
+      <div className={styles.activeLinkRow}>
         <TextField
           ref={ref}
           label="Link"
@@ -138,7 +138,7 @@ const ActiveRoomDialog = ({
             variant="icon"
             label="Share"
             icon={getShareIcon()}
-            className="ShareDialog__active__share"
+            className={styles.activeShare}
             onClick={shareRoomLink}
           />
         )}
@@ -153,12 +153,12 @@ const ActiveRoomDialog = ({
           }}
         />
       </div>
-      <div className="ShareDialog__active__description">
+      <div className={styles.activeDescription}>
         <p>
           <span
             role="img"
             aria-hidden="true"
-            className="ShareDialog__active__description__emoji"
+            className={styles.activeDescriptionEmoji}
           >
             🔒{" "}
           </span>
@@ -168,7 +168,7 @@ const ActiveRoomDialog = ({
       </div>
 
       {!isAutoCollab && (
-        <div className="ShareDialog__active__actions">
+        <div className={styles.activeActions}>
           <FilledButton
             size="large"
             variant="outlined"
@@ -227,7 +227,7 @@ const WorkspaceSceneShare = ({
 
   if (!access.canCollaborate) {
     return (
-      <div className="ShareDialog__workspace">
+      <div className={styles.workspace}>
         <h3>{t("shareDialog.workspaceScene")}</h3>
         <p>{t("shareDialog.viewOnlyAccess")}</p>
         <p>{t("shareDialog.contactAdmin")}</p>
@@ -236,12 +236,12 @@ const WorkspaceSceneShare = ({
   }
 
   return (
-    <div className="ShareDialog__workspace">
+    <div className={styles.workspace}>
       <h3>{t("shareDialog.workspaceScene")}</h3>
       <p>{t("shareDialog.workspaceSceneDescription")}</p>
 
       {shareLink ? (
-        <div className="ShareDialog__workspace__link">
+        <div className={styles.workspaceLink}>
           <TextField value={shareLink} readonly />
           <FilledButton
             label={t("buttons.copyLink")}
@@ -263,7 +263,7 @@ const WorkspaceSceneShare = ({
         />
       )}
 
-      <p className="ShareDialog__workspace__note">
+      <p className={styles.workspaceNote}>
         {t("shareDialog.workspacePermissionNote")}
       </p>
     </div>
@@ -278,16 +278,16 @@ const ShareDialogPicker = (props: ShareDialogProps) => {
 
   const startCollabJSX = collabAPI ? (
     <>
-      <div className="ShareDialog__picker__header">
+      <div className={styles.pickerHeader}>
         {t("labels.liveCollaboration").replace(/\./g, "")}
       </div>
 
-      <div className="ShareDialog__picker__description">
+      <div className={styles.pickerDescription}>
         <div style={{ marginBottom: "1em" }}>{t("roomDialog.desc_intro")}</div>
         {t("roomDialog.desc_privacy")}
       </div>
 
-      <div className="ShareDialog__picker__button">
+      <div className={styles.pickerButton}>
         <FilledButton
           size="large"
           label={t("roomDialog.button_startSession")}
@@ -300,7 +300,7 @@ const ShareDialogPicker = (props: ShareDialogProps) => {
       </div>
 
       {props.type === "share" && (
-        <div className="ShareDialog__separator">
+        <div className={styles.separator}>
           <span>{t("shareDialog.or")}</span>
         </div>
       )}
@@ -322,14 +322,14 @@ const ShareDialogPicker = (props: ShareDialogProps) => {
 
       {props.type === "share" && (
         <>
-          <div className="ShareDialog__picker__header">
+          <div className={styles.pickerHeader}>
             {t("exportDialog.link_title")}
           </div>
-          <div className="ShareDialog__picker__description">
+          <div className={styles.pickerDescription}>
             {t("exportDialog.link_details")}
           </div>
 
-          <div className="ShareDialog__picker__button">
+          <div className={styles.pickerButton}>
             <FilledButton
               size="large"
               label={t("exportDialog.link_button")}
@@ -352,7 +352,7 @@ const ShareDialogInner = (props: ShareDialogProps) => {
 
   return (
     <Dialog size="small" onCloseRequest={props.handleClose} title={false}>
-      <div className="ShareDialog">
+      <div className={styles.dialog}>
         {props.collabAPI && activeRoomLink ? (
           <ActiveRoomDialog
             collabAPI={props.collabAPI}

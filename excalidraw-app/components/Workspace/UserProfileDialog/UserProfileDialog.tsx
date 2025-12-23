@@ -1,17 +1,17 @@
 import React, { useState, useEffect, useRef } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 
-import { useAuth } from "../../auth";
+import { useAuth } from "../../../auth";
 import {
   getUserProfile,
   updateUserProfile,
   uploadAvatar,
   deleteAvatar,
   type UserProfile,
-} from "../../auth/workspaceApi";
-import { showSuccess } from "../../utils/toast";
+} from "../../../auth/workspaceApi";
+import { showSuccess } from "../../../utils/toast";
 
-import "./UserProfileDialog.scss";
+import styles from "./UserProfileDialog.module.scss";
 
 interface UserProfileDialogProps {
   isOpen: boolean;
@@ -155,16 +155,12 @@ export const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
   }
 
   return (
-    <div className="user-profile-dialog__overlay" onClick={onClose}>
-      <div className="user-profile-dialog" onClick={(e) => e.stopPropagation()}>
+    <div className={styles.overlay} onClick={onClose}>
+      <div className={styles.dialog} onClick={(e) => e.stopPropagation()}>
         {/* Header */}
-        <div className="user-profile-dialog__header">
+        <div className={styles.header}>
           <h2>{t("workspace.myProfile")}</h2>
-          <button
-            className="user-profile-dialog__close"
-            onClick={onClose}
-            aria-label="Close"
-          >
+          <button className={styles.close} onClick={onClose} aria-label="Close">
             <svg
               viewBox="0 0 24 24"
               fill="none"
@@ -177,39 +173,34 @@ export const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
         </div>
 
         {/* Content */}
-        <div className="user-profile-dialog__content">
+        <div className={styles.content}>
           {isLoading ? (
-            <div className="user-profile-dialog__loading">
-              <div className="user-profile-dialog__spinner" />
+            <div className={styles.loading}>
+              <div className={styles.spinner} />
             </div>
           ) : error && !profile ? (
-            <div className="user-profile-dialog__error">
+            <div className={styles.error}>
               <p>{error}</p>
               <button onClick={loadProfile}>{t("settings.retry")}</button>
             </div>
           ) : profile ? (
             <>
               {/* Error messages */}
-              {error && (
-                <div className="user-profile-dialog__error-inline">{error}</div>
-              )}
+              {error && <div className={styles.errorInline}>{error}</div>}
 
               {/* Avatar Section */}
-              <div className="user-profile-dialog__section">
+              <div className={styles.section}>
                 <h3>{t("workspace.profilePicture")}</h3>
-                <div className="user-profile-dialog__avatar-section">
-                  <div
-                    className="user-profile-dialog__avatar"
-                    onClick={handleAvatarClick}
-                  >
+                <div className={styles.avatarSection}>
+                  <div className={styles.avatar} onClick={handleAvatarClick}>
                     {profile.avatarUrl ? (
                       <img src={profile.avatarUrl} alt="Avatar" />
                     ) : (
-                      <div className="user-profile-dialog__avatar-initials">
+                      <div className={styles.avatarInitials}>
                         {getInitials(profile.name, profile.email)}
                       </div>
                     )}
-                    <div className="user-profile-dialog__avatar-overlay">
+                    <div className={styles.avatarOverlay}>
                       <svg
                         viewBox="0 0 24 24"
                         fill="none"
@@ -228,9 +219,9 @@ export const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
                     onChange={handleAvatarChange}
                     style={{ display: "none" }}
                   />
-                  <div className="user-profile-dialog__avatar-actions">
+                  <div className={styles.avatarActions}>
                     <button
-                      className="user-profile-dialog__button user-profile-dialog__button--secondary"
+                      className={`${styles.button} ${styles.buttonSecondary}`}
                       onClick={handleAvatarClick}
                       disabled={isSaving}
                     >
@@ -238,7 +229,7 @@ export const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
                     </button>
                     {profile.avatarUrl && (
                       <button
-                        className="user-profile-dialog__button user-profile-dialog__button--danger"
+                        className={`${styles.button} ${styles.buttonDanger}`}
                         onClick={handleDeleteAvatar}
                         disabled={isSaving}
                       >
@@ -250,10 +241,10 @@ export const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
               </div>
 
               {/* Name Section */}
-              <div className="user-profile-dialog__section">
+              <div className={styles.section}>
                 <h3>{t("workspace.profileName")}</h3>
                 {isEditingName ? (
-                  <div className="user-profile-dialog__edit-field">
+                  <div className={styles.editField}>
                     <input
                       type="text"
                       value={name}
@@ -263,16 +254,16 @@ export const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
                       placeholder={t("workspace.namePlaceholder")}
                       autoFocus
                     />
-                    <div className="user-profile-dialog__edit-actions">
+                    <div className={styles.editActions}>
                       <button
-                        className="user-profile-dialog__button user-profile-dialog__button--primary"
+                        className={`${styles.button} ${styles.buttonPrimary}`}
                         onClick={handleSaveName}
                         disabled={isSaving}
                       >
                         {isSaving ? t("settings.saving") : t("settings.save")}
                       </button>
                       <button
-                        className="user-profile-dialog__button user-profile-dialog__button--secondary"
+                        className={`${styles.button} ${styles.buttonSecondary}`}
                         onClick={() => {
                           setIsEditingName(false);
                           setName(profile.name || "");
@@ -284,10 +275,10 @@ export const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
                     </div>
                   </div>
                 ) : (
-                  <div className="user-profile-dialog__field">
+                  <div className={styles.field}>
                     <span>{profile.name || t("workspace.notSet")}</span>
                     <button
-                      className="user-profile-dialog__edit-button"
+                      className={styles.editButton}
                       onClick={() => setIsEditingName(true)}
                     >
                       <svg
@@ -305,17 +296,17 @@ export const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
               </div>
 
               {/* Email Section (read-only) */}
-              <div className="user-profile-dialog__section">
+              <div className={styles.section}>
                 <h3>{t("workspace.email")}</h3>
-                <div className="user-profile-dialog__field user-profile-dialog__field--readonly">
+                <div className={`${styles.field} ${styles.fieldReadonly}`}>
                   <span>{profile.email}</span>
                 </div>
               </div>
 
               {/* Sign Out Section */}
-              <div className="user-profile-dialog__section user-profile-dialog__section--actions">
+              <div className={`${styles.section} ${styles.sectionActions}`}>
                 <button
-                  className="user-profile-dialog__button user-profile-dialog__button--danger-outline"
+                  className={`${styles.button} ${styles.buttonDangerOutline}`}
                   onClick={() => {
                     logout();
                     onClose();

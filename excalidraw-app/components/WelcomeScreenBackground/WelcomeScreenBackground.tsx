@@ -23,7 +23,7 @@
 import { useUIAppState } from "@excalidraw/excalidraw/context/ui-appState";
 import { THEME } from "@excalidraw/excalidraw";
 
-import "./WelcomeScreenBackground.scss";
+import styles from "./WelcomeScreenBackground.module.scss";
 
 /**
  * Feature flag for the blob layer of the animated background.
@@ -42,14 +42,14 @@ export const WelcomeScreenBackground = () => {
   }
 
   return (
-    <div className="welcome-screen-background">
-      <div className="welcome-screen-background__nebula">
-        <div className="welcome-screen-background__blob welcome-screen-background__blob--1" />
-        <div className="welcome-screen-background__blob welcome-screen-background__blob--2" />
-        <div className="welcome-screen-background__blob welcome-screen-background__blob--3" />
-        <div className="welcome-screen-background__blob welcome-screen-background__blob--4" />
+    <div className={styles.background}>
+      <div className={styles.nebula}>
+        <div className={`${styles.blob} ${styles.blob1}`} />
+        <div className={`${styles.blob} ${styles.blob2}`} />
+        <div className={`${styles.blob} ${styles.blob3}`} />
+        <div className={`${styles.blob} ${styles.blob4}`} />
       </div>
-      <div className="welcome-screen-background__stars" />
+      <div className={styles.stars} />
     </div>
   );
 };

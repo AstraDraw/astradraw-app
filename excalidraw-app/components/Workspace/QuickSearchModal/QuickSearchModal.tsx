@@ -7,27 +7,27 @@ import React, {
 } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 
-import { useAtom, useAtomValue, useSetAtom } from "../../app-jotai";
+import { useAtom, useAtomValue, useSetAtom } from "../../../app-jotai";
 import {
   listCollections,
   listWorkspaceScenes,
   type Collection,
   type WorkspaceScene,
   type Workspace,
-} from "../../auth/workspaceApi";
+} from "../../../auth/workspaceApi";
 import {
   quickSearchOpenAtom,
   navigateToCollectionAtom,
   navigateToSceneAtom,
   currentWorkspaceSlugAtom,
-} from "../Settings/settingsState";
+} from "../../Settings/settingsState";
 import {
   buildCollectionUrl,
   buildSceneUrl,
   buildPrivateUrl,
-} from "../../router";
+} from "../../../router";
 
-import "./QuickSearchModal.scss";
+import styles from "./QuickSearchModal.module.scss";
 
 // Icons
 const searchIcon = (
@@ -347,15 +347,15 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
   }
 
   return (
-    <div className="quick-search-modal__overlay" onClick={handleOverlayClick}>
-      <div className="quick-search-modal">
+    <div className={styles.overlay} onClick={handleOverlayClick}>
+      <div className={styles.modal}>
         {/* Search input */}
-        <div className="quick-search-modal__input-wrapper">
-          <span className="quick-search-modal__input-icon">{searchIcon}</span>
+        <div className={styles.inputWrapper}>
+          <span className={styles.inputIcon}>{searchIcon}</span>
           <input
             ref={inputRef}
             type="text"
-            className="quick-search-modal__input"
+            className={styles.input}
             placeholder={t("workspace.quickSearchPlaceholder")}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -363,7 +363,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
             onKeyUp={(e) => e.stopPropagation()}
           />
           <button
-            className="quick-search-modal__close"
+            className={styles.close}
             onClick={() => setIsOpen(false)}
             aria-label={t("workspace.close")}
           >
@@ -372,35 +372,35 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
         </div>
 
         {/* Keyboard hints */}
-        <div className="quick-search-modal__hints">
-          <span className="quick-search-modal__hint">
+        <div className={styles.hints}>
+          <span className={styles.hint}>
             <kbd>↑↓</kbd> {t("workspace.select")}
           </span>
-          <span className="quick-search-modal__hint">
+          <span className={styles.hint}>
             <kbd>↵</kbd> {t("workspace.open")}
           </span>
-          <span className="quick-search-modal__hint">
+          <span className={styles.hint}>
             <kbd>⌘</kbd>+<kbd>↵</kbd> {t("workspace.openInNewTab")}
           </span>
-          <span className="quick-search-modal__hint">
+          <span className={styles.hint}>
             <kbd>esc</kbd> {t("workspace.close")}
           </span>
         </div>
 
         {/* Results */}
-        <div className="quick-search-modal__results" ref={resultsRef}>
+        <div className={styles.results} ref={resultsRef}>
           {isLoading ? (
-            <div className="quick-search-modal__loading">
-              <div className="quick-search-modal__spinner" />
+            <div className={styles.loading}>
+              <div className={styles.spinner} />
             </div>
           ) : !hasQuery ? (
             // Show prompt when no query
-            <div className="quick-search-modal__empty">
+            <div className={styles.empty}>
               <p>{t("workspace.quickSearchPrompt")}</p>
             </div>
           ) : allResults.length === 0 ? (
             // Show no results message
-            <div className="quick-search-modal__empty">
+            <div className={styles.empty}>
               <p>{t("workspace.noSearchResults")}</p>
               <span>{t("workspace.noSearchResultsHint")}</span>
             </div>
@@ -409,17 +409,15 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
               {/* Collections section */}
               {filteredCollections.length > 0 && (
                 <>
-                  <div className="quick-search-modal__section-header">
+                  <div className={styles.sectionHeader}>
                     {t("workspace.collections")}
                   </div>
                   {filteredCollections.map((collection, index) => (
                     <button
                       key={collection.id}
                       data-index={index}
-                      className={`quick-search-modal__item ${
-                        selectedIndex === index
-                          ? "quick-search-modal__item--selected"
-                          : ""
+                      className={`${styles.item} ${
+                        selectedIndex === index ? styles.itemSelected : ""
                       }`}
                       onClick={() =>
                         handleSelect(
@@ -438,24 +436,24 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
                       }
                       onMouseEnter={() => setSelectedIndex(index)}
                     >
-                      <span className="quick-search-modal__item-icon">
+                      <span className={styles.itemIcon}>
                         {collection.isPrivate ? (
                           lockIcon
                         ) : collection.icon ? (
                           collection.icon
                         ) : (
-                          <span className="quick-search-modal__item-icon--default">
+                          <span className={styles.itemIconDefault}>
                             {folderIcon}
                           </span>
                         )}
                       </span>
-                      <div className="quick-search-modal__item-content">
-                        <span className="quick-search-modal__item-title">
+                      <div className={styles.itemContent}>
+                        <span className={styles.itemTitle}>
                           {collection.isPrivate
                             ? t("workspace.private")
                             : collection.name}
                         </span>
-                        <span className="quick-search-modal__item-meta">
+                        <span className={styles.itemMeta}>
                           {formatRelativeTime(collection.updatedAt)}
                         </span>
                       </div>
@@ -466,13 +464,13 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
 
               {/* Divider between sections */}
               {filteredCollections.length > 0 && filteredScenes.length > 0 && (
-                <div className="quick-search-modal__divider" />
+                <div className={styles.divider} />
               )}
 
               {/* Scenes section */}
               {filteredScenes.length > 0 && (
                 <>
-                  <div className="quick-search-modal__section-header">
+                  <div className={styles.sectionHeader}>
                     {t("workspace.scenes")}
                   </div>
                   {filteredScenes.map((scene, index) => {
@@ -484,9 +482,9 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
                       <button
                         key={scene.id}
                         data-index={actualIndex}
-                        className={`quick-search-modal__item ${
+                        className={`${styles.item} ${
                           selectedIndex === actualIndex
-                            ? "quick-search-modal__item--selected"
+                            ? styles.itemSelected
                             : ""
                         }`}
                         onClick={() =>
@@ -507,23 +505,23 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
                         }
                         onMouseEnter={() => setSelectedIndex(actualIndex)}
                       >
-                        <span className="quick-search-modal__item-thumbnail">
+                        <span className={styles.itemThumbnail}>
                           {scene.thumbnailUrl ? (
                             <img src={scene.thumbnailUrl} alt="" />
                           ) : (
-                            <span className="quick-search-modal__item-thumbnail--placeholder" />
+                            <span className={styles.itemThumbnailPlaceholder} />
                           )}
                         </span>
-                        <div className="quick-search-modal__item-content">
-                          <span className="quick-search-modal__item-title">
+                        <div className={styles.itemContent}>
+                          <span className={styles.itemTitle}>
                             {scene.title}
                           </span>
-                          <span className="quick-search-modal__item-meta">
+                          <span className={styles.itemMeta}>
                             {formatRelativeTime(scene.updatedAt)}
                             {collection && (
                               <>
                                 {" • "}
-                                <span className="quick-search-modal__item-collection">
+                                <span className={styles.itemCollection}>
                                   {t("workspace.inCollection")}{" "}
                                   {collection.isPrivate
                                     ? t("workspace.private")
@@ -534,9 +532,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
                           </span>
                         </div>
                         {collection?.isPrivate && (
-                          <span className="quick-search-modal__item-badge">
-                            {lockIcon}
-                          </span>
+                          <span className={styles.itemBadge}>{lockIcon}</span>
                         )}
                       </button>
                     );

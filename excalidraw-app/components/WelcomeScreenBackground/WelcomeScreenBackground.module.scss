@@ -29,7 +29,7 @@
  * - Hidden on mobile (max-width: 768px) for performance
  */
 
-.welcome-screen-background {
+.background {
   position: fixed;
   top: 0;
   left: 0;
@@ -43,7 +43,7 @@
 }
 
 // Nebula container
-.welcome-screen-background__nebula {
+.nebula {
   position: absolute;
   top: 0;
   left: 0;
@@ -54,82 +54,82 @@
 }
 
 // Individual animated blobs
-.welcome-screen-background__blob {
+.blob {
   position: absolute;
   border-radius: 50%;
   // Removed mix-blend-mode: screen - it makes colors invisible on dark backgrounds
+}
 
-  // Blob 1 - Large purple, top-left
-  &--1 {
-    width: 60vw;
-    height: 60vw;
-    max-width: 800px;
-    max-height: 800px;
-    top: -20%;
-    left: -10%;
-    background: radial-gradient(
-      circle,
-      rgba(103, 76, 220, 0.8) 0%,
-      rgba(103, 76, 220, 0.4) 40%,
-      transparent 70%
-    );
-    animation: float1 45s ease-in-out infinite;
-  }
+// Blob 1 - Large purple, top-left
+.blob1 {
+  width: 60vw;
+  height: 60vw;
+  max-width: 800px;
+  max-height: 800px;
+  top: -20%;
+  left: -10%;
+  background: radial-gradient(
+    circle,
+    rgba(103, 76, 220, 0.8) 0%,
+    rgba(103, 76, 220, 0.4) 40%,
+    transparent 70%
+  );
+  animation: float1 45s ease-in-out infinite;
+}
 
-  // Blob 2 - Medium blue, top-right
-  &--2 {
-    width: 50vw;
-    height: 50vw;
-    max-width: 600px;
-    max-height: 600px;
-    top: -10%;
-    right: -15%;
-    background: radial-gradient(
-      circle,
-      rgba(30, 140, 229, 0.8) 0%,
-      rgba(30, 140, 229, 0.4) 40%,
-      transparent 70%
-    );
-    animation: float2 50s ease-in-out infinite;
-  }
+// Blob 2 - Medium blue, top-right
+.blob2 {
+  width: 50vw;
+  height: 50vw;
+  max-width: 600px;
+  max-height: 600px;
+  top: -10%;
+  right: -15%;
+  background: radial-gradient(
+    circle,
+    rgba(30, 140, 229, 0.8) 0%,
+    rgba(30, 140, 229, 0.4) 40%,
+    transparent 70%
+  );
+  animation: float2 50s ease-in-out infinite;
+}
 
-  // Blob 3 - Small purple-pink, bottom-left
-  &--3 {
-    width: 40vw;
-    height: 40vw;
-    max-width: 500px;
-    max-height: 500px;
-    bottom: -15%;
-    left: 10%;
-    background: radial-gradient(
-      circle,
-      rgba(140, 76, 220, 0.7) 0%,
-      rgba(103, 76, 220, 0.3) 40%,
-      transparent 70%
-    );
-    animation: float3 55s ease-in-out infinite;
-  }
+// Blob 3 - Small purple-pink, bottom-left
+.blob3 {
+  width: 40vw;
+  height: 40vw;
+  max-width: 500px;
+  max-height: 500px;
+  bottom: -15%;
+  left: 10%;
+  background: radial-gradient(
+    circle,
+    rgba(140, 76, 220, 0.7) 0%,
+    rgba(103, 76, 220, 0.3) 40%,
+    transparent 70%
+  );
+  animation: float3 55s ease-in-out infinite;
+}
 
-  // Blob 4 - Large blue-cyan, bottom-right
-  &--4 {
-    width: 55vw;
-    height: 55vw;
-    max-width: 700px;
-    max-height: 700px;
-    bottom: -25%;
-    right: -5%;
-    background: radial-gradient(
-      circle,
-      rgba(30, 180, 229, 0.6) 0%,
-      rgba(30, 140, 229, 0.3) 40%,
-      transparent 70%
-    );
-    animation: float4 60s ease-in-out infinite;
-  }
+// Blob 4 - Large blue-cyan, bottom-right
+.blob4 {
+  width: 55vw;
+  height: 55vw;
+  max-width: 700px;
+  max-height: 700px;
+  bottom: -25%;
+  right: -5%;
+  background: radial-gradient(
+    circle,
+    rgba(30, 180, 229, 0.6) 0%,
+    rgba(30, 140, 229, 0.3) 40%,
+    transparent 70%
+  );
+  animation: float4 60s ease-in-out infinite;
 }
 
 // Subtle star field overlay
-.welcome-screen-background__stars {
+.stars {
   position: absolute;
   top: 0;
   left: 0;
@@ -248,7 +248,7 @@
 
 // Hide on small screens (mobile)
 @media (max-width: 768px) {
-  .welcome-screen-background {
+  .background {
     display: none !important;
   }
 }

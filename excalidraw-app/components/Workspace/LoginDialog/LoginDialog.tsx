@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 
-import { useAuth } from "../../auth";
+import { useAuth } from "../../../auth";
 
-import "./LoginDialog.scss";
+import styles from "./LoginDialog.module.scss";
 
 // Stop keyboard events from propagating to Excalidraw canvas
 const stopPropagation = (e: React.KeyboardEvent) => {
@@ -125,15 +125,11 @@ export const LoginDialog: React.FC<LoginDialogProps> = ({
   const isSignUp = mode === "signup";
 
   return (
-    <div className="login-dialog__overlay" onClick={onClose}>
-      <div className="login-dialog" onClick={(e) => e.stopPropagation()}>
-        <div className="login-dialog__header">
+    <div className={styles.overlay} onClick={onClose}>
+      <div className={styles.dialog} onClick={(e) => e.stopPropagation()}>
+        <div className={styles.header}>
           <h2>{isSignUp ? t("workspace.signUp") : t("workspace.login")}</h2>
-          <button
-            className="login-dialog__close"
-            onClick={onClose}
-            aria-label="Close"
-          >
+          <button className={styles.close} onClick={onClose} aria-label="Close">
             <svg
               viewBox="0 0 24 24"
               fill="none"
@@ -145,15 +141,15 @@ export const LoginDialog: React.FC<LoginDialogProps> = ({
           </button>
         </div>
 
-        <div className="login-dialog__content">
+        <div className={styles.content}>
           {/* Local login/signup form */}
           {localAuthEnabled && (
             <form
               onSubmit={isSignUp ? handleRegister : handleLocalLogin}
-              className="login-dialog__form"
+              className={styles.form}
             >
               {isSignUp && (
-                <div className="login-dialog__field">
+                <div className={styles.field}>
                   <label htmlFor="name">{t("workspace.name")}</label>
                   <input
                     id="name"
@@ -167,7 +163,7 @@ export const LoginDialog: React.FC<LoginDialogProps> = ({
                 </div>
               )}
 
-              <div className="login-dialog__field">
+              <div className={styles.field}>
                 <label htmlFor="email">{t("workspace.email")}</label>
                 <input
                   id="email"
@@ -182,7 +178,7 @@ export const LoginDialog: React.FC<LoginDialogProps> = ({
                 />
               </div>
 
-              <div className="login-dialog__field">
+              <div className={styles.field}>
                 <label htmlFor="password">{t("workspace.password")}</label>
                 <input
                   id="password"
@@ -197,7 +193,7 @@ export const LoginDialog: React.FC<LoginDialogProps> = ({
               </div>
 
               {isSignUp && (
-                <div className="login-dialog__field">
+                <div className={styles.field}>
                   <label htmlFor="confirmPassword">
                     {t("workspace.confirmPassword")}
                   </label>
@@ -214,11 +210,11 @@ export const LoginDialog: React.FC<LoginDialogProps> = ({
                 </div>
               )}
 
-              {error && <div className="login-dialog__error">{error}</div>}
+              {error && <div className={styles.error}>{error}</div>}
 
               <button
                 type="submit"
-                className="login-dialog__submit"
+                className={styles.submit}
                 disabled={isLoading}
               >
                 {isLoading
@@ -234,13 +230,13 @@ export const LoginDialog: React.FC<LoginDialogProps> = ({
 
           {/* Toggle between sign in and sign up */}
           {localAuthEnabled && registrationEnabled && (
-            <div className="login-dialog__toggle">
+            <div className={styles.toggle}>
               {isSignUp ? (
                 <span>
                   {t("workspace.alreadyHaveAccount")}{" "}
                   <button
                     type="button"
-                    className="login-dialog__toggle-link"
+                    className={styles.toggleLink}
                     onClick={() => handleModeSwitch("signin")}
                   >
                     {t("workspace.login")}
@@ -251,7 +247,7 @@ export const LoginDialog: React.FC<LoginDialogProps> = ({
                   {t("workspace.noAccount")}{" "}
                   <button
                     type="button"
-                    className="login-dialog__toggle-link"
+                    className={styles.toggleLink}
                     onClick={() => handleModeSwitch("signup")}
                   >
                     {t("workspace.signUp")}
@@ -263,16 +259,13 @@ export const LoginDialog: React.FC<LoginDialogProps> = ({
 
           {/* OIDC login option */}
           {oidcConfigured && localAuthEnabled && (
-            <div className="login-dialog__divider">
+            <div className={styles.divider}>
               <span>{t("workspace.or")}</span>
             </div>
           )}
 
           {oidcConfigured && (
-            <button
-              className="login-dialog__oidc-button"
-              onClick={handleOidcLogin}
-            >
+            <button className={styles.oidcButton} onClick={handleOidcLogin}>
               <svg
                 viewBox="0 0 24 24"
                 fill="none"
@@ -290,7 +283,7 @@ export const LoginDialog: React.FC<LoginDialogProps> = ({
             !oidcConfigured &&
             !isSignUp &&
             !registrationEnabled && (
-              <div className="login-dialog__hint">
+              <div className={styles.hint}>
                 {t("workspace.defaultCredentialsHint")}
               </div>
             )}

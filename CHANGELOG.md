@@ -9,6 +9,30 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.74] - 2025-12-23
+
+### Changed
+
+- **CSS Modules Migration - Batch 5 (FINAL)** - Completed migration of all remaining components
+  - Migrated `FullModeNav` (370 lines): sidebar navigation, collection items, menu dropdowns
+  - Migrated `LoginDialog` (263 lines): auth forms, OIDC button, toggle links
+  - Migrated `UserProfileDialog` (421 lines): avatar upload, name editing, logout button
+  - Migrated `QuickSearchModal` (396 lines): search input, results list, keyboard navigation
+  - Migrated `ShareDialog` (166 lines): collaboration sharing, room links
+  - Migrated `WelcomeScreenBackground` (254 lines): animated nebula blobs, star field
+  - Each component now in dedicated folder with `index.ts`, `Component.tsx`, and `Component.module.scss`
+  - Total: ~1,870 lines of SCSS migrated to CSS Modules
+  - **CSS Modules migration is now 100% complete** - all 38 AstraDraw components use CSS Modules
+
+### Removed
+
+- `Workspace/FullModeNav.tsx`, `Workspace/FullModeNav.scss` - Moved to folder structure
+- `Workspace/LoginDialog.tsx`, `Workspace/LoginDialog.scss` - Moved to folder structure
+- `Workspace/UserProfileDialog.tsx`, `Workspace/UserProfileDialog.scss` - Moved to folder structure
+- `Workspace/QuickSearchModal.tsx`, `Workspace/QuickSearchModal.scss` - Moved to folder structure
+- `share/ShareDialog.tsx`, `share/ShareDialog.scss` - Moved to folder structure
+- `components/WelcomeScreenBackground.tsx`, `components/WelcomeScreenBackground.scss` - Moved to folder structure
+
 ## [0.18.0-beta0.73] - 2025-12-23
 
 ### Added
