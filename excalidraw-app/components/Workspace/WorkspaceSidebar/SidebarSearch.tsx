@@ -2,6 +2,7 @@ import React, { useRef, useEffect } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 
 import { searchIcon } from "./icons";
+import styles from "./WorkspaceSidebar.module.scss";
 
 interface SidebarSearchProps {
   value: string;
@@ -34,19 +35,19 @@ export const SidebarSearch: React.FC<SidebarSearchProps> = ({
   }, [isOpen]);
 
   return (
-    <div className="workspace-sidebar__search">
-      <span className="workspace-sidebar__search-icon">{searchIcon}</span>
+    <div className={styles.search}>
+      <span className={styles.searchIcon}>{searchIcon}</span>
       <input
         ref={searchInputRef}
         type="text"
-        className="workspace-sidebar__search-input"
+        className={styles.searchInput}
         placeholder={t("workspace.quickSearch")}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={(e) => e.stopPropagation()}
         onKeyUp={(e) => e.stopPropagation()}
       />
-      <span className="workspace-sidebar__search-hint">⌘ + p</span>
+      <span className={styles.searchHint}>⌘ + p</span>
     </div>
   );
 };

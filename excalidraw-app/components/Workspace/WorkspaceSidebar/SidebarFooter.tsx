@@ -2,6 +2,7 @@ import React from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 
 import { bellIcon } from "./icons";
+import styles from "./WorkspaceSidebar.module.scss";
 
 import type { User } from "../../../auth";
 
@@ -28,29 +29,26 @@ export const SidebarFooter: React.FC<SidebarFooterProps> = ({
 }) => {
   return (
     <>
-      <div className="workspace-sidebar__divider" />
-      <div className="workspace-sidebar__footer">
-        <button
-          className="workspace-sidebar__user-button"
-          onClick={onProfileClick}
-        >
+      <div className={styles.divider} />
+      <div className={styles.footer}>
+        <button className={styles.userButton} onClick={onProfileClick}>
           {user.avatarUrl ? (
             <img
               src={user.avatarUrl}
               alt={user.name || user.email}
-              className="workspace-sidebar__user-avatar"
+              className={styles.userAvatar}
             />
           ) : (
-            <div className="workspace-sidebar__user-avatar workspace-sidebar__user-avatar--initials">
+            <div
+              className={`${styles.userAvatar} ${styles.userAvatarInitials}`}
+            >
               {getInitials(user.name, user.email)}
             </div>
           )}
-          <span className="workspace-sidebar__user-name">
-            {user.name || user.email}
-          </span>
+          <span className={styles.userName}>{user.name || user.email}</span>
         </button>
         <button
-          className="workspace-sidebar__notification-button"
+          className={styles.notificationButton}
           title={t("workspace.notifications")}
         >
           {bellIcon}

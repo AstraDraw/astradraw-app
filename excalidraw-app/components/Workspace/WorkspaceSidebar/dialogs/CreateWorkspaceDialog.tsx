@@ -1,6 +1,8 @@
 import React from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 
+import styles from "../WorkspaceSidebar.module.scss";
+
 import type { WorkspaceType } from "../../../../auth/workspaceApi";
 
 interface CreateWorkspaceDialogProps {
@@ -35,14 +37,14 @@ export const CreateWorkspaceDialog: React.FC<CreateWorkspaceDialogProps> = ({
   }
 
   return (
-    <div className="workspace-sidebar__dialog-overlay" onClick={onClose}>
+    <div className={styles.dialogOverlay} onClick={onClose}>
       <div
-        className="workspace-sidebar__dialog workspace-sidebar__dialog--wide"
+        className={`${styles.dialog} ${styles.dialogWide}`}
         onClick={(e) => e.stopPropagation()}
       >
         <h3>{t("workspace.createWorkspaceTitle")}</h3>
-        <div className="workspace-sidebar__dialog-content">
-          <div className="workspace-sidebar__form-group">
+        <div className={styles.dialogContent}>
+          <div className={styles.formGroup}>
             <label>{t("workspace.workspaceNameLabel")}</label>
             <input
               type="text"
@@ -59,7 +61,7 @@ export const CreateWorkspaceDialog: React.FC<CreateWorkspaceDialogProps> = ({
               autoFocus
             />
           </div>
-          <div className="workspace-sidebar__form-group">
+          <div className={styles.formGroup}>
             <label>{t("workspace.workspaceSlugLabel")}</label>
             <input
               type="text"
@@ -74,19 +76,17 @@ export const CreateWorkspaceDialog: React.FC<CreateWorkspaceDialogProps> = ({
               }}
               onKeyUp={(e) => e.stopPropagation()}
             />
-            <span className="workspace-sidebar__form-hint">
+            <span className={styles.formHint}>
               {t("workspace.workspaceSlugHint")}
             </span>
           </div>
-          <div className="workspace-sidebar__form-group">
+          <div className={styles.formGroup}>
             <label>{t("workspace.workspaceTypeLabel")}</label>
-            <div className="workspace-sidebar__type-selector">
+            <div className={styles.typeSelector}>
               <button
                 type="button"
-                className={`workspace-sidebar__type-option ${
-                  type === "PERSONAL"
-                    ? "workspace-sidebar__type-option--active"
-                    : ""
+                className={`${styles.typeOption} ${
+                  type === "PERSONAL" ? styles.typeOptionActive : ""
                 }`}
                 onClick={() => onTypeChange("PERSONAL")}
               >
@@ -94,10 +94,8 @@ export const CreateWorkspaceDialog: React.FC<CreateWorkspaceDialogProps> = ({
               </button>
               <button
                 type="button"
-                className={`workspace-sidebar__type-option ${
-                  type === "SHARED"
-                    ? "workspace-sidebar__type-option--active"
-                    : ""
+                className={`${styles.typeOption} ${
+                  type === "SHARED" ? styles.typeOptionActive : ""
                 }`}
                 onClick={() => onTypeChange("SHARED")}
               >
@@ -105,19 +103,14 @@ export const CreateWorkspaceDialog: React.FC<CreateWorkspaceDialogProps> = ({
               </button>
             </div>
           </div>
-          {error && (
-            <div className="workspace-sidebar__form-error">{error}</div>
-          )}
+          {error && <div className={styles.formError}>{error}</div>}
         </div>
-        <div className="workspace-sidebar__dialog-actions">
-          <button
-            className="workspace-sidebar__dialog-cancel"
-            onClick={onClose}
-          >
+        <div className={styles.dialogActions}>
+          <button className={styles.dialogCancel} onClick={onClose}>
             {t("workspace.cancel")}
           </button>
           <button
-            className="workspace-sidebar__dialog-confirm"
+            className={styles.dialogConfirm}
             onClick={onSubmit}
             disabled={!name.trim() || !slug.trim() || isCreating}
           >

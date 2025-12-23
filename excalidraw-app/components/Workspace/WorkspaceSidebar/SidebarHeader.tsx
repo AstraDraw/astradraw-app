@@ -8,6 +8,7 @@ import {
 } from "../../Settings/settingsState";
 
 import { chevronIcon, closeIcon } from "./icons";
+import styles from "./WorkspaceSidebar.module.scss";
 
 import type { Workspace } from "../../../auth/workspaceApi";
 import type { User } from "../../../auth";
@@ -55,15 +56,15 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
   }, [workspaceMenuOpen]);
 
   return (
-    <div className="workspace-sidebar__header">
+    <div className={styles.header}>
       {isAuthenticated && currentWorkspace ? (
-        <div className="workspace-sidebar__workspace" ref={workspaceMenuRef}>
+        <div className={styles.workspace} ref={workspaceMenuRef}>
           <button
-            className="workspace-sidebar__workspace-trigger"
+            className={styles.workspaceTrigger}
             onClick={() => setWorkspaceMenuOpen(!workspaceMenuOpen)}
             aria-expanded={workspaceMenuOpen}
           >
-            <div className="workspace-sidebar__workspace-avatar">
+            <div className={styles.workspaceAvatar}>
               {currentWorkspace.avatarUrl ? (
                 <img
                   src={currentWorkspace.avatarUrl}
@@ -73,12 +74,12 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
                 <span>{currentWorkspace.name[0].toUpperCase()}</span>
               )}
             </div>
-            <span className="workspace-sidebar__workspace-name">
+            <span className={styles.workspaceName}>
               {currentWorkspace.name}
             </span>
             <span
-              className={`workspace-sidebar__chevron ${
-                workspaceMenuOpen ? "workspace-sidebar__chevron--open" : ""
+              className={`${styles.chevron} ${
+                workspaceMenuOpen ? styles.chevronOpen : ""
               }`}
             >
               {chevronIcon}
@@ -86,24 +87,24 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
           </button>
 
           {workspaceMenuOpen && (
-            <div className="workspace-sidebar__workspace-menu">
-              <div className="workspace-sidebar__menu-section-title">
+            <div className={styles.workspaceMenu}>
+              <div className={styles.menuSectionTitle}>
                 {t("workspace.switchWorkspace")}
               </div>
               {workspaces.map((ws) => (
                 <button
                   key={ws.id}
-                  className={`workspace-sidebar__menu-item ${
-                    ws.id === currentWorkspace.id
-                      ? "workspace-sidebar__menu-item--active"
-                      : ""
+                  className={`${styles.menuItem} ${
+                    ws.id === currentWorkspace.id ? styles.menuItemActive : ""
                   }`}
                   onClick={() => {
                     onSwitchWorkspace(ws);
                     setWorkspaceMenuOpen(false);
                   }}
                 >
-                  <div className="workspace-sidebar__workspace-avatar workspace-sidebar__workspace-avatar--small">
+                  <div
+                    className={`${styles.workspaceAvatar} ${styles.workspaceAvatarSmall}`}
+                  >
                     {ws.avatarUrl ? (
                       <img src={ws.avatarUrl} alt={ws.name} />
                     ) : (
@@ -112,21 +113,21 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
                   </div>
                   <span>{ws.name}</span>
                   {ws.id === currentWorkspace.id && (
-                    <span className="workspace-sidebar__check">✓</span>
+                    <span className={styles.check}>✓</span>
                   )}
                 </button>
               ))}
               {user?.isSuperAdmin && (
                 <>
-                  <div className="workspace-sidebar__menu-divider" />
+                  <div className={styles.menuDivider} />
                   <button
-                    className="workspace-sidebar__menu-item workspace-sidebar__menu-item--create"
+                    className={`${styles.menuItem} ${styles.menuItemCreate}`}
                     onClick={() => {
                       onCreateWorkspaceClick();
                       setWorkspaceMenuOpen(false);
                     }}
                   >
-                    <span className="workspace-sidebar__menu-item-icon">+</span>
+                    <span className={styles.menuItemIcon}>+</span>
                     <span>{t("workspace.createWorkspace")}</span>
                   </button>
                 </>
@@ -135,15 +136,11 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
           )}
         </div>
       ) : (
-        <h2 className="workspace-sidebar__title">
+        <h2 className={styles.title}>
           <span>{t("workspace.title")}</span>
         </h2>
       )}
-      <button
-        className="workspace-sidebar__close"
-        onClick={onClose}
-        aria-label="Close"
-      >
+      <button className={styles.close} onClick={onClose} aria-label="Close">
         {closeIcon}
       </button>
     </div>

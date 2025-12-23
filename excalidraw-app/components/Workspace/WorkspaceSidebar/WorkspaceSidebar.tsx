@@ -35,7 +35,6 @@ import { BoardModeNav } from "../BoardModeNav";
 import { FullModeNav } from "../FullModeNav";
 import { LoginDialog } from "../LoginDialog";
 
-import "../WorkspaceSidebar.scss";
 import "../FullModeNav.scss";
 
 import {
@@ -47,6 +46,7 @@ import { SidebarFooter } from "./SidebarFooter";
 import { SidebarSearch } from "./SidebarSearch";
 import { SidebarHeader } from "./SidebarHeader";
 import { loginIcon } from "./icons";
+import styles from "./WorkspaceSidebar.module.scss";
 
 import type {
   Workspace,
@@ -339,9 +339,7 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
   );
 
   return (
-    <div
-      className={`workspace-sidebar ${isOpen ? "workspace-sidebar--open" : ""}`}
-    >
+    <div className={`${styles.sidebar} ${isOpen ? styles.open : ""}`}>
       <SidebarHeader
         isAuthenticated={isAuthenticated}
         user={user}
@@ -350,27 +348,24 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
         onClose={handleClose}
       />
 
-      <div className="workspace-sidebar__divider" />
+      <div className={styles.divider} />
 
-      <div className="workspace-sidebar__content">
+      <div className={styles.content}>
         {authLoading ? (
-          <div className="workspace-sidebar__loading">
-            <div className="workspace-sidebar__spinner" />
+          <div className={styles.loading}>
+            <div className={styles.spinner} />
           </div>
         ) : !authAvailable ? (
-          <div className="workspace-sidebar__empty">
+          <div className={styles.empty}>
             <p>{t("workspace.notConfigured")}</p>
-            <span className="workspace-sidebar__empty-hint">
+            <span className={styles.emptyHint}>
               {t("workspace.notConfiguredHint")}
             </span>
           </div>
         ) : !isAuthenticated ? (
-          <div className="workspace-sidebar__login">
+          <div className={styles.login}>
             <p>{t("workspace.loginPrompt")}</p>
-            <button
-              className="workspace-sidebar__login-button"
-              onClick={handleLoginClick}
-            >
+            <button className={styles.loginButton} onClick={handleLoginClick}>
               {loginIcon}
               <span>{t("workspace.login")}</span>
             </button>

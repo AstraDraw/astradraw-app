@@ -2,6 +2,7 @@ import React from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 
 import { EmojiPicker } from "../../../EmojiPicker";
+import styles from "../WorkspaceSidebar.module.scss";
 
 interface CreateCollectionDialogProps {
   isOpen: boolean;
@@ -27,19 +28,16 @@ export const CreateCollectionDialog: React.FC<CreateCollectionDialogProps> = ({
   }
 
   return (
-    <div className="workspace-sidebar__dialog-overlay" onClick={onClose}>
-      <div
-        className="workspace-sidebar__dialog"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <div className={styles.dialogOverlay} onClick={onClose}>
+      <div className={styles.dialog} onClick={(e) => e.stopPropagation()}>
         <h3>{t("workspace.createCollection")}</h3>
-        <div className="workspace-sidebar__dialog-content">
-          <div className="workspace-sidebar__form-row">
-            <div className="workspace-sidebar__form-group workspace-sidebar__form-group--icon">
+        <div className={styles.dialogContent}>
+          <div className={styles.formRow}>
+            <div className={`${styles.formGroup} ${styles.formGroupIcon}`}>
               <label>{t("workspace.icon")}</label>
               <EmojiPicker value={icon} onSelect={onIconChange} />
             </div>
-            <div className="workspace-sidebar__form-group workspace-sidebar__form-group--name">
+            <div className={`${styles.formGroup} ${styles.formGroupName}`}>
               <label>{t("workspace.collectionName")}</label>
               <input
                 type="text"
@@ -58,15 +56,12 @@ export const CreateCollectionDialog: React.FC<CreateCollectionDialogProps> = ({
             </div>
           </div>
         </div>
-        <div className="workspace-sidebar__dialog-actions">
-          <button
-            className="workspace-sidebar__dialog-cancel"
-            onClick={onClose}
-          >
+        <div className={styles.dialogActions}>
+          <button className={styles.dialogCancel} onClick={onClose}>
             {t("workspace.cancel")}
           </button>
           <button
-            className="workspace-sidebar__dialog-confirm"
+            className={styles.dialogConfirm}
             onClick={onSubmit}
             disabled={!name.trim()}
           >
