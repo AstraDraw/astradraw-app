@@ -9,6 +9,7 @@ import {
   deleteAvatar,
   type UserProfile,
 } from "../../auth/workspaceApi";
+import { showSuccess } from "../../utils/toast";
 
 import "./ProfilePage.scss";
 
@@ -59,7 +60,6 @@ export const ProfilePage: React.FC<ProfilePageProps> = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Form state
   const [name, setName] = useState("");
@@ -172,11 +172,6 @@ export const ProfilePage: React.FC<ProfilePageProps> = () => {
     }
   };
 
-  const showSuccess = (message: string) => {
-    setSuccessMessage(message);
-    setTimeout(() => setSuccessMessage(null), 3000);
-  };
-
   const getInitials = (name: string | null, email: string): string => {
     if (name) {
       return name
@@ -222,10 +217,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = () => {
         {/* Separator after title */}
         <div className="profile-page__separator" />
 
-        {/* Success/Error messages */}
-        {successMessage && (
-          <div className="profile-page__success">{successMessage}</div>
-        )}
+        {/* Error messages */}
         {error && <div className="profile-page__error-inline">{error}</div>}
 
         {/* Profile Picture Section */}

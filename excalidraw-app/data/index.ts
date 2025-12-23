@@ -36,6 +36,8 @@ import {
   ROOM_ID_BYTES,
 } from "../app_constants";
 
+import { showError } from "../utils/toast";
+
 import { encodeFilesForUpload } from "./FileManager";
 import { getStorageBackend } from "./config";
 
@@ -142,7 +144,7 @@ export const getCollaborationLinkData = (link: string) => {
   const hash = new URL(link).hash;
   const match = hash.match(RE_COLLAB_LINK);
   if (match && match[2].length !== 22) {
-    window.alert(t("alerts.invalidEncryptionKey"));
+    showError(t("alerts.invalidEncryptionKey"));
     return null;
   }
   return match ? { roomId: match[1], roomKey: match[2] } : null;
@@ -210,7 +212,7 @@ const importFromBackend = async (
     const response = await fetch(`${BACKEND_V2_GET}${id}`);
 
     if (!response.ok) {
-      window.alert(t("alerts.importBackendFailed"));
+      showError(t("alerts.importBackendFailed"));
       return {};
     }
     const buffer = await response.arrayBuffer();
@@ -238,7 +240,7 @@ const importFromBackend = async (
       return legacy_decodeFromBackend({ buffer, decryptionKey });
     }
   } catch (error: any) {
-    window.alert(t("alerts.importBackendFailed"));
+    showError(t("alerts.importBackendFailed"));
     console.error(error);
     return {};
   }

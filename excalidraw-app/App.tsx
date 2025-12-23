@@ -47,6 +47,7 @@ import { restore, restoreAppState } from "@excalidraw/excalidraw/data/restore";
 import { newElementWith } from "@excalidraw/element";
 import { isInitializedImageElement } from "@excalidraw/element";
 import clsx from "clsx";
+import { Toaster } from "react-hot-toast";
 import {
   parseLibraryTokensFromUrl,
   useHandleLibrary,
@@ -2037,6 +2038,17 @@ const ExcalidrawWrapper = () => {
         "theme--dark": editorTheme === THEME.DARK,
       })}
     >
+      {/* Toast notifications */}
+      <Toaster
+        position="bottom-right"
+        toastOptions={{
+          style: {
+            background: editorTheme === THEME.DARK ? "#232329" : "#fff",
+            color: editorTheme === THEME.DARK ? "#e1e1e1" : "#1b1b1f",
+          },
+        }}
+      />
+
       {/* Workspace Sidebar (Left) - shared between both modes */}
       {!isLegacyMode && (
         <WorkspaceSidebar

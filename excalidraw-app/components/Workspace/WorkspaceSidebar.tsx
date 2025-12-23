@@ -23,6 +23,7 @@ import {
   type WorkspaceType,
 } from "../../auth/workspaceApi";
 import { useSceneActions } from "../../hooks/useSceneActions";
+import { showError } from "../../utils/toast";
 
 import {
   navigateToDashboardAtom,
@@ -157,6 +158,7 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
     useState<Collection | null>(null);
   const [scenes, setScenes] = useState<WorkspaceScene[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isCollectionsLoading, setIsCollectionsLoading] = useState(false);
   const prevScenesRefreshRef = useRef<number>(scenesRefresh);
 
   // In-memory cache for scenes by collection
@@ -232,11 +234,14 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
       return;
     }
 
+    setIsCollectionsLoading(true);
     try {
       const data = await listCollections(currentWorkspace.id);
       setCollections(data);
     } catch (err) {
       console.error("Failed to load collections:", err);
+    } finally {
+      setIsCollectionsLoading(false);
     }
   }, [currentWorkspace]);
 
@@ -496,7 +501,9 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
       triggerCollectionsRefresh();
     } catch (err) {
       console.error("Failed to create collection:", err);
-      alert("Failed to create collection");
+      showError(
+        t("workspace.createCollectionError") || "Failed to create collection",
+      );
     }
   }, [
     currentWorkspace,
@@ -531,7 +538,9 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
       triggerCollectionsRefresh();
     } catch (err) {
       console.error("Failed to update collection:", err);
-      alert("Failed to update collection");
+      showError(
+        t("workspace.updateCollectionError") || "Failed to update collection",
+      );
     }
   }, [
     editingCollection,
@@ -557,7 +566,9 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
         triggerCollectionsRefresh();
       } catch (err) {
         console.error("Failed to delete collection:", err);
-        alert("Failed to delete collection");
+        showError(
+          t("workspace.deleteCollectionError") || "Failed to delete collection",
+        );
       }
     },
     [
@@ -899,6 +910,7 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
                 activeCollectionId={activeCollectionId}
                 currentView={dashboardView}
                 isAdmin={isAdmin}
+                isCollectionsLoading={isCollectionsLoading}
                 onDashboardClick={handleDashboardClick}
                 onProfileClick={() => navigateToProfile()}
                 onPreferencesClick={() => navigateToPreferences()}

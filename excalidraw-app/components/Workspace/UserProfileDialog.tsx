@@ -9,6 +9,7 @@ import {
   deleteAvatar,
   type UserProfile,
 } from "../../auth/workspaceApi";
+import { showSuccess } from "../../utils/toast";
 
 import "./UserProfileDialog.scss";
 
@@ -31,7 +32,6 @@ export const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Form state
   const [name, setName] = useState("");
@@ -138,11 +138,6 @@ export const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
     }
   };
 
-  const showSuccess = (message: string) => {
-    setSuccessMessage(message);
-    setTimeout(() => setSuccessMessage(null), 3000);
-  };
-
   const getInitials = (name: string | null, email: string): string => {
     if (name) {
       return name
@@ -194,12 +189,7 @@ export const UserProfileDialog: React.FC<UserProfileDialogProps> = ({
             </div>
           ) : profile ? (
             <>
-              {/* Success/Error messages */}
-              {successMessage && (
-                <div className="user-profile-dialog__success">
-                  {successMessage}
-                </div>
-              )}
+              {/* Error messages */}
               {error && (
                 <div className="user-profile-dialog__error-inline">{error}</div>
               )}

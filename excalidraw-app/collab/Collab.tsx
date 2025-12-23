@@ -81,6 +81,7 @@ import {
 import { resetBrowserStateVersions } from "../data/tabSync";
 
 import { maybeGenerateAndUploadThumbnail } from "../utils/thumbnailGenerator";
+import { showError } from "../utils/toast";
 
 import { collabErrorIndicatorAtom } from "./CollabError";
 import Portal from "./Portal";
@@ -503,7 +504,7 @@ class Collab extends PureComponent<CollabProps, CollabState> {
       );
       return JSON.parse(decodedData);
     } catch (error) {
-      window.alert(t("alerts.decryptFailed"));
+      showError(t("alerts.decryptFailed"));
       console.error(error);
       return {
         type: WS_SUBTYPES.INVALID_RESPONSE,

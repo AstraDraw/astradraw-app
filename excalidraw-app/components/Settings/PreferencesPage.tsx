@@ -94,3 +94,4 @@ export const PreferencesPage: React.FC<PreferencesPageProps> = ({
 };
 
 export default PreferencesPage;
+

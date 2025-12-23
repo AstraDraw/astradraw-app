@@ -3,6 +3,7 @@ import { t } from "@excalidraw/excalidraw/i18n";
 
 import type { Collection } from "../../auth/workspaceApi";
 import type { DashboardView } from "../Settings/settingsState";
+import { CollectionItemSkeletonList } from "../Skeletons";
 
 // Icons
 const dashboardIcon = (
@@ -92,6 +93,7 @@ interface FullModeNavProps {
   activeCollectionId: string | null;
   currentView: DashboardView;
   isAdmin: boolean;
+  isCollectionsLoading?: boolean;
   onDashboardClick: () => void;
   onProfileClick: () => void;
   onPreferencesClick: () => void;
@@ -112,6 +114,7 @@ export const FullModeNav: React.FC<FullModeNavProps> = ({
   activeCollectionId,
   currentView,
   isAdmin,
+  isCollectionsLoading = false,
   onDashboardClick,
   onProfileClick,
   onPreferencesClick,
@@ -258,31 +261,38 @@ export const FullModeNav: React.FC<FullModeNavProps> = ({
         </div>
 
         <div className="full-mode-nav__collections-list">
-          {/* Private collection (always first, if exists) */}
-          {privateCollection && (
-            <button
-              className={`full-mode-nav__collection-item ${
-                activeCollectionId === privateCollection.id &&
-                currentView === "collection"
-                  ? "full-mode-nav__collection-item--active"
-                  : ""
-              }`}
-              onClick={() => onCollectionClick(privateCollection.id, true)}
-            >
-              <span className="full-mode-nav__collection-icon">{lockIcon}</span>
-              <span className="full-mode-nav__collection-name">
-                {t("workspace.private")}
-              </span>
-            </button>
-          )}
+          {/* Loading skeleton */}
+          {isCollectionsLoading && collections.length === 0 ? (
+            <CollectionItemSkeletonList count={4} />
+          ) : (
+            <>
+              {/* Private collection (always first, if exists) */}
+              {privateCollection && (
+                <button
+                  className={`full-mode-nav__collection-item ${
+                    activeCollectionId === privateCollection.id &&
+                    currentView === "collection"
+                      ? "full-mode-nav__collection-item--active"
+                      : ""
+                  }`}
+                  onClick={() => onCollectionClick(privateCollection.id, true)}
+                >
+                  <span className="full-mode-nav__collection-icon">
+                    {lockIcon}
+                  </span>
+                  <span className="full-mode-nav__collection-name">
+                    {t("workspace.private")}
+                  </span>
+                </button>
+              )}
 
-          {/* Separator after private collection */}
-          {privateCollection && otherCollections.length > 0 && (
-            <div className="full-mode-nav__collections-separator" />
-          )}
+              {/* Separator after private collection */}
+              {privateCollection && otherCollections.length > 0 && (
+                <div className="full-mode-nav__collections-separator" />
+              )}
 
-          {/* Other collections */}
-          {otherCollections.map((collection) => (
+              {/* Other collections */}
+              {otherCollections.map((collection) => (
             <div
               key={collection.id}
               className={`full-mode-nav__collection-row ${
@@ -378,6 +388,8 @@ export const FullModeNav: React.FC<FullModeNavProps> = ({
               )}
             </div>
           ))}
+            </>
+          )}
         </div>
       </div>
     </div>

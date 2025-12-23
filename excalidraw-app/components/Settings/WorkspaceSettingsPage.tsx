@@ -1,6 +1,8 @@
 import React, { useState, useRef } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 
+import { showSuccess, showError } from "../../utils/toast";
+
 import "./WorkspaceSettingsPage.scss";
 
 import type { Workspace } from "../../auth/workspaceApi";
@@ -25,7 +27,6 @@ export const WorkspaceSettingsPage: React.FC<WorkspaceSettingsPageProps> = ({
   const [isEditingName, setIsEditingName] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -80,11 +81,6 @@ export const WorkspaceSettingsPage: React.FC<WorkspaceSettingsPageProps> = ({
     }
   };
 
-  const showSuccess = (message: string) => {
-    setSuccessMessage(message);
-    setTimeout(() => setSuccessMessage(null), 3000);
-  };
-
   if (!workspace) {
     return (
       <div className="workspace-settings-page">
@@ -108,12 +104,7 @@ export const WorkspaceSettingsPage: React.FC<WorkspaceSettingsPageProps> = ({
         {/* Separator after header */}
         <div className="workspace-settings-page__separator" />
 
-        {/* Success/Error messages */}
-        {successMessage && (
-          <div className="workspace-settings-page__success">
-            {successMessage}
-          </div>
-        )}
+        {/* Error messages */}
         {error && (
           <div className="workspace-settings-page__error-inline">{error}</div>
         )}
@@ -272,7 +263,10 @@ export const WorkspaceSettingsPage: React.FC<WorkspaceSettingsPageProps> = ({
               className="workspace-settings-page__button workspace-settings-page__button--danger-outline"
               onClick={() => {
                 // TODO: Implement workspace deletion
-                alert("Workspace deletion is not yet implemented");
+                showError(
+                  t("settings.workspaceDeletionNotImplemented") ||
+                    "Workspace deletion is not yet implemented",
+                );
               }}
             >
               {t("settings.deleteWorkspaceButton")}

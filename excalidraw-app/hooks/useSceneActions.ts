@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 
 import { useSetAtom } from "../app-jotai";
+import { showError } from "../utils/toast";
 import { triggerScenesRefreshAtom } from "../components/Settings/settingsState";
 import {
   deleteScene as deleteSceneApi,
@@ -88,7 +89,7 @@ export function useSceneActions({
         return true;
       } catch (err) {
         console.error("Failed to delete scene:", err);
-        alert(t("workspace.deleteSceneError") || "Failed to delete scene");
+        showError(t("workspace.deleteSceneError") || "Failed to delete scene");
         return false;
       }
     },
@@ -107,7 +108,7 @@ export function useSceneActions({
         return true;
       } catch (err) {
         console.error("Failed to rename scene:", err);
-        alert(t("workspace.renameSceneError") || "Failed to rename scene");
+        showError(t("workspace.renameSceneError") || "Failed to rename scene");
         return false;
       }
     },
@@ -123,7 +124,7 @@ export function useSceneActions({
         return newScene;
       } catch (err) {
         console.error("Failed to duplicate scene:", err);
-        alert(
+        showError(
           t("workspace.duplicateSceneError") || "Failed to duplicate scene",
         );
         return null;

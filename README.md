@@ -1,6 +1,6 @@
-# AstraDraw App
+# AstraDraw App (Frontend)
 
-> **Built on top of [Excalidraw](https://github.com/excalidraw/excalidraw)** - An open source virtual hand-drawn style whiteboard.
+> **Built on [Excalidraw](https://github.com/excalidraw/excalidraw)** - An open source virtual hand-drawn style whiteboard.
 
 Self-hosted Excalidraw frontend with user workspaces, video recordings, presentation mode, custom pens, and real-time collaboration.
 
@@ -26,15 +26,6 @@ Self-hosted Excalidraw frontend with user workspaces, video recordings, presenta
 - 🎭 **Stickers & GIFs** - GIPHY integration
 - 📚 **Pre-bundled Libraries** - Team-wide shape collections
 
-## Architecture
-
-This is the frontend component of the AstraDraw suite:
-
-- **astradraw-app** (this repo): Frontend application
-- **[astradraw-api](https://github.com/astrateam-net/astradraw-api)**: Backend API (auth, workspace, storage)
-- **[astradraw-room](https://github.com/astrateam-net/astradraw-room)**: WebSocket collaboration server
-- **[astradraw](https://github.com/astrateam-net/astradraw)**: Deployment configuration & documentation
-
 ## Quick Start
 
 ### Using Docker (Production)
@@ -43,91 +34,89 @@ This is the frontend component of the AstraDraw suite:
 docker run -d \
   -p 80:80 \
   -e VITE_APP_WS_SERVER_URL=wss://your-domain.com \
-  -e VITE_APP_STORAGE_BACKEND=http \
-  -e VITE_APP_HTTP_STORAGE_BACKEND_URL=https://your-domain.com \
   -e VITE_APP_BACKEND_V2_GET_URL=https://your-domain.com/api/v2/scenes/ \
   -e VITE_APP_BACKEND_V2_POST_URL=https://your-domain.com/api/v2/scenes/ \
-  -e VITE_APP_DISABLE_TRACKING=true \
   ghcr.io/astrateam-net/astradraw-app:latest
 ```
 
 ### Local Development
 
+**Recommended:** Use the main repo with `just dev` for full-stack development.
+
 ```bash
-# Install dependencies
+# From astradraw/ root (recommended)
+just dev              # Starts frontend + backend + room-service with hot-reload
+
+# Or standalone frontend development
+cd frontend
 yarn install
-
-# Start dev server
-yarn start
-
-# Run checks before committing
-yarn test:typecheck    # TypeScript
-yarn test:other        # Prettier
-yarn test:code         # ESLint
-yarn test:all          # All checks + tests
+yarn start            # Dev server on http://localhost:5173
 ```
 
-### Building from Source
+**Before committing:**
 
 ```bash
-# Build for Docker (uses placeholder env vars)
-yarn build:app:docker
+# From astradraw/ root
+just check-frontend
 
-# Build Docker image
-docker build -t astradraw-app .
+# Or directly
+yarn test:typecheck && yarn test:other && yarn test:code
 ```
 
 ## Environment Variables
 
 | Variable | Description | Example |
-| --- | --- | --- |
+|----------|-------------|---------|
 | `VITE_APP_WS_SERVER_URL` | WebSocket server for collaboration | `wss://draw.example.com` |
-| `VITE_APP_STORAGE_BACKEND` | Storage type | `http` or `firebase` |
-| `VITE_APP_HTTP_STORAGE_BACKEND_URL` | Storage API base URL | `https://draw.example.com` |
 | `VITE_APP_BACKEND_V2_GET_URL` | Scene GET endpoint | `https://draw.example.com/api/v2/scenes/` |
 | `VITE_APP_BACKEND_V2_POST_URL` | Scene POST endpoint | `https://draw.example.com/api/v2/scenes/` |
 | `VITE_APP_GIPHY_API_KEY` | GIPHY API key for stickers | `your_giphy_api_key` |
 | `VITE_APP_DISABLE_TRACKING` | Disable analytics | `true` |
 
-## Key Modifications from Upstream
+## Architecture
 
-### Storage Abstraction Layer
+This is the frontend component of the AstraDraw suite:
 
-Added `StorageBackend` interface to support HTTP storage:
+| Repository | Purpose |
+|------------|---------|
+| **[astradraw](https://github.com/astrateam-net/astradraw)** | Main repo - deployment, docs, orchestration |
+| **astradraw-app** (this repo) | Frontend application |
+| **[astradraw-api](https://github.com/astrateam-net/astradraw-api)** | Backend API (auth, workspace, storage) |
+| **[astradraw-room](https://github.com/astrateam-net/astradraw-room)** | WebSocket collaboration server |
 
-- `excalidraw-app/data/StorageBackend.ts` - Interface definition
-- `excalidraw-app/data/httpStorage.ts` - HTTP REST API implementation
-- `excalidraw-app/data/config.ts` - Backend selector
+## Documentation
 
-### Runtime Configuration
+Full documentation is in the main [astradraw](https://github.com/astrateam-net/astradraw) repository:
 
-Environment variables are injected at container startup (not build time):
+| Topic | Link |
+|-------|------|
+| Getting Started | [docs/getting-started/](https://github.com/astrateam-net/astradraw/tree/main/docs/getting-started) |
+| Architecture | [docs/architecture/](https://github.com/astrateam-net/astradraw/tree/main/docs/architecture) |
+| Features | [docs/features/](https://github.com/astrateam-net/astradraw/tree/main/docs/features) |
+| Deployment | [docs/deployment/](https://github.com/astrateam-net/astradraw/tree/main/docs/deployment) |
 
-- `excalidraw-app/env.ts` - Runtime env helper using `window.__ENV__`
-- `docker-entrypoint.sh` - Injects configuration into `index.html`
+## Project Structure
 
-### AstraDraw Components
-
-| Component | Location | Purpose |
-| --- | --- | --- |
-| Workspace | `excalidraw-app/components/Workspace/` | Scene management, auth |
-| Talktrack | `excalidraw-app/components/Talktrack/` | Video recording |
-| Presentation | `excalidraw-app/components/Presentation/` | Slideshow mode |
-| Stickers | `excalidraw-app/components/Stickers/` | GIPHY integration |
-| Pens | `excalidraw-app/pens/` | Custom pen presets |
-
-## Deployment
-
-For complete deployment with backend API, database, and Traefik proxy, see the [astradraw deployment repo](https://github.com/astrateam-net/astradraw).
+```
+frontend/
+├── excalidraw-app/           # AstraDraw application
+│   ├── components/           # React components
+│   │   ├── Workspace/        # Scene management, auth
+│   │   ├── Talktrack/        # Video recording
+│   │   ├── Presentation/     # Slideshow mode
+│   │   └── Stickers/         # GIPHY integration
+│   ├── pens/                 # Custom pen presets
+│   ├── auth/                 # Auth context and API
+│   └── data/                 # Storage backends
+├── packages/
+│   ├── excalidraw/           # Core React component
+│   ├── common/               # Shared utilities
+│   ├── element/              # Element types
+│   ├── math/                 # Math utilities
+│   └── utils/                # General utilities
+└── public/                   # Static assets
+```
 
 ## License
 
 MIT License - Based on [Excalidraw](https://github.com/excalidraw/excalidraw)
-
-## Links
-
-- **Main Repo**: [astradraw](https://github.com/astrateam-net/astradraw)
-- **Backend API**: [astradraw-api](https://github.com/astrateam-net/astradraw-api)
-- **Room Server**: [astradraw-room](https://github.com/astrateam-net/astradraw-room)
-- **Upstream**: [excalidraw/excalidraw](https://github.com/excalidraw/excalidraw)
-- **Docker Image**: [ghcr.io/astrateam-net/astradraw-app](https://github.com/astrateam-net/astradraw-app/pkgs/container/astradraw-app)

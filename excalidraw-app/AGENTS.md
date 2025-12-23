@@ -1,4 +1,4 @@
-# CLAUDE.md - AstraDraw App (Frontend)
+# AstraDraw Frontend - AI Context
 
 > This is the frontend component of [AstraDraw](https://github.com/astrateam-net/astradraw), a self-hosted Excalidraw fork.
 
@@ -16,11 +16,11 @@ This is a **monorepo** forked from Excalidraw with AstraDraw-specific additions:
 - **`packages/excalidraw/`** - Core React component library
 - **`packages/`** - Shared packages: `common`, `element`, `math`, `utils`
 
-## AstraDraw-Specific Patterns
+## Critical Patterns
 
 ### Input Fields
 
-Always stop keyboard event propagation to prevent canvas interference:
+Always stop keyboard event propagation to prevent canvas shortcuts from firing:
 
 ```typescript
 <input
@@ -38,12 +38,12 @@ Add keys to BOTH locale files:
 
 ### State Management
 
-- Use **Jotai** for shared state (see `excalidraw-app/` for examples)
+- Use **Jotai** for shared state (see `excalidraw-app/components/Settings/settingsState.ts`)
 - Use React hooks for component-local state
 
 ### API Calls
 
-Use the workspace API client with credentials:
+Always include credentials for JWT cookies:
 
 ```typescript
 import { getApiBaseUrl } from "../auth/workspaceApi";
@@ -53,27 +53,39 @@ fetch(`${getApiBaseUrl()}/endpoint`, {
 });
 ```
 
+### Dark Mode CSS
+
+Use both selectors for dark mode styles:
+
+```scss
+.excalidraw.theme--dark,
+.excalidraw-app.theme--dark {
+  // dark mode styles
+}
+```
+
 ## Development Commands
 
 ```bash
 yarn install           # Install dependencies
 yarn start             # Start dev server (http://localhost:5173)
 
-# Before committing:
+# Before committing (or use `just check-frontend` from main repo):
 yarn test:typecheck    # TypeScript type checking
 yarn test:other        # Prettier formatting check
 yarn test:code         # ESLint code quality
-yarn test:all          # All checks + unit tests
 yarn fix               # Auto-fix formatting and linting
 ```
 
-## Related Repositories
+## Key Files
 
-| Repo | Purpose |
-| --- | --- |
-| [astradraw](https://github.com/astrateam-net/astradraw) | Main orchestration, Docker deployment |
-| [astradraw-api](https://github.com/astrateam-net/astradraw-api) | Backend API (NestJS) |
-| [astradraw-room](https://github.com/astrateam-net/astradraw-room) | WebSocket collaboration |
+| File | Purpose |
+|------|---------|
+| `excalidraw-app/App.tsx` | Main app entry point |
+| `excalidraw-app/components/Settings/settingsState.ts` | Jotai state atoms |
+| `excalidraw-app/router.ts` | URL routing logic |
+| `excalidraw-app/auth/workspaceApi.ts` | Backend API client |
+| `excalidraw-app/env.ts` | Runtime environment helper |
 
 ## Architecture Notes
 
@@ -81,17 +93,10 @@ yarn fix               # Auto-fix formatting and linting
 
 - `excalidraw-app/data/StorageBackend.ts` - Interface for storage providers
 - `excalidraw-app/data/httpStorage.ts` - HTTP storage implementation (AstraDraw)
-- `excalidraw-app/data/firebase.ts` - Firebase implementation (upstream)
 
 ### Runtime Environment
 
 Environment variables are injected at container startup (not build time):
 
-- `excalidraw-app/env.ts` - Runtime env helper using `window.__ENV__`
-- `docker-entrypoint.sh` - Injects config into `index.html`
-
-### Package System
-
-- Uses Yarn workspaces for monorepo management
-- Internal packages use path aliases (see `vitest.config.mts`)
-- Build system uses esbuild for packages, Vite for the app
+- `excalidraw-app/env.ts` - Uses `window.__ENV__` with `import.meta.env` fallback
+- `docker-entrypoint.sh` - Generates `/env-config.js` at startup

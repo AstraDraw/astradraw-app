@@ -12,6 +12,7 @@ import { useScenesCache } from "../../hooks/useScenesCache";
 import { useSceneActions } from "../../hooks/useSceneActions";
 
 import { SceneCardGrid } from "./SceneCardGrid";
+import { SceneCardSkeletonGrid } from "../Skeletons";
 
 import "./DashboardView.scss";
 
@@ -93,9 +94,24 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   if (isLoading) {
     return (
       <div className="dashboard-view">
-        <div className="dashboard-view__loading">
-          <div className="dashboard-view__spinner" />
-        </div>
+        {/* Header */}
+        <header className="dashboard-view__header">
+          <div className="dashboard-view__title-row">
+            <span className="dashboard-view__icon">{dashboardIcon}</span>
+            <h1 className="dashboard-view__title">{t("workspace.dashboard")}</h1>
+          </div>
+        </header>
+
+        {/* Separator after header */}
+        <div className="dashboard-view__separator" />
+
+        {/* Loading skeleton for recently modified section */}
+        <section className="dashboard-view__section">
+          <h2 className="dashboard-view__section-title">
+            {t("workspace.recentlyModified")}
+          </h2>
+          <SceneCardSkeletonGrid count={6} />
+        </section>
       </div>
     );
   }

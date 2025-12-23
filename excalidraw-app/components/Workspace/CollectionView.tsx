@@ -16,6 +16,7 @@ import { useScenesCache } from "../../hooks/useScenesCache";
 import { useSceneActions } from "../../hooks/useSceneActions";
 
 import { SceneCardGrid } from "./SceneCardGrid";
+import { SceneCardSkeletonGrid } from "../Skeletons";
 
 import "./CollectionView.scss";
 
@@ -153,8 +154,20 @@ export const CollectionView: React.FC<CollectionViewProps> = ({
   if (isLoading) {
     return (
       <div className="collection-view">
-        <div className="collection-view__loading">
-          <div className="collection-view__spinner" />
+        {/* Header */}
+        <header className="collection-view__header">
+          <div className="collection-view__title-row">
+            {renderCollectionIcon()}
+            <h1 className="collection-view__title">{collectionName}</h1>
+          </div>
+        </header>
+
+        {/* Separator after header */}
+        <div className="collection-view__separator" />
+
+        {/* Loading skeleton */}
+        <div className="collection-view__content">
+          <SceneCardSkeletonGrid count={6} />
         </div>
       </div>
     );

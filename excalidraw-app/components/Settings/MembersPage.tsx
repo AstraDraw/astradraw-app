@@ -9,6 +9,7 @@ import {
   type WorkspaceMember,
   type WorkspaceRole,
 } from "../../auth/workspaceApi";
+import { showSuccess } from "../../utils/toast";
 
 import "./MembersPage.scss";
 
@@ -29,7 +30,6 @@ export const MembersPage: React.FC<MembersPageProps> = ({
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [inviteLink, setInviteLink] = useState<string | null>(null);
   const [inviteRole, setInviteRole] = useState<WorkspaceRole>("MEMBER");
@@ -117,11 +117,6 @@ export const MembersPage: React.FC<MembersPageProps> = ({
     }
   };
 
-  const showSuccess = (message: string) => {
-    setSuccessMessage(message);
-    setTimeout(() => setSuccessMessage(null), 3000);
-  };
-
   const getInitials = (name: string | null, email: string): string => {
     if (name) {
       return name
@@ -202,10 +197,7 @@ export const MembersPage: React.FC<MembersPageProps> = ({
         {/* Separator after header */}
         <div className="members-page__separator" />
 
-        {/* Success/Error messages */}
-        {successMessage && (
-          <div className="members-page__success">{successMessage}</div>
-        )}
+        {/* Error messages */}
         {error && <div className="members-page__error-inline">{error}</div>}
 
         {/* Search */}

@@ -22,6 +22,7 @@ import {
   type CollectionTeamAccess,
 } from "../../auth/workspaceApi";
 import { EmojiPicker } from "../EmojiPicker";
+import { showSuccess } from "../../utils/toast";
 
 import { collectionsRefreshAtom } from "./settingsState";
 
@@ -73,7 +74,6 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Team dialog state
   const [showTeamDialog, setShowTeamDialog] = useState(false);
@@ -155,11 +155,6 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
   useEffect(() => {
     loadData();
   }, [loadData, collectionsRefresh]);
-
-  const showSuccess = (message: string) => {
-    setSuccessMessage(message);
-    setTimeout(() => setSuccessMessage(null), 3000);
-  };
 
   // Calculate effective member count (explicit members + admins)
   const getEffectiveMemberCount = useCallback(
@@ -463,12 +458,7 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
         {/* Separator after header */}
         <div className="teams-collections-page__separator" />
 
-        {/* Success/Error messages */}
-        {successMessage && (
-          <div className="teams-collections-page__success">
-            {successMessage}
-          </div>
-        )}
+        {/* Error messages */}
         {error && (
           <div className="teams-collections-page__error-inline">{error}</div>
         )}
