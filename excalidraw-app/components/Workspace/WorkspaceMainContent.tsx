@@ -7,6 +7,7 @@ import { useAtomValue } from "../../app-jotai";
 import {
   dashboardViewAtom,
   activeCollectionIdAtom,
+  searchQueryAtom,
 } from "../Settings/settingsState";
 
 import { ProfilePage } from "../Settings/ProfilePage";
@@ -17,6 +18,7 @@ import { TeamsCollectionsPage } from "../Settings/TeamsCollectionsPage";
 
 import { DashboardView } from "./DashboardView";
 import { CollectionView } from "./CollectionView";
+import { SearchResultsView } from "./SearchResultsView";
 
 import "./WorkspaceMainContent.scss";
 
@@ -45,6 +47,7 @@ export const WorkspaceMainContent: React.FC<WorkspaceMainContentProps> = ({
 }) => {
   const dashboardView = useAtomValue(dashboardViewAtom);
   const activeCollectionId = useAtomValue(activeCollectionIdAtom);
+  const searchQuery = useAtomValue(searchQueryAtom);
 
   // Find the active collection
   const activeCollection = useMemo(() => {
@@ -53,6 +56,15 @@ export const WorkspaceMainContent: React.FC<WorkspaceMainContentProps> = ({
     }
     return collections.find((c) => c.id === activeCollectionId) || null;
   }, [activeCollectionId, collections]);
+
+  // If there's a search query, show search results instead of normal content
+  if (searchQuery.trim()) {
+    return (
+      <div className="workspace-main-content">
+        <SearchResultsView workspace={workspace} />
+      </div>
+    );
+  }
 
   const renderContent = () => {
     switch (dashboardView) {

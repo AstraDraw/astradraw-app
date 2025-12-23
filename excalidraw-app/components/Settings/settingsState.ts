@@ -268,3 +268,15 @@ export const scenesRefreshAtom = atom(0);
 export const triggerScenesRefreshAtom = atom(null, (get, set) => {
   set(scenesRefreshAtom, get(scenesRefreshAtom) + 1);
 });
+
+/**
+ * Quick Search modal visibility state
+ * Controls whether the Quick Search overlay is shown
+ */
+export const quickSearchOpenAtom = atom<boolean>(false);
+
+/**
+ * Search query for dashboard search
+ * When not empty, WorkspaceMainContent shows SearchResultsView instead of normal content
+ */
+export const searchQueryAtom = atom<string>("");

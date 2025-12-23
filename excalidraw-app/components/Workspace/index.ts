@@ -12,3 +12,5 @@ export { CollectionView } from "./CollectionView";
 export { WorkspaceMainContent } from "./WorkspaceMainContent";
 export { CopyMoveDialog } from "./CopyMoveDialog";
 export { InviteAcceptPage } from "./InviteAcceptPage";
+export { QuickSearchModal } from "./QuickSearchModal";
+export { SearchResultsView } from "./SearchResultsView";

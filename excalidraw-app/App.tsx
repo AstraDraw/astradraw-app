@@ -141,6 +141,7 @@ import {
   WorkspaceSidebar,
   WorkspaceSidebarTrigger,
   InviteAcceptPage,
+  QuickSearchModal,
 } from "./components/Workspace";
 
 import {
@@ -161,6 +162,7 @@ import {
   dashboardViewAtom,
   isPrivateCollectionAtom,
   isAutoCollabSceneAtom,
+  quickSearchOpenAtom,
 } from "./components/Settings";
 
 import { parseUrl, buildSceneUrl, type RouteType } from "./router";
@@ -434,6 +436,9 @@ const ExcalidrawWrapper = () => {
   const setIsAutoCollabScene = useSetAtom(isAutoCollabSceneAtom);
   const isAutoCollabScene = useAtomValue(isAutoCollabSceneAtom);
 
+  // Quick Search modal state
+  const setQuickSearchOpen = useSetAtom(quickSearchOpenAtom);
+
   // Auth state for auto-open on login
   const { isAuthenticated } = useAuth();
   const wasAuthenticated = useRef(false);
@@ -613,6 +618,14 @@ const ExcalidrawWrapper = () => {
       document.body.classList.remove("excalidraw-disabled");
     };
   }, [appMode]);
+
+  // Auto-open sidebar when switching to dashboard mode
+  // Dashboard mode requires the sidebar to be visible for navigation
+  useEffect(() => {
+    if (appMode === "dashboard" && !isLegacyMode) {
+      setWorkspaceSidebarOpen(true);
+    }
+  }, [appMode, isLegacyMode]);
 
   // initial state
   // ---------------------------------------------------------------------------
@@ -1880,6 +1893,34 @@ const ExcalidrawWrapper = () => {
     };
   }, [currentSceneId, excalidrawAPI, handleSaveToWorkspace]);
 
+  // Keyboard shortcut handler for Cmd+P (Quick Search)
+  // This works in both canvas and dashboard modes because both are always mounted (CSS Hide/Show pattern)
+  // Only available for authenticated users
+  useEffect(() => {
+    if (!isAuthenticated) {
+      return; // Don't register hotkey for unauthenticated users
+    }
+
+    const handleQuickSearchHotkey = (e: KeyboardEvent) => {
+      // Cmd+P (Mac) or Ctrl+P (Windows/Linux)
+      if ((e.metaKey || e.ctrlKey) && e.key === "p") {
+        e.preventDefault(); // Prevent browser print dialog
+        e.stopPropagation();
+        setQuickSearchOpen(true);
+      }
+    };
+
+    // Use capture phase to intercept before other handlers
+    window.addEventListener("keydown", handleQuickSearchHotkey, {
+      capture: true,
+    });
+    return () => {
+      window.removeEventListener("keydown", handleQuickSearchHotkey, {
+        capture: true,
+      });
+    };
+  }, [isAuthenticated, setQuickSearchOpen]);
+
   // Handle invite link success - navigate to the joined workspace's dashboard
   const handleInviteSuccess = useCallback(
     (workspace: Workspace) => {
@@ -1964,6 +2005,12 @@ const ExcalidrawWrapper = () => {
             setCurrentSceneTitleAtom(newTitle);
           }}
         />
+      )}
+
+      {/* Quick Search Modal - works in both canvas and dashboard modes */}
+      {/* Only available for authenticated users */}
+      {!isLegacyMode && isAuthenticated && (
+        <QuickSearchModal workspace={currentWorkspace} />
       )}
 
       {/* Dashboard Content - hidden when in canvas mode */}

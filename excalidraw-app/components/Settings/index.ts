@@ -27,6 +27,8 @@ export {
   currentSceneTitleAtom,
   isPrivateCollectionAtom,
   isAutoCollabSceneAtom,
+  quickSearchOpenAtom,
+  searchQueryAtom,
   type AppMode,
   type SidebarMode,
   type DashboardView,

@@ -43,6 +43,7 @@ import {
   triggerScenesRefreshAtom,
   scenesRefreshAtom,
   currentWorkspaceSlugAtom,
+  searchQueryAtom,
 } from "../Settings/settingsState";
 
 import { EmojiPicker } from "../EmojiPicker";
@@ -166,7 +167,8 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
   const [editingCollection, setEditingCollection] = useState<Collection | null>(
     null,
   );
-  const [searchQuery, setSearchQuery] = useState("");
+  // Use global search query atom for dashboard search integration
+  const [searchQuery, setSearchQuery] = useAtom(searchQueryAtom);
   const [workspaceMenuOpen, setWorkspaceMenuOpen] = useState(false);
   const [showCreateWorkspace, setShowCreateWorkspace] = useState(false);
   const [newWorkspaceName, setNewWorkspaceName] = useState("");
