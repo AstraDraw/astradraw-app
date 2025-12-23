@@ -9,10 +9,13 @@
  * - ESC key cancels comment mode
  */
 
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState } from "react";
 import { viewportCoordsToSceneCoords } from "@excalidraw/common";
 
-import type { AppState } from "@excalidraw/excalidraw/types";
+import type {
+  AppState,
+  ExcalidrawImperativeAPI,
+} from "@excalidraw/excalidraw/types";
 
 import { useAtomValue, useSetAtom } from "../../../app-jotai";
 import {
@@ -24,16 +27,35 @@ import {
 import styles from "./CommentCreationOverlay.module.scss";
 
 export interface CommentCreationOverlayProps {
-  /** Excalidraw app state (for coordinate transformation) */
-  appState: AppState | undefined;
+  /** Excalidraw API for getting app state */
+  excalidrawAPI: ExcalidrawImperativeAPI | null;
 }
 
 export function CommentCreationOverlay({
-  appState,
+  excalidrawAPI,
 }: CommentCreationOverlayProps) {
   const isCommentMode = useAtomValue(isCommentModeAtom);
   const startCommentCreation = useSetAtom(startCommentCreationAtom);
   const cancelCommentCreation = useSetAtom(cancelCommentCreationAtom);
+
+  // Local state for appState
+  const [appState, setAppState] = useState<AppState | null>(null);
+
+  // Get app state when needed
+  useEffect(() => {
+    if (!excalidrawAPI || !isCommentMode) {
+      return;
+    }
+
+    setAppState(excalidrawAPI.getAppState());
+
+    // Subscribe to scroll/zoom changes
+    const unsubscribe = excalidrawAPI.onScrollChange(() => {
+      setAppState(excalidrawAPI.getAppState());
+    });
+
+    return unsubscribe;
+  }, [excalidrawAPI, isCommentMode]);
 
   // Handle click to create comment
   const handleClick = useCallback(

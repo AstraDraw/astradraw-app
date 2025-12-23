@@ -138,6 +138,23 @@ export const MentionInput = forwardRef<MentionInputHandle, MentionInputProps>(
       [value, onChange, mentionStartIndex],
     );
 
+    // Auto-resize textarea based on content
+    const autoResize = useCallback(() => {
+      const textarea = textareaRef.current;
+      if (!textarea) return;
+
+      // Reset height to auto to get the correct scrollHeight
+      textarea.style.height = "auto";
+      // Set height to scrollHeight (content height)
+      const newHeight = Math.min(textarea.scrollHeight, 120); // max 120px
+      textarea.style.height = `${newHeight}px`;
+    }, []);
+
+    // Auto-resize when value changes
+    useEffect(() => {
+      autoResize();
+    }, [value, autoResize]);
+
     // Handle text input
     const handleChange = useCallback(
       (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -305,8 +322,6 @@ export const MentionInput = forwardRef<MentionInputHandle, MentionInputProps>(
       }
     }, [selectedIndex, showDropdown]);
 
-    const hasMentionableMembers = members.length > 0;
-
     return (
       <div className={styles.container}>
         <textarea
@@ -321,21 +336,6 @@ export const MentionInput = forwardRef<MentionInputHandle, MentionInputProps>(
           autoFocus={autoFocus}
           rows={1}
         />
-
-        {/* @ button */}
-        <button
-          type="button"
-          className={styles.atButton}
-          onClick={handleAtButtonClick}
-          disabled={disabled || !hasMentionableMembers}
-          title={
-            hasMentionableMembers
-              ? t("comments.mentionSomeone")
-              : t("comments.noMembersToMention")
-          }
-        >
-          @
-        </button>
 
         {/* Dropdown */}
         {showDropdown && (

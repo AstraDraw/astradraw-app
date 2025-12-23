@@ -149,20 +149,23 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
       // Select the thread to open popup
       selectThread(thread.id);
 
-      // Pan canvas to thread position
+      // Pan canvas to center the thread marker
       if (excalidrawAPI) {
         const appState = excalidrawAPI.getAppState();
         const { width, height } = appState;
-
-        // Calculate scroll position to center the thread
         const zoom = appState.zoom.value;
-        const scrollX = thread.x - width / (2 * zoom);
-        const scrollY = thread.y - height / (2 * zoom);
+
+        // In Excalidraw, scrollX/scrollY represent the offset of viewport from scene origin
+        // To center a point (thread.x, thread.y), we need:
+        // scrollX = -thread.x + (width / 2) / zoom
+        // This positions the thread at the center of the viewport
+        const scrollX = -thread.x + width / (2 * zoom);
+        const scrollY = -thread.y + height / (2 * zoom);
 
         excalidrawAPI.updateScene({
           appState: {
-            scrollX: -scrollX,
-            scrollY: -scrollY,
+            scrollX,
+            scrollY,
           },
         });
       }

@@ -15,7 +15,8 @@ $avatar-size: 24px;
   pointer-events: auto; // Enable clicks on markers
   cursor: pointer;
   z-index: 3;
-  transition: transform $transition-fast, z-index 0s;
+  transition: z-index 0s;
+  touch-action: none; // Prevent touch scrolling during drag
 
   // Offset so pin point is at the exact coordinate
   margin-left: -#{$pin-size * 0.5};
@@ -24,6 +25,16 @@ $avatar-size: 24px;
   &.hovered,
   &.selected {
     z-index: 20;
+  }
+
+  &.dragging {
+    z-index: 100;
+    cursor: grabbing;
+
+    .pin {
+      transform: rotate(-45deg) scale(1.1);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25), 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
   }
 }
 
@@ -76,6 +87,23 @@ $avatar-size: 24px;
   .marker.selected & {
     background: var(--color-surface-lowest, #fff);
     color: var(--color-primary, #6965db);
+  }
+}
+
+// Fade out animation for resolved markers
+.fadeOut {
+  animation: markerFadeOut 0.3s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes markerFadeOut {
+  from {
+    opacity: 1;
+    transform: translate(var(--x), var(--y)) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(var(--x), var(--y)) scale(0.8);
   }
 }
 

@@ -11,6 +11,7 @@ import {
   addComment,
   updateComment,
   deleteComment,
+  updateThread,
 } from "../auth/api/comments";
 
 import type {
@@ -97,6 +98,11 @@ interface UseCommentMutationsResult {
     threadId: string;
     resolved: boolean;
   }) => Promise<CommentThread>;
+  updateThreadPosition: (params: {
+    threadId: string;
+    x: number;
+    y: number;
+  }) => Promise<CommentThread>;
 
   // Comment operations
   addComment: (params: {
@@ -116,6 +122,7 @@ interface UseCommentMutationsResult {
   isCreatingThread: boolean;
   isDeletingThread: boolean;
   isAddingComment: boolean;
+  isUpdatingPosition: boolean;
 }
 
 /**
@@ -199,14 +206,72 @@ export function useCommentMutations(
       threadId: string;
       resolved: boolean;
     }) => (resolved ? reopenThread(threadId) : resolveThread(threadId)),
+    onMutate: async ({ threadId, resolved }) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey });
+
+      // Snapshot the previous value
+      const previous = queryClient.getQueryData<CommentThread[]>(queryKey);
+
+      // Optimistically update the resolved status
+      queryClient.setQueryData<CommentThread[]>(
+        queryKey,
+        (prev) =>
+          prev?.map((t) =>
+            t.id === threadId ? { ...t, resolved: !resolved } : t,
+          ) ?? [],
+      );
+
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      // Rollback on error
+      if (context?.previous) {
+        queryClient.setQueryData(queryKey, context.previous);
+      }
+    },
     onSuccess: (updatedThread) => {
-      // Update the thread in cache
+      // Update with server response to ensure consistency
       queryClient.setQueryData<CommentThread[]>(
         queryKey,
         (prev) =>
           prev?.map((t) => (t.id === updatedThread.id ? updatedThread : t)) ??
           [],
       );
+    },
+    onSettled: () => {
+      // Invalidate to refetch fresh data
+      queryClient.invalidateQueries({ queryKey: queryKeys.commentThreads.all });
+    },
+  });
+
+  // -------------------------------------------------------------------------
+  // Update Thread Position (for drag-to-move)
+  // -------------------------------------------------------------------------
+  const updatePositionMutation = useMutation({
+    mutationFn: ({ threadId, x, y }: { threadId: string; x: number; y: number }) =>
+      updateThread(threadId, { x, y }),
+    onMutate: async ({ threadId, x, y }) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey });
+
+      // Snapshot the previous value
+      const previous = queryClient.getQueryData<CommentThread[]>(queryKey);
+
+      // Optimistically update the thread position
+      queryClient.setQueryData<CommentThread[]>(
+        queryKey,
+        (prev) =>
+          prev?.map((t) => (t.id === threadId ? { ...t, x, y } : t)) ?? [],
+      );
+
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      // Rollback on error
+      if (context?.previous) {
+        queryClient.setQueryData(queryKey, context.previous);
+      }
     },
   });
 
@@ -313,6 +378,7 @@ export function useCommentMutations(
       await deleteMutation.mutateAsync(threadId);
     },
     toggleResolved: resolveMutation.mutateAsync,
+    updateThreadPosition: updatePositionMutation.mutateAsync,
     addComment: addCommentMutation.mutateAsync,
     updateComment: updateCommentMutation.mutateAsync,
     deleteComment: async (params: { threadId: string; commentId: string }) => {
@@ -321,6 +387,7 @@ export function useCommentMutations(
     isCreatingThread: createMutation.isPending,
     isDeletingThread: deleteMutation.isPending,
     isAddingComment: addCommentMutation.isPending,
+    isUpdatingPosition: updatePositionMutation.isPending,
   };
 }
 

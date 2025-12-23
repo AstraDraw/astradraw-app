@@ -1809,18 +1809,18 @@ const ExcalidrawWrapper = () => {
             <>
               <ThreadMarkersLayer
                 sceneId={currentSceneId}
-                appState={excalidrawAPI?.getAppState()}
+                excalidrawAPI={excalidrawAPI}
               />
-              <CommentCreationOverlay appState={excalidrawAPI?.getAppState()} />
+              <CommentCreationOverlay excalidrawAPI={excalidrawAPI} />
               <ThreadPopup
                 sceneId={currentSceneId}
                 workspaceId={currentWorkspace?.id}
-                appState={excalidrawAPI?.getAppState()}
+                excalidrawAPI={excalidrawAPI}
               />
               <NewThreadPopup
                 sceneId={currentSceneId}
                 workspaceId={currentWorkspace?.id}
-                appState={excalidrawAPI?.getAppState()}
+                excalidrawAPI={excalidrawAPI}
               />
             </>
           )}

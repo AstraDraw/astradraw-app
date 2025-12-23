@@ -114,7 +114,7 @@ export function ThreadPopupHeader({
         >
           <button
             type="button"
-            className={`${styles.actionButton} ${
+            className={`${styles.actionButton} ${styles.resolveButton} ${
               thread.resolved ? styles.active : ""
             }`}
             onClick={onResolve}

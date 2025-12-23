@@ -5,7 +5,7 @@
  * Supports editing and deleting own comments.
  */
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 
 import { useAuth } from "../../../auth/AuthContext";
@@ -14,6 +14,11 @@ import { useCommentMutations } from "../../../hooks/useCommentThreads";
 import styles from "./CommentItem.module.scss";
 
 import type { Comment } from "../../../auth/api/types";
+
+interface MenuPosition {
+  top: number;
+  left: number;
+}
 
 export interface CommentItemProps {
   /** The comment to display */
@@ -88,8 +93,10 @@ function parseContent(content: string): React.ReactNode[] {
 export function CommentItem({ comment, threadId, sceneId }: CommentItemProps) {
   const { user } = useAuth();
   const [showMenu, setShowMenu] = useState(false);
+  const [menuPosition, setMenuPosition] = useState<MenuPosition | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(comment.content);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
 
   const { updateComment, deleteComment } = useCommentMutations(sceneId);
 
@@ -104,6 +111,17 @@ export function CommentItem({ comment, threadId, sceneId }: CommentItemProps) {
     () => parseContent(comment.content),
     [comment.content],
   );
+
+  // Calculate menu position when showing
+  useEffect(() => {
+    if (showMenu && menuButtonRef.current) {
+      const rect = menuButtonRef.current.getBoundingClientRect();
+      setMenuPosition({
+        top: rect.bottom + 4,
+        left: rect.right - 140, // Menu width ~140px, align right edge
+      });
+    }
+  }, [showMenu]);
 
   // Toggle menu
   const handleMenuToggle = useCallback(() => {
@@ -155,6 +173,21 @@ export function CommentItem({ comment, threadId, sceneId }: CommentItemProps) {
     setShowMenu(false);
   }, [threadId, comment.id, deleteComment]);
 
+  // Copy link to comment
+  const handleCopyLink = useCallback(async () => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("thread", threadId);
+    url.searchParams.set("comment", comment.id);
+
+    try {
+      await navigator.clipboard.writeText(url.toString());
+      // Could show a toast here
+    } catch (err) {
+      console.error("Failed to copy link:", err);
+    }
+    setShowMenu(false);
+  }, [threadId, comment.id]);
+
   // Handle key events in edit mode
   const handleEditKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -195,6 +228,7 @@ export function CommentItem({ comment, threadId, sceneId }: CommentItemProps) {
         {isOwner && (
           <div className={styles.menuContainer}>
             <button
+              ref={menuButtonRef}
               type="button"
               className={styles.menuButton}
               onClick={handleMenuToggle}
@@ -203,13 +237,19 @@ export function CommentItem({ comment, threadId, sceneId }: CommentItemProps) {
               <MoreIcon />
             </button>
 
-            {showMenu && (
+            {showMenu && menuPosition && (
               <>
                 <div
                   className={styles.menuBackdrop}
                   onClick={handleMenuClose}
                 />
-                <div className={styles.menu}>
+                <div
+                  className={styles.menu}
+                  style={{
+                    top: menuPosition.top,
+                    left: menuPosition.left,
+                  }}
+                >
                   <button
                     type="button"
                     className={styles.menuItem}
@@ -217,6 +257,14 @@ export function CommentItem({ comment, threadId, sceneId }: CommentItemProps) {
                   >
                     <EditIcon />
                     {t("comments.edit")}
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.menuItem}
+                    onClick={handleCopyLink}
+                  >
+                    <CopyLinkIcon />
+                    {t("comments.copyLink")}
                   </button>
                   <button
                     type="button"
@@ -297,6 +345,24 @@ function EditIcon() {
     >
       <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
       <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+    </svg>
+  );
+}
+
+function CopyLinkIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
     </svg>
   );
 }

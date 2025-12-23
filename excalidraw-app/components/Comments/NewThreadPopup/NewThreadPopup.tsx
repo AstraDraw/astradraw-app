@@ -5,11 +5,14 @@
  * Shows an input for the first comment, then creates the thread.
  */
 
-import { useRef, useEffect, useCallback } from "react";
+import { useRef, useEffect, useCallback, useState } from "react";
 import { sceneCoordsToViewportCoords } from "@excalidraw/common";
 import { t } from "@excalidraw/excalidraw/i18n";
 
-import type { AppState } from "@excalidraw/excalidraw/types";
+import type {
+  AppState,
+  ExcalidrawImperativeAPI,
+} from "@excalidraw/excalidraw/types";
 
 import { useAtomValue, useSetAtom } from "../../../app-jotai";
 import {
@@ -26,20 +29,40 @@ export interface NewThreadPopupProps {
   sceneId: string;
   /** Workspace ID for @mentions */
   workspaceId: string | undefined;
-  /** Excalidraw app state (for coordinate transformation) */
-  appState: AppState | undefined;
+  /** Excalidraw API for getting app state */
+  excalidrawAPI: ExcalidrawImperativeAPI | null;
 }
 
 export function NewThreadPopup({
   sceneId,
   workspaceId,
-  appState,
+  excalidrawAPI,
 }: NewThreadPopupProps) {
   const pendingPosition = useAtomValue(pendingCommentPositionAtom);
   const cancelCreation = useSetAtom(cancelCommentCreationAtom);
   const popupRef = useRef<HTMLDivElement>(null);
 
   const { createThread, isCreatingThread } = useCommentMutations(sceneId);
+
+  // Local state for appState - updated on scroll/zoom changes
+  const [appState, setAppState] = useState<AppState | null>(null);
+
+  // Subscribe to scroll/zoom changes for real-time popup position updates
+  useEffect(() => {
+    if (!excalidrawAPI) {
+      return;
+    }
+
+    // Get initial state
+    setAppState(excalidrawAPI.getAppState());
+
+    // Subscribe to scroll/zoom changes
+    const unsubscribe = excalidrawAPI.onScrollChange(() => {
+      setAppState(excalidrawAPI.getAppState());
+    });
+
+    return unsubscribe;
+  }, [excalidrawAPI]);
 
   // Handle click outside to close
   useEffect(() => {

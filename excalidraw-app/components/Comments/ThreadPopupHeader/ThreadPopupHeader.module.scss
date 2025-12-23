@@ -1,5 +1,6 @@
 // ThreadPopupHeader styles
 // Header bar with navigation and action buttons
+// Reference: flex justify-between, border-b, px-3 py-2
 
 @use "../../../styles/mixins" as *;
 @use "../../../styles/variables" as *;
@@ -8,36 +9,48 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: $spacing-sm $spacing-sm;
+  padding: 8px 12px; // py-2 px-3
   border-bottom: 1px solid var(--color-border, #e5e5e5);
-  gap: $spacing-sm;
+  background: #fff; // White header
 }
 
 .leftActions,
 .rightActions {
   display: flex;
   align-items: center;
-  gap: 2px;
 }
 
-// Navigation buttons
+.leftActions {
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.rightActions {
+  gap: 4px; // gap-1
+}
+
+// Navigation buttons - h-6 w-6, p-1, rounded
 .navButton {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  padding: 0;
+  width: 24px;
+  height: 24px;
+  padding: 4px;
   border: none;
-  border-radius: $radius-sm;
+  border-radius: 4px;
   background: transparent;
-  color: var(--color-text-secondary, #666);
+  color: var(--color-text-primary, #333);
   cursor: pointer;
-  transition: background $transition-fast, color $transition-fast;
+  transition: background 0.1s ease;
+
+  &:first-child {
+    margin-left: 6px; // ml-1.5
+    margin-right: 8px; // mr-2
+  }
 
   &:hover:not(:disabled) {
     background: var(--color-surface-high, #f0f0f0);
-    color: var(--color-text-primary, #333);
   }
 
   &:disabled {
@@ -46,24 +59,29 @@
   }
 }
 
-// Action buttons (resolve, link, delete, close)
+// Action buttons (resolve, link, delete, close) - h-6 w-6, p-1, rounded
 .actionButton {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  padding: 0;
+  width: 24px;
+  height: 24px;
+  padding: 4px;
   border: none;
-  border-radius: $radius-sm;
+  border-radius: 4px;
   background: transparent;
-  color: var(--color-text-secondary, #666);
+  color: var(--color-text-primary, #333);
   cursor: pointer;
-  transition: background $transition-fast, color $transition-fast;
+  transition: background 0.1s ease, color 0.1s ease;
 
   &:hover {
     background: var(--color-surface-high, #f0f0f0);
-    color: var(--color-text-primary, #333);
+  }
+
+  // Resolve button special hover - hover:bg-primary hover:text-white
+  &.resolveButton:hover {
+    background: var(--color-primary, #6965db);
+    color: white;
   }
 
   // Resolved state (checkmark active)
@@ -87,7 +105,7 @@
 
 // Delete confirmation overlay
 .confirmOverlay {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
@@ -96,8 +114,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 10;
-  border-radius: $radius-lg;
+  z-index: 1000;
 }
 
 .confirmDialog {
@@ -162,16 +179,21 @@
 @include dark-mode {
   .header {
     border-bottom-color: var(--color-border-dark, #4a4a4f);
+    background: #232329; // Dark header
   }
 
   .navButton,
   .actionButton {
-    color: var(--color-text-secondary-dark, #aaa);
+    color: var(--color-text-primary-dark, #fff);
 
     &:hover:not(:disabled) {
       background: var(--color-surface-higher, #4a4a4f);
-      color: var(--color-text-primary-dark, #fff);
     }
+  }
+
+  .actionButton.resolveButton:hover {
+    background: var(--color-primary, #6965db);
+    color: white;
   }
 
   .actionButton.active {
