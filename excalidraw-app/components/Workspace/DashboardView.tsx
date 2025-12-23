@@ -1,21 +1,15 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 
 import { useAtomValue, useSetAtom } from "../../app-jotai";
-import {
-  deleteScene as deleteSceneApi,
-  updateScene as updateSceneApi,
-  duplicateScene as duplicateSceneApi,
-  type WorkspaceScene,
-  type Workspace,
-} from "../../auth/workspaceApi";
+import { type WorkspaceScene, type Workspace } from "../../auth/workspaceApi";
 import {
   navigateToCanvasAtom,
   navigateToSceneAtom,
   currentWorkspaceSlugAtom,
-  triggerScenesRefreshAtom,
 } from "../Settings/settingsState";
 import { useScenesCache } from "../../hooks/useScenesCache";
+import { useSceneActions } from "../../hooks/useSceneActions";
 
 import { SceneCardGrid } from "./SceneCardGrid";
 
@@ -49,13 +43,21 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const navigateToCanvas = useSetAtom(navigateToCanvasAtom);
   const navigateToScene = useSetAtom(navigateToSceneAtom);
   const workspaceSlug = useAtomValue(currentWorkspaceSlugAtom);
-  const triggerScenesRefresh = useSetAtom(triggerScenesRefreshAtom);
 
   // Use shared scenes cache - fetch all scenes for workspace (no collection filter)
-  const { scenes: allScenes, isLoading, updateScenes } = useScenesCache({
+  const {
+    scenes: allScenes,
+    isLoading,
+    updateScenes,
+  } = useScenesCache({
     workspaceId: workspace?.id,
     collectionId: null, // null = all scenes
     enabled: !!workspace?.id,
+  });
+
+  // Scene actions hook - centralized delete/rename/duplicate logic
+  const { deleteScene, renameScene, duplicateScene } = useSceneActions({
+    updateScenes,
   });
 
   // Derive recently modified and visited from cached scenes
@@ -73,55 +75,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       recentlyVisited: sortedByModified.slice(0, 6),
     };
   }, [allScenes]);
-
-  // Handlers - update shared cache so all components stay in sync
-  const handleDeleteScene = useCallback(
-    async (sceneId: string) => {
-      if (!confirm(t("workspace.confirmDeleteScene"))) {
-        return;
-      }
-
-      try {
-        await deleteSceneApi(sceneId);
-        updateScenes((prev) => prev.filter((s) => s.id !== sceneId));
-        triggerScenesRefresh(); // Notify other components
-      } catch (err) {
-        console.error("Failed to delete scene:", err);
-        alert("Failed to delete scene");
-      }
-    },
-    [updateScenes, triggerScenesRefresh],
-  );
-
-  const handleRenameScene = useCallback(
-    async (sceneId: string, newTitle: string) => {
-      try {
-        const updatedScene = await updateSceneApi(sceneId, { title: newTitle });
-        updateScenes((prev) =>
-          prev.map((s) => (s.id === sceneId ? updatedScene : s)),
-        );
-        triggerScenesRefresh(); // Notify other components
-      } catch (err) {
-        console.error("Failed to rename scene:", err);
-        alert("Failed to rename scene");
-      }
-    },
-    [updateScenes, triggerScenesRefresh],
-  );
-
-  const handleDuplicateScene = useCallback(
-    async (sceneId: string) => {
-      try {
-        const newScene = await duplicateSceneApi(sceneId);
-        updateScenes((prev) => [newScene, ...prev]);
-        triggerScenesRefresh(); // Notify other components
-      } catch (err) {
-        console.error("Failed to duplicate scene:", err);
-        alert("Failed to duplicate scene");
-      }
-    },
-    [updateScenes, triggerScenesRefresh],
-  );
 
   // Navigate to scene via URL - this triggers the popstate handler which loads the scene
   const handleOpenScene = useCallback(
@@ -182,9 +135,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <SceneCardGrid
           scenes={recentlyModified}
           onOpenScene={handleOpenScene}
-          onDeleteScene={handleDeleteScene}
-          onRenameScene={handleRenameScene}
-          onDuplicateScene={handleDuplicateScene}
+          onDeleteScene={deleteScene}
+          onRenameScene={renameScene}
+          onDuplicateScene={duplicateScene}
           emptyMessage={t("workspace.noScenes")}
           emptyHint={t("workspace.noScenesHint")}
         />
@@ -198,9 +151,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <SceneCardGrid
           scenes={recentlyVisited}
           onOpenScene={handleOpenScene}
-          onDeleteScene={handleDeleteScene}
-          onRenameScene={handleRenameScene}
-          onDuplicateScene={handleDuplicateScene}
+          onDeleteScene={deleteScene}
+          onRenameScene={renameScene}
+          onDuplicateScene={duplicateScene}
           emptyMessage={t("workspace.noRecentlyVisited")}
         />
       </section>

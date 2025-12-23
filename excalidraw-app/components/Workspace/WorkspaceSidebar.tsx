@@ -16,15 +16,13 @@ import {
   createCollection,
   createWorkspace,
   updateCollection,
-  deleteScene as deleteSceneApi,
-  updateScene as updateSceneApi,
-  duplicateScene as duplicateSceneApi,
   deleteCollection as deleteCollectionApi,
   type WorkspaceScene,
   type Workspace,
   type Collection,
   type WorkspaceType,
 } from "../../auth/workspaceApi";
+import { useSceneActions } from "../../hooks/useSceneActions";
 
 import {
   navigateToDashboardAtom,
@@ -40,7 +38,6 @@ import {
   sidebarModeAtom,
   dashboardViewAtom,
   triggerCollectionsRefreshAtom,
-  triggerScenesRefreshAtom,
   scenesRefreshAtom,
   currentWorkspaceSlugAtom,
   searchQueryAtom,
@@ -142,7 +139,6 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
   const navigateToTeamsCollections = useSetAtom(navigateToTeamsCollectionsAtom);
   const navigateToScene = useSetAtom(navigateToSceneAtom);
   const triggerCollectionsRefresh = useSetAtom(triggerCollectionsRefreshAtom);
-  const triggerScenesRefresh = useSetAtom(triggerScenesRefreshAtom);
   // Subscribe to scenes refresh trigger from other components (e.g., App.tsx)
   const scenesRefresh = useAtomValue(scenesRefreshAtom);
   // Sync workspace slug with URL router
@@ -252,7 +248,9 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
         return;
       }
 
-      const collectionKey = `${currentWorkspace.id}:${activeCollectionId || "all"}`;
+      const collectionKey = `${currentWorkspace.id}:${
+        activeCollectionId || "all"
+      }`;
       const cachedScenes = scenesCacheRef.current.get(collectionKey);
 
       // If we have cached data, show it immediately (no spinner)
@@ -298,23 +296,28 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
   );
 
   // Invalidate cache for a specific collection (call after create/delete/move)
-  const invalidateScenesCache = useCallback((collectionId?: string) => {
-    if (!currentWorkspace) return;
-    
-    if (collectionId) {
-      // Invalidate specific collection
-      scenesCacheRef.current.delete(`${currentWorkspace.id}:${collectionId}`);
-    } else {
-      // Invalidate all collections for this workspace
-      const keysToDelete: string[] = [];
-      scenesCacheRef.current.forEach((_, key) => {
-        if (key.startsWith(`${currentWorkspace.id}:`)) {
-          keysToDelete.push(key);
-        }
-      });
-      keysToDelete.forEach(key => scenesCacheRef.current.delete(key));
-    }
-  }, [currentWorkspace]);
+  const invalidateScenesCache = useCallback(
+    (collectionId?: string) => {
+      if (!currentWorkspace) {
+        return;
+      }
+
+      if (collectionId) {
+        // Invalidate specific collection
+        scenesCacheRef.current.delete(`${currentWorkspace.id}:${collectionId}`);
+      } else {
+        // Invalidate all collections for this workspace
+        const keysToDelete: string[] = [];
+        scenesCacheRef.current.forEach((_, key) => {
+          if (key.startsWith(`${currentWorkspace.id}:`)) {
+            keysToDelete.push(key);
+          }
+        });
+        keysToDelete.forEach((key) => scenesCacheRef.current.delete(key));
+      }
+    },
+    [currentWorkspace],
+  );
 
   // Initial load
   useEffect(() => {
@@ -397,7 +400,14 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
       loadScenes(forceRefresh);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, isAuthenticated, sidebarMode, activeCollectionId, currentWorkspace?.id, scenesRefresh]);
+  }, [
+    isOpen,
+    isAuthenticated,
+    sidebarMode,
+    activeCollectionId,
+    currentWorkspace?.id,
+    scenesRefresh,
+  ]);
 
   // Close menus when clicking outside
   useEffect(() => {
@@ -443,7 +453,9 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
         const newScenes = updater(prev);
         // Also update cache
         if (currentWorkspace) {
-          const collectionKey = `${currentWorkspace.id}:${activeCollectionId || "all"}`;
+          const collectionKey = `${currentWorkspace.id}:${
+            activeCollectionId || "all"
+          }`;
           scenesCacheRef.current.set(collectionKey, newScenes);
         }
         return newScenes;
@@ -452,61 +464,19 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
     [currentWorkspace, activeCollectionId],
   );
 
-  // Handlers
-  const handleDeleteScene = useCallback(
-    async (sceneId: string) => {
-      if (!confirm(t("workspace.confirmDeleteScene"))) {
-        return;
-      }
-
-      try {
-        await deleteSceneApi(sceneId);
-        updateScenesWithCache((prev) => prev.filter((s) => s.id !== sceneId));
-        // Trigger refresh for other components (e.g., DashboardView, CollectionView)
-        triggerScenesRefresh();
-      } catch (err) {
-        console.error("Failed to delete scene:", err);
-        alert("Failed to delete scene");
-      }
-    },
-    [updateScenesWithCache, triggerScenesRefresh],
-  );
-
-  const handleRenameScene = useCallback(
-    async (sceneId: string, newTitle: string) => {
-      try {
-        const updatedScene = await updateSceneApi(sceneId, { title: newTitle });
-        updateScenesWithCache((prev) =>
-          prev.map((s) => (s.id === sceneId ? updatedScene : s)),
-        );
+  // Scene actions hook - centralized delete/rename/duplicate logic
+  const { deleteScene, renameScene, duplicateScene } = useSceneActions({
+    updateScenes: updateScenesWithCache,
+    onSceneRenamed: useCallback(
+      (sceneId: string, newTitle: string) => {
         // Update the current scene title in the top-right indicator if this is the active scene
         if (sceneId === currentSceneId && onCurrentSceneTitleChange) {
           onCurrentSceneTitleChange(newTitle);
         }
-        // Trigger refresh for other components
-        triggerScenesRefresh();
-      } catch (err) {
-        console.error("Failed to rename scene:", err);
-        alert("Failed to rename scene");
-      }
-    },
-    [updateScenesWithCache, triggerScenesRefresh, currentSceneId, onCurrentSceneTitleChange],
-  );
-
-  const handleDuplicateScene = useCallback(
-    async (sceneId: string) => {
-      try {
-        const newScene = await duplicateSceneApi(sceneId);
-        updateScenesWithCache((prev) => [newScene, ...prev]);
-        // Trigger refresh for other components
-        triggerScenesRefresh();
-      } catch (err) {
-        console.error("Failed to duplicate scene:", err);
-        alert("Failed to duplicate scene");
-      }
-    },
-    [updateScenesWithCache, triggerScenesRefresh],
-  );
+      },
+      [currentSceneId, onCurrentSceneTitleChange],
+    ),
+  });
 
   const handleCreateCollection = useCallback(async () => {
     if (!currentWorkspace || !newCollectionName.trim()) {
@@ -918,9 +888,9 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
                 onBackClick={handleBackToDashboard}
                 onSceneClick={handleSceneClick}
                 onNewScene={onNewScene}
-                onDeleteScene={handleDeleteScene}
-                onRenameScene={handleRenameScene}
-                onDuplicateScene={handleDuplicateScene}
+                onDeleteScene={deleteScene}
+                onRenameScene={renameScene}
+                onDuplicateScene={duplicateScene}
                 authorName={user?.name || undefined}
               />
             ) : (

@@ -1,4 +1,5 @@
 import { useCallback, useState, useEffect, useRef } from "react";
+
 import { useAtomValue, useSetAtom } from "../app-jotai";
 import {
   scenesCacheAtom,
@@ -7,6 +8,7 @@ import {
   scenesRefreshAtom,
 } from "../components/Settings/settingsState";
 import { listWorkspaceScenes } from "../auth/workspaceApi";
+
 import type { WorkspaceScene } from "../auth/workspaceApi";
 
 interface UseScenesOptions {
@@ -146,4 +148,3 @@ export function useInvalidateScenesCache() {
     [invalidate],
   );
 }
-

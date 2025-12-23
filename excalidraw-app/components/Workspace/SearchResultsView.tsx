@@ -4,9 +4,6 @@ import { t } from "@excalidraw/excalidraw/i18n";
 import { useAtom, useAtomValue, useSetAtom } from "../../app-jotai";
 import {
   listWorkspaceScenes,
-  deleteScene as deleteSceneApi,
-  updateScene as updateSceneApi,
-  duplicateScene as duplicateSceneApi,
   type WorkspaceScene,
   type Workspace,
 } from "../../auth/workspaceApi";
@@ -14,9 +11,9 @@ import {
   searchQueryAtom,
   navigateToSceneAtom,
   currentWorkspaceSlugAtom,
-  triggerScenesRefreshAtom,
   scenesRefreshAtom,
 } from "../Settings/settingsState";
+import { useSceneActions } from "../../hooks/useSceneActions";
 
 import { SceneCardGrid } from "./SceneCardGrid";
 
@@ -46,7 +43,6 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({
   const [searchQuery, setSearchQuery] = useAtom(searchQueryAtom);
   const navigateToScene = useSetAtom(navigateToSceneAtom);
   const workspaceSlug = useAtomValue(currentWorkspaceSlugAtom);
-  const triggerScenesRefresh = useSetAtom(triggerScenesRefreshAtom);
   const scenesRefresh = useAtomValue(scenesRefreshAtom);
 
   const [allScenes, setAllScenes] = useState<WorkspaceScene[]>([]);
@@ -78,6 +74,19 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({
     loadScenes();
   }, [workspaceId, scenesRefresh]);
 
+  // Create updater function for useSceneActions
+  const updateScenes = useCallback(
+    (updater: (prev: WorkspaceScene[]) => WorkspaceScene[]) => {
+      setAllScenes(updater);
+    },
+    [],
+  );
+
+  // Scene actions hook - centralized delete/rename/duplicate logic
+  const { deleteScene, renameScene, duplicateScene } = useSceneActions({
+    updateScenes,
+  });
+
   // Filter scenes by search query
   const filteredScenes = useMemo(() => {
     if (!searchQuery.trim()) {
@@ -88,55 +97,6 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({
       scene.title.toLowerCase().includes(lowerQuery),
     );
   }, [allScenes, searchQuery]);
-
-  // Handlers
-  const handleDeleteScene = useCallback(
-    async (sceneId: string) => {
-      if (!confirm(t("workspace.confirmDeleteScene"))) {
-        return;
-      }
-
-      try {
-        await deleteSceneApi(sceneId);
-        setAllScenes((prev) => prev.filter((s) => s.id !== sceneId));
-        triggerScenesRefresh();
-      } catch (err) {
-        console.error("Failed to delete scene:", err);
-        alert("Failed to delete scene");
-      }
-    },
-    [triggerScenesRefresh],
-  );
-
-  const handleRenameScene = useCallback(
-    async (sceneId: string, newTitle: string) => {
-      try {
-        const updatedScene = await updateSceneApi(sceneId, { title: newTitle });
-        setAllScenes((prev) =>
-          prev.map((s) => (s.id === sceneId ? updatedScene : s)),
-        );
-        triggerScenesRefresh();
-      } catch (err) {
-        console.error("Failed to rename scene:", err);
-        alert("Failed to rename scene");
-      }
-    },
-    [triggerScenesRefresh],
-  );
-
-  const handleDuplicateScene = useCallback(
-    async (sceneId: string) => {
-      try {
-        const newScene = await duplicateSceneApi(sceneId);
-        setAllScenes((prev) => [newScene, ...prev]);
-        triggerScenesRefresh();
-      } catch (err) {
-        console.error("Failed to duplicate scene:", err);
-        alert("Failed to duplicate scene");
-      }
-    },
-    [triggerScenesRefresh],
-  );
 
   // Navigate to scene via URL
   const handleOpenScene = useCallback(
@@ -218,9 +178,9 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({
           <SceneCardGrid
             scenes={filteredScenes}
             onOpenScene={handleOpenScene}
-            onDeleteScene={handleDeleteScene}
-            onRenameScene={handleRenameScene}
-            onDuplicateScene={handleDuplicateScene}
+            onDeleteScene={deleteScene}
+            onRenameScene={renameScene}
+            onDuplicateScene={duplicateScene}
           />
         )}
       </div>

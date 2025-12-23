@@ -5,6 +5,7 @@ import React, { useState } from "react";
 
 import { useSetAtom } from "../app-jotai";
 import { useAuth } from "../auth";
+
 import { openWorkspaceSidebarAtom } from "./Settings/settingsState";
 
 import { AstradrawLogo } from "./AstradrawLogo";

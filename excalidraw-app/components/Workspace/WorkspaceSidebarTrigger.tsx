@@ -68,9 +68,7 @@ export const WorkspaceSidebarTrigger: React.FC = () => {
             isAuthenticated
               ? "workspace-sidebar-trigger__button--authenticated"
               : ""
-          } ${
-            !isOpen ? "workspace-sidebar-trigger__button--closed" : ""
-          }`}
+          } ${!isOpen ? "workspace-sidebar-trigger__button--closed" : ""}`}
           onClick={toggleSidebar}
           aria-label={t("workspace.title")}
           aria-pressed={isOpen}

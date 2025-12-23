@@ -1551,6 +1551,7 @@ const ExcalidrawWrapper = () => {
       currentWorkspaceSlug,
       setCurrentSceneIdAtom,
       setCurrentSceneTitleAtom,
+      openWorkspaceSidebar,
     ],
   );
 
