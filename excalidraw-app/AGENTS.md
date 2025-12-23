@@ -43,13 +43,24 @@ Add keys to BOTH locale files:
 
 ### API Calls
 
-Always include credentials for JWT cookies:
+Use the modular API client (credentials are automatically included):
 
 ```typescript
-import { getApiBaseUrl } from "../auth/workspaceApi";
+// Import from specific modules (preferred)
+import { listScenes, createScene } from "../auth/api/scenes";
+import { listWorkspaces } from "../auth/api/workspaces";
 
-fetch(`${getApiBaseUrl()}/endpoint`, {
-  credentials: "include", // Required for JWT cookies
+// Or import from workspaceApi (backward compatible)
+import { listScenes, getApiBaseUrl } from "../auth/workspaceApi";
+
+// For custom endpoints, use apiRequest helper:
+import { apiRequest } from "../auth/api/client";
+
+const data = await apiRequest("/custom-endpoint", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ ... }),
+  errorMessage: "Failed to call endpoint",
 });
 ```
 
@@ -84,7 +95,8 @@ yarn fix               # Auto-fix formatting and linting
 | `excalidraw-app/App.tsx` | Main app entry point |
 | `excalidraw-app/components/Settings/settingsState.ts` | Jotai state atoms |
 | `excalidraw-app/router.ts` | URL routing logic |
-| `excalidraw-app/auth/workspaceApi.ts` | Backend API client |
+| `excalidraw-app/auth/api/` | Modular API client (scenes, workspaces, etc.) |
+| `excalidraw-app/auth/workspaceApi.ts` | Re-exports from api/ (backward compat) |
 | `excalidraw-app/env.ts` | Runtime environment helper |
 
 ## Architecture Notes
