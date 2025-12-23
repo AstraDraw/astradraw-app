@@ -91,10 +91,14 @@ All components use CSS Modules with the `dark-mode` mixin from shared styles:
 // ComponentName.module.scss
 @use "../../styles/mixins" as *;
 
-.card { background: var(--island-bg-color, #fff); }
+.card {
+  background: var(--island-bg-color, #fff);
+}
 
 @include dark-mode {
-  .card { background: var(--island-bg-color, #232329); }
+  .card {
+    background: var(--island-bg-color, #232329);
+  }
 }
 ```
 

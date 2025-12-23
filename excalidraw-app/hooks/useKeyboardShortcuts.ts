@@ -6,6 +6,7 @@
  * - Cmd+P / Ctrl+P: Open quick search
  * - Cmd+[ / Ctrl+[: Toggle left sidebar (workspace)
  * - Cmd+] / Ctrl+]: Toggle right sidebar (library)
+ * - C: Toggle comment mode (when authenticated and on a scene)
  */
 
 import { useEffect } from "react";
@@ -25,6 +26,8 @@ export interface UseKeyboardShortcutsOptions {
   toggleWorkspaceSidebar: () => void;
   /** Callback to open quick search */
   setQuickSearchOpen: (open: boolean) => void;
+  /** Callback to toggle comment mode */
+  toggleCommentMode?: () => void;
 }
 
 /**
@@ -38,6 +41,7 @@ export function useKeyboardShortcuts({
   onSave,
   toggleWorkspaceSidebar,
   setQuickSearchOpen,
+  toggleCommentMode,
 }: UseKeyboardShortcutsOptions): void {
   // Ctrl+S / Cmd+S: Save scene
   useEffect(() => {
@@ -147,4 +151,39 @@ export function useKeyboardShortcuts({
       });
     };
   }, [isAuthenticated, excalidrawAPI, toggleWorkspaceSidebar]);
+
+  // C key: Toggle comment mode
+  useEffect(() => {
+    if (!isAuthenticated || !currentSceneId || !toggleCommentMode) {
+      return;
+    }
+
+    const handleCommentHotkey = (e: KeyboardEvent) => {
+      // Only trigger on 'c' key without modifiers
+      if (e.key !== "c" || e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) {
+        return;
+      }
+
+      // Don't trigger if user is typing in an input
+      const target = e.target as HTMLElement;
+      if (
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.isContentEditable
+      ) {
+        return;
+      }
+
+      e.preventDefault();
+      e.stopPropagation();
+      toggleCommentMode();
+    };
+
+    window.addEventListener("keydown", handleCommentHotkey, { capture: true });
+    return () => {
+      window.removeEventListener("keydown", handleCommentHotkey, {
+        capture: true,
+      });
+    };
+  }, [isAuthenticated, currentSceneId, toggleCommentMode]);
 }

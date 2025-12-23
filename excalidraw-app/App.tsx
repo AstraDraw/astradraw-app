@@ -172,6 +172,12 @@ import {
   type WorkspaceData,
 } from "./components/Settings";
 
+import {
+  toggleCommentModeAtom,
+  ThreadMarkersLayer,
+  CommentCreationOverlay,
+} from "./components/Comments";
+
 import { buildSceneUrl } from "./router";
 
 import { WorkspaceMainContent } from "./components/Workspace";
@@ -449,6 +455,9 @@ const ExcalidrawWrapper = () => {
   // Quick Search modal state
   const setQuickSearchOpen = useSetAtom(quickSearchOpenAtom);
 
+  // Comment mode state
+  const toggleCommentMode = useSetAtom(toggleCommentModeAtom);
+
   // Workspace data from Jotai atoms
   const currentWorkspace = useAtomValue(currentWorkspaceAtom);
   const setCurrentWorkspace = useSetAtom(currentWorkspaceAtom);
@@ -577,6 +586,7 @@ const ExcalidrawWrapper = () => {
     },
     toggleWorkspaceSidebar,
     setQuickSearchOpen,
+    toggleCommentMode,
   });
 
   // =========================================================================
@@ -1778,6 +1788,19 @@ const ExcalidrawWrapper = () => {
 
           {excalidrawAPI && <PenToolbar excalidrawAPI={excalidrawAPI} />}
           {excalidrawAPI && <PresentationMode excalidrawAPI={excalidrawAPI} />}
+
+          {/* Comment Thread Markers */}
+          {currentSceneId && !isLegacyMode && (
+            <>
+              <ThreadMarkersLayer
+                sceneId={currentSceneId}
+                appState={excalidrawAPI?.getAppState()}
+              />
+              <CommentCreationOverlay
+                appState={excalidrawAPI?.getAppState()}
+              />
+            </>
+          )}
 
           {errorMessage && (
             <ErrorDialog onClose={() => setErrorMessage("")}>

@@ -5,7 +5,7 @@ Reusable SCSS for CSS Modules. All AstraDraw components import from here.
 ## Files
 
 | File | Purpose |
-|------|---------|
+| --- | --- |
 | `_variables.scss` | `$ui-font`, spacing (`$spacing-md`), radius, transitions, z-index |
 | `_mixins.scss` | `@mixin dark-mode`, `@mixin truncate`, `@mixin custom-scrollbar` |
 | `_animations.scss` | `shimmer`, `fadeIn`, `spin` keyframes |
@@ -23,7 +23,9 @@ Reusable SCSS for CSS Modules. All AstraDraw components import from here.
 }
 
 @include dark-mode {
-  .card { background: #232329; }
+  .card {
+    background: #232329;
+  }
 }
 ```
 
@@ -33,7 +35,9 @@ Wraps content in both dark mode selectors:
 
 ```scss
 @include dark-mode {
-  .element { color: white; }
+  .element {
+    color: white;
+  }
 }
 // Outputs: :global(.excalidraw.theme--dark), :global(.excalidraw-app.theme--dark) { ... }
 ```
@@ -42,4 +46,3 @@ Wraps content in both dark mode selectors:
 
 1. Add to `_mixins.scss` with documentation comment
 2. Use `:global()` wrapper for class selectors that need to match parent containers
-

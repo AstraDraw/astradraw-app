@@ -3,7 +3,8 @@
  *
  * This module provides:
  * - Jotai atoms for UI state (commentsState.ts)
- * - Components for comment markers, popups, and sidebar (future phases)
+ * - Components for comment markers on canvas
+ * - Comment creation overlay for click-to-create mode
  */
 
 // State management
@@ -22,3 +23,16 @@ export {
   updateCommentFiltersAtom,
   resetCommentFiltersAtom,
 } from "./commentsState";
+
+// Canvas overlay components
+export { ThreadMarkersLayer } from "./ThreadMarkersLayer";
+export type { ThreadMarkersLayerProps } from "./ThreadMarkersLayer";
+
+export { ThreadMarker } from "./ThreadMarker";
+export type { ThreadMarkerProps } from "./ThreadMarker";
+
+export { ThreadMarkerTooltip } from "./ThreadMarkerTooltip";
+export type { ThreadMarkerTooltipProps } from "./ThreadMarkerTooltip";
+
+export { CommentCreationOverlay } from "./CommentCreationOverlay";
+export type { CommentCreationOverlayProps } from "./CommentCreationOverlay";
