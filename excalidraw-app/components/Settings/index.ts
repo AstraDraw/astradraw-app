@@ -20,8 +20,6 @@ export {
   navigateToSceneAtom,
   collectionsRefreshAtom,
   triggerCollectionsRefreshAtom,
-  scenesRefreshAtom,
-  triggerScenesRefreshAtom,
   currentWorkspaceSlugAtom,
   currentSceneIdAtom,
   currentSceneTitleAtom,
@@ -33,12 +31,6 @@ export {
   toggleWorkspaceSidebarAtom,
   openWorkspaceSidebarAtom,
   closeWorkspaceSidebarAtom,
-  // Scenes cache atoms
-  scenesCacheAtom,
-  getScenesCacheAtom,
-  setScenesCacheAtom,
-  invalidateScenesCacheAtom,
-  clearScenesCacheAtom,
   // Workspace & collections data atoms
   workspacesAtom,
   currentWorkspaceAtom,
@@ -49,7 +41,6 @@ export {
   type AppMode,
   type SidebarMode,
   type DashboardView,
-  type ScenesCacheEntry,
   type WorkspaceData,
   type CollectionData,
 } from "./settingsState";

@@ -6,7 +6,10 @@ import { useAuth } from "../../../auth";
 
 import { useWorkspaces } from "../../../hooks/useWorkspaces";
 import { useCollections } from "../../../hooks/useCollections";
-import { useSidebarScenes } from "../../../hooks/useSidebarScenes";
+import {
+  useScenesCache,
+  useInvalidateScenesCache,
+} from "../../../hooks/useScenesCache";
 import { useSceneActions } from "../../../hooks/useSceneActions";
 
 import {
@@ -132,19 +135,20 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
   const {
     scenes,
     isLoading: isScenesLoading,
-    loadScenes,
-    invalidateCache: invalidateScenesCache,
-    updateScenesWithCache,
-  } = useSidebarScenes({
-    isAuthenticated,
-    workspaceId: currentWorkspace?.id || null,
-    activeCollectionId,
-    enabled: isOpen && sidebarMode === "board",
+    refetch: refetchScenes,
+    updateScenes,
+  } = useScenesCache({
+    workspaceId: currentWorkspace?.id,
+    collectionId: activeCollectionId,
+    enabled: isOpen && sidebarMode === "board" && isAuthenticated,
   });
+
+  // Hook to invalidate scenes cache
+  const invalidateScenesCache = useInvalidateScenesCache();
 
   // Scene actions hook
   const { deleteScene, renameScene, duplicateScene } = useSceneActions({
-    updateScenes: updateScenesWithCache,
+    updateScenes,
     onSceneRenamed: useCallback(
       (sceneId: string, newTitle: string) => {
         if (sceneId === currentSceneId && onCurrentSceneTitleChange) {
@@ -310,10 +314,17 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
   );
 
   const handleCopyMoveSuccess = useCallback(() => {
-    invalidateScenesCache();
+    if (currentWorkspace?.id) {
+      invalidateScenesCache(currentWorkspace.id);
+    }
     loadCollections();
-    loadScenes(true);
-  }, [invalidateScenesCache, loadCollections, loadScenes]);
+    refetchScenes();
+  }, [
+    invalidateScenesCache,
+    loadCollections,
+    refetchScenes,
+    currentWorkspace?.id,
+  ]);
 
   const handleSceneClick = useCallback(
     (scene: { id: string; title: string }) => {

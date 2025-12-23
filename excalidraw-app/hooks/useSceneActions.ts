@@ -1,9 +1,9 @@
 import { useCallback } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
+import { useQueryClient } from "@tanstack/react-query";
 
-import { useSetAtom } from "../app-jotai";
 import { showError } from "../utils/toast";
-import { triggerScenesRefreshAtom } from "../components/Settings/settingsState";
+import { queryKeys } from "../lib/queryClient";
 import {
   deleteScene as deleteSceneApi,
   updateScene as updateSceneApi,
@@ -74,7 +74,12 @@ export function useSceneActions({
   updateScenes,
   onSceneRenamed,
 }: UseSceneActionsOptions): UseSceneActionsResult {
-  const triggerScenesRefresh = useSetAtom(triggerScenesRefreshAtom);
+  const queryClient = useQueryClient();
+
+  // Invalidate all scenes queries to ensure fresh data across all components
+  const invalidateScenes = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.scenes.all });
+  }, [queryClient]);
 
   const deleteScene = useCallback(
     async (sceneId: string): Promise<boolean> => {
@@ -85,7 +90,7 @@ export function useSceneActions({
       try {
         await deleteSceneApi(sceneId);
         updateScenes((prev) => prev.filter((s) => s.id !== sceneId));
-        triggerScenesRefresh();
+        invalidateScenes();
         return true;
       } catch (err) {
         console.error("Failed to delete scene:", err);
@@ -93,7 +98,7 @@ export function useSceneActions({
         return false;
       }
     },
-    [updateScenes, triggerScenesRefresh],
+    [updateScenes, invalidateScenes],
   );
 
   const renameScene = useCallback(
@@ -104,7 +109,7 @@ export function useSceneActions({
           prev.map((s) => (s.id === sceneId ? updatedScene : s)),
         );
         onSceneRenamed?.(sceneId, newTitle);
-        triggerScenesRefresh();
+        invalidateScenes();
         return true;
       } catch (err) {
         console.error("Failed to rename scene:", err);
@@ -112,7 +117,7 @@ export function useSceneActions({
         return false;
       }
     },
-    [updateScenes, onSceneRenamed, triggerScenesRefresh],
+    [updateScenes, onSceneRenamed, invalidateScenes],
   );
 
   const duplicateScene = useCallback(
@@ -120,7 +125,7 @@ export function useSceneActions({
       try {
         const newScene = await duplicateSceneApi(sceneId);
         updateScenes((prev) => [newScene, ...prev]);
-        triggerScenesRefresh();
+        invalidateScenes();
         return newScene;
       } catch (err) {
         console.error("Failed to duplicate scene:", err);
@@ -130,7 +135,7 @@ export function useSceneActions({
         return null;
       }
     },
-    [updateScenes, triggerScenesRefresh],
+    [updateScenes, invalidateScenes],
   );
 
   return { deleteScene, renameScene, duplicateScene };

@@ -9,6 +9,34 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.64] - 2025-12-23
+
+### Added
+
+- **React Query for Data Fetching** - Added TanStack React Query v5 for server state management
+  - Installed `@tanstack/react-query` package
+  - Created `lib/queryClient.ts` with centralized QueryClient and type-safe query key factory
+  - Added `QueryClientProvider` wrapper in `index.tsx`
+  - Automatic caching with 5-minute stale time and 30-minute garbage collection
+  - Request deduplication - multiple components using same query share one request
+  - Background refetching on window focus for fresh data
+
+### Changed
+
+- **Hooks Migration to React Query**
+  - `useScenesCache` - Rewritten to use `useQuery`, same interface maintained
+  - `useWorkspaces` - Updated to use `useQuery` for fetching, Jotai for selection
+  - `useCollections` - Updated to use `useQuery` for fetching, Jotai for selection
+  - `useSceneActions` - Updated to use `queryClient.invalidateQueries()`
+  - All CRUD operations now invalidate relevant queries automatically
+
+### Removed
+
+- `useSidebarScenes.ts` - Redundant hook, functionality merged into `useScenesCache`
+- Manual cache atoms from `settingsState.ts`:
+  - `scenesCacheAtom`, `setScenesCacheAtom`, `invalidateScenesCacheAtom`, `clearScenesCacheAtom`
+  - `scenesRefreshAtom`, `triggerScenesRefreshAtom`
+
 ## [0.18.0-beta0.63] - 2025-12-23
 
 ### Changed

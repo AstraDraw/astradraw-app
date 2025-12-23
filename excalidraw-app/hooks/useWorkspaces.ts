@@ -1,4 +1,5 @@
-import { useCallback, useRef, useEffect, useState } from "react";
+import { useCallback, useRef, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useAtom, useSetAtom } from "../app-jotai";
 import {
@@ -7,6 +8,7 @@ import {
   currentWorkspaceAtom,
   type WorkspaceData,
 } from "../components/Settings/settingsState";
+import { queryKeys } from "../lib/queryClient";
 import {
   listWorkspaces,
   createWorkspace as createWorkspaceApi,
@@ -45,27 +47,58 @@ interface UseWorkspacesResult {
 /**
  * Hook for workspace management - loading, switching, and creating workspaces.
  *
- * Uses Jotai atoms for shared state:
- * - workspacesAtom: List of all workspaces
- * - currentWorkspaceAtom: Currently active workspace
- * - currentWorkspaceSlugAtom: Slug for URL routing
+ * Uses React Query for data fetching and Jotai atoms for selection state:
+ * - React Query: Fetches and caches workspaces list
+ * - workspacesAtom: Synced from React Query data (for components that need it)
+ * - currentWorkspaceAtom: Currently active workspace (client state)
+ * - currentWorkspaceSlugAtom: Slug for URL routing (client state)
  */
 export function useWorkspaces({
   isAuthenticated,
   externalWorkspace,
   onWorkspaceChange,
 }: UseWorkspacesOptions): UseWorkspacesResult {
-  // Use Jotai atoms for shared state
+  const queryClient = useQueryClient();
+
+  // Jotai atoms for client state (selection, not data)
   const [workspaces, setWorkspaces] = useAtom(workspacesAtom);
   const [currentWorkspace, setCurrentWorkspaceAtom] =
     useAtom(currentWorkspaceAtom);
   const setCurrentWorkspaceSlug = useSetAtom(currentWorkspaceSlugAtom);
 
-  // Local loading state
-  const [isLoading, setIsLoading] = useState(false);
-
   // Track last notified workspace to prevent duplicate onWorkspaceChange calls
   const lastNotifiedWorkspaceRef = useRef<string | null>(null);
+
+  // React Query for fetching workspaces
+  const {
+    data: fetchedWorkspaces = [],
+    isLoading,
+    refetch,
+  } = useQuery({
+    queryKey: queryKeys.workspaces.list(),
+    queryFn: listWorkspaces,
+    enabled: isAuthenticated,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  // Sync React Query data to Jotai atom (for components that read from atom)
+  useEffect(() => {
+    if (fetchedWorkspaces.length > 0) {
+      setWorkspaces(fetchedWorkspaces as WorkspaceData[]);
+
+      // Auto-select first workspace if none selected
+      if (!currentWorkspace) {
+        setCurrentWorkspaceAtom(fetchedWorkspaces[0] as WorkspaceData);
+        setCurrentWorkspaceSlug(fetchedWorkspaces[0].slug);
+      }
+    }
+  }, [
+    fetchedWorkspaces,
+    currentWorkspace,
+    setWorkspaces,
+    setCurrentWorkspaceAtom,
+    setCurrentWorkspaceSlug,
+  ]);
 
   // Helper to set current workspace (updates both atom and slug)
   const setCurrentWorkspace = useCallback(
@@ -78,25 +111,13 @@ export function useWorkspaces({
     [setCurrentWorkspaceAtom, setCurrentWorkspaceSlug],
   );
 
-  // Load workspaces
+  // Load workspaces (triggers refetch)
   const loadWorkspaces = useCallback(async () => {
     if (!isAuthenticated) {
       return;
     }
-
-    setIsLoading(true);
-    try {
-      const data = await listWorkspaces();
-      setWorkspaces(data as WorkspaceData[]);
-      if (data.length > 0 && !currentWorkspace) {
-        setCurrentWorkspace(data[0]);
-      }
-    } catch (err) {
-      console.error("Failed to load workspaces:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [isAuthenticated, currentWorkspace, setWorkspaces, setCurrentWorkspace]);
+    await refetch();
+  }, [isAuthenticated, refetch]);
 
   // Switch workspace
   const switchWorkspace = useCallback(
@@ -115,13 +136,17 @@ export function useWorkspaces({
         type: data.type,
       });
 
-      // Reload workspaces and switch to new one
-      await loadWorkspaces();
+      // Invalidate and refetch workspaces list
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.workspaces.all,
+      });
+
+      // Switch to new workspace
       setCurrentWorkspace(workspace);
 
       return workspace;
     },
-    [loadWorkspaces, setCurrentWorkspace],
+    [queryClient, setCurrentWorkspace],
   );
 
   // Generate slug from workspace name

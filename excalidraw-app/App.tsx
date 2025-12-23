@@ -48,6 +48,7 @@ import { newElementWith } from "@excalidraw/element";
 import { isInitializedImageElement } from "@excalidraw/element";
 import clsx from "clsx";
 import { Toaster } from "react-hot-toast";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   parseLibraryTokensFromUrl,
   useHandleLibrary,
@@ -69,6 +70,8 @@ import type {
 } from "@excalidraw/excalidraw/types";
 import type { ResolutionType } from "@excalidraw/common/utility-types";
 import type { ResolvablePromise } from "@excalidraw/common/utils";
+
+import { queryKeys } from "./lib/queryClient";
 
 import CustomStats from "./CustomStats";
 import {
@@ -152,7 +155,6 @@ import {
   navigateToCanvasAtom,
   navigateToDashboardAtom,
   activeCollectionIdAtom,
-  triggerScenesRefreshAtom,
   currentWorkspaceSlugAtom,
   currentSceneIdAtom,
   currentSceneTitleAtom,
@@ -428,7 +430,12 @@ const ExcalidrawWrapper = () => {
   const navigateToCanvas = useSetAtom(navigateToCanvasAtom);
   const navigateToDashboard = useSetAtom(navigateToDashboardAtom);
   const setActiveCollectionId = useSetAtom(activeCollectionIdAtom);
-  const triggerScenesRefresh = useSetAtom(triggerScenesRefreshAtom);
+  const queryClient = useQueryClient();
+
+  // Helper to invalidate scenes cache (replaces triggerScenesRefresh)
+  const invalidateScenesCache = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.scenes.all });
+  }, [queryClient]);
 
   // URL-based navigation atoms
   const setCurrentWorkspaceSlugAtom = useSetAtom(currentWorkspaceSlugAtom);
@@ -1317,7 +1324,7 @@ const ExcalidrawWrapper = () => {
         });
         await updateSceneData(scene.id, blob);
 
-        triggerScenesRefresh();
+        invalidateScenesCache();
 
         excalidrawAPI.setToast({
           message: t("workspace.newSceneCreated") || "New scene created",
@@ -1335,7 +1342,7 @@ const ExcalidrawWrapper = () => {
       privateCollectionId,
       navigateToCanvas,
       setActiveCollectionId,
-      triggerScenesRefresh,
+      invalidateScenesCache,
       currentWorkspace?.slug,
       currentWorkspaceSlug,
       setCurrentSceneId,
@@ -1441,9 +1448,9 @@ const ExcalidrawWrapper = () => {
       );
       await updateSceneApi(currentSceneId, { title: newTitle });
       setCurrentSceneTitle(newTitle);
-      triggerScenesRefresh();
+      invalidateScenesCache();
     },
-    [currentSceneId, setCurrentSceneTitle, triggerScenesRefresh],
+    [currentSceneId, setCurrentSceneTitle, invalidateScenesCache],
   );
 
   // =========================================================================

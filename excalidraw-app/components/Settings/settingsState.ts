@@ -401,19 +401,6 @@ export const triggerCollectionsRefreshAtom = atom(null, (get, set) => {
 });
 
 /**
- * Scenes refresh trigger - increment when scenes are created/updated/deleted
- * Components that display scenes should subscribe to this and re-fetch when it changes
- */
-export const scenesRefreshAtom = atom(0);
-
-/**
- * Action atom to trigger scenes refresh
- */
-export const triggerScenesRefreshAtom = atom(null, (get, set) => {
-  set(scenesRefreshAtom, get(scenesRefreshAtom) + 1);
-});
-
-/**
  * Quick Search modal visibility state
  * Controls whether the Quick Search overlay is shown
  */
@@ -424,75 +411,3 @@ export const quickSearchOpenAtom = atom<boolean>(false);
  * When not empty, WorkspaceMainContent shows SearchResultsView instead of normal content
  */
 export const searchQueryAtom = atom<string>("");
-
-/**
- * Scenes cache - shared across all components (sidebar, dashboard, collection view)
- * Key format: "workspaceId:collectionId" or "workspaceId:all" for all scenes
- * Value: Array of WorkspaceScene objects
- *
- * This enables instant navigation between collections without re-fetching
- */
-export type ScenesCacheEntry = {
-  scenes: unknown[]; // WorkspaceScene[] - using unknown to avoid circular imports
-  timestamp: number;
-};
-
-export const scenesCacheAtom = atom<Map<string, ScenesCacheEntry>>(new Map());
-
-/**
- * Get scenes from cache
- */
-export const getScenesCacheAtom = atom((get) => {
-  const cache = get(scenesCacheAtom);
-  return (key: string) => cache.get(key);
-});
-
-/**
- * Set scenes in cache
- */
-export const setScenesCacheAtom = atom(
-  null,
-  (get, set, params: { key: string; scenes: unknown[] }) => {
-    const cache = new Map(get(scenesCacheAtom));
-    cache.set(params.key, {
-      scenes: params.scenes,
-      timestamp: Date.now(),
-    });
-    set(scenesCacheAtom, cache);
-  },
-);
-
-/**
- * Invalidate scenes cache for a workspace
- * If collectionId is provided, only invalidate that collection
- * Otherwise, invalidate all collections for the workspace
- */
-export const invalidateScenesCacheAtom = atom(
-  null,
-  (get, set, params: { workspaceId: string; collectionId?: string }) => {
-    const cache = new Map(get(scenesCacheAtom));
-
-    if (params.collectionId) {
-      // Invalidate specific collection
-      cache.delete(`${params.workspaceId}:${params.collectionId}`);
-    } else {
-      // Invalidate all collections for this workspace
-      const keysToDelete: string[] = [];
-      cache.forEach((_, key) => {
-        if (key.startsWith(`${params.workspaceId}:`)) {
-          keysToDelete.push(key);
-        }
-      });
-      keysToDelete.forEach((key) => cache.delete(key));
-    }
-
-    set(scenesCacheAtom, cache);
-  },
-);
-
-/**
- * Clear entire scenes cache (e.g., on logout or workspace switch)
- */
-export const clearScenesCacheAtom = atom(null, (get, set) => {
-  set(scenesCacheAtom, new Map());
-});

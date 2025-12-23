@@ -1,17 +1,16 @@
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { useAtom, useAtomValue, useSetAtom } from "../../app-jotai";
-import {
-  listWorkspaceScenes,
-  type WorkspaceScene,
-} from "../../auth/workspaceApi";
+import { type WorkspaceScene } from "../../auth/workspaceApi";
+import { useScenesCache } from "../../hooks/useScenesCache";
+import { queryKeys } from "../../lib/queryClient";
 import {
   searchQueryAtom,
   navigateToSceneAtom,
   currentWorkspaceSlugAtom,
   currentWorkspaceAtom,
-  scenesRefreshAtom,
 } from "../Settings/settingsState";
 import { useSceneActions } from "../../hooks/useSceneActions";
 
@@ -39,48 +38,27 @@ export const SearchResultsView: React.FC = () => {
   const [searchQuery, setSearchQuery] = useAtom(searchQueryAtom);
   const navigateToScene = useSetAtom(navigateToSceneAtom);
   const workspaceSlug = useAtomValue(currentWorkspaceSlugAtom);
-  const scenesRefresh = useAtomValue(scenesRefreshAtom);
+  const queryClient = useQueryClient();
 
-  const [allScenes, setAllScenes] = useState<WorkspaceScene[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Load all scenes for the workspace
-  const workspaceId = workspace?.id;
-
-  useEffect(() => {
-    const loadScenes = async () => {
-      if (!workspaceId) {
-        setAllScenes([]);
-        setIsLoading(false);
-        return;
-      }
-
-      setIsLoading(true);
-      try {
-        // Get all scenes for the workspace (no collection filter)
-        const scenes = await listWorkspaceScenes(workspaceId);
-        setAllScenes(scenes);
-      } catch (err) {
-        console.error("Failed to load scenes for search:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadScenes();
-  }, [workspaceId, scenesRefresh]);
-
-  // Create updater function for useSceneActions
-  const updateScenes = useCallback(
-    (updater: (prev: WorkspaceScene[]) => WorkspaceScene[]) => {
-      setAllScenes(updater);
-    },
-    [],
-  );
+  // Use React Query for scenes - fetch all scenes (no collection filter)
+  const {
+    scenes: allScenes,
+    isLoading,
+    updateScenes,
+  } = useScenesCache({
+    workspaceId: workspace?.id,
+    collectionId: null, // null = all scenes
+    enabled: !!workspace?.id,
+  });
 
   // Scene actions hook - centralized delete/rename/duplicate logic
   const { deleteScene, renameScene, duplicateScene } = useSceneActions({
-    updateScenes,
+    updateScenes: (updater) => {
+      // Update local cache
+      updateScenes(updater);
+      // Invalidate all scenes queries
+      queryClient.invalidateQueries({ queryKey: queryKeys.scenes.all });
+    },
   });
 
   // Filter scenes by search query

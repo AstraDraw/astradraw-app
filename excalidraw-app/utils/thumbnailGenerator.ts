@@ -17,8 +17,7 @@ import type { ExcalidrawElement } from "@excalidraw/element/types";
 import type { AppState, BinaryFiles } from "@excalidraw/excalidraw/types";
 
 import { uploadSceneThumbnail } from "../auth/workspaceApi";
-import { appJotaiStore } from "../app-jotai";
-import { scenesRefreshAtom } from "../components/Settings/settingsState";
+import { queryClient, queryKeys } from "../lib/queryClient";
 
 // ============================================================================
 // Module-level state
@@ -183,12 +182,9 @@ export async function maybeGenerateAndUploadThumbnail(
     // 5. Update hash on success
     lastThumbnailHashes.set(sceneId, currentHash);
 
-    // 6. Trigger scenes refresh so UI updates with new thumbnail
-    // This uses Jotai store directly since we're not in a React component
-    appJotaiStore.set(
-      scenesRefreshAtom,
-      appJotaiStore.get(scenesRefreshAtom) + 1,
-    );
+    // 6. Invalidate scenes cache so UI updates with new thumbnail
+    // Uses React Query's queryClient directly since we're not in a React component
+    queryClient.invalidateQueries({ queryKey: queryKeys.scenes.all });
   } catch (error) {
     // Best-effort: log and continue, don't affect save status
     console.warn("[Thumbnail] Generation failed:", error);

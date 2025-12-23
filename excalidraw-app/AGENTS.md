@@ -38,8 +38,26 @@ Add keys to BOTH locale files:
 
 ### State Management
 
-- Use **Jotai** for shared state (see `excalidraw-app/components/Settings/settingsState.ts`)
+- Use **React Query** for server state (API data: scenes, workspaces, collections)
+- Use **Jotai** for client state (navigation, selection, UI state)
 - Use React hooks for component-local state
+
+```typescript
+// Server state - use React Query hooks
+import { useScenesCache } from "../hooks/useScenesCache";
+const { scenes, isLoading } = useScenesCache({ workspaceId, collectionId });
+
+// Client state - use Jotai atoms
+import { useAtomValue } from "../app-jotai";
+import { currentWorkspaceAtom } from "../components/Settings/settingsState";
+const workspace = useAtomValue(currentWorkspaceAtom);
+
+// Invalidate after mutations
+import { useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "../lib/queryClient";
+const queryClient = useQueryClient();
+queryClient.invalidateQueries({ queryKey: queryKeys.scenes.all });
+```
 
 ### API Calls
 
@@ -94,7 +112,8 @@ yarn fix               # Auto-fix formatting and linting
 | --- | --- |
 | `excalidraw-app/App.tsx` | Main app orchestrator (uses hooks) |
 | `excalidraw-app/hooks/` | Extracted logic hooks |
-| `excalidraw-app/components/Settings/settingsState.ts` | Jotai state atoms |
+| `excalidraw-app/lib/queryClient.ts` | React Query client + query key factory |
+| `excalidraw-app/components/Settings/settingsState.ts` | Jotai state atoms (client state) |
 | `excalidraw-app/router.ts` | URL routing logic |
 | `excalidraw-app/auth/api/` | Modular API client (scenes, workspaces, etc.) |
 | `excalidraw-app/auth/workspaceApi.ts` | Re-exports from api/ (backward compat) |
@@ -110,12 +129,25 @@ App.tsx uses these extracted hooks for better maintainability:
 | `useSceneLoader` | Scene loading from workspace URLs, auto-collab |
 | `useUrlRouting` | Popstate handling, URL parsing |
 | `useKeyboardShortcuts` | Ctrl+S, Cmd+P, Cmd+[, Cmd+] handlers |
-| `useWorkspaceData` | Workspace/collections loading |
+
+## Data Fetching Hooks
+
+These hooks use React Query for server state management:
+
+| Hook              | Purpose                                  |
+| ----------------- | ---------------------------------------- |
+| `useScenesCache`  | Fetch scenes with caching (React Query)  |
+| `useWorkspaces`   | Workspace loading + Jotai for selection  |
+| `useCollections`  | Collection loading + Jotai for selection |
+| `useSceneActions` | Scene CRUD with cache invalidation       |
 
 ```typescript
-// Example: Using hooks in new components
-import { useAutoSave } from "../hooks/useAutoSave";
-import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
+// Example: Using data hooks
+import { useScenesCache } from "../hooks/useScenesCache";
+import { useWorkspaces } from "../hooks/useWorkspaces";
+
+const { scenes, isLoading } = useScenesCache({ workspaceId, collectionId });
+const { workspaces, currentWorkspace } = useWorkspaces({ isAuthenticated });
 ```
 
 ## Architecture Notes

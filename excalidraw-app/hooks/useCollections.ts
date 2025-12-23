@@ -1,4 +1,5 @@
-import { useCallback, useRef, useEffect, useState } from "react";
+import { useCallback, useRef, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { t } from "@excalidraw/excalidraw/i18n";
 
 import { useAtom, useAtomValue, useSetAtom } from "../app-jotai";
@@ -11,6 +12,7 @@ import {
   type CollectionData,
 } from "../components/Settings/settingsState";
 import { showError } from "../utils/toast";
+import { queryKeys } from "../lib/queryClient";
 import {
   listCollections,
   createCollection as createCollectionApi,
@@ -52,16 +54,19 @@ interface UseCollectionsResult {
 /**
  * Hook for collection CRUD operations.
  *
- * Uses Jotai atoms for shared state:
- * - collectionsAtom: List of collections for current workspace
- * - activeCollectionIdAtom: Currently selected collection ID
+ * Uses React Query for data fetching and Jotai atoms for selection state:
+ * - React Query: Fetches and caches collections list
+ * - collectionsAtom: Synced from React Query data (for components that need it)
+ * - activeCollectionIdAtom: Currently selected collection ID (client state)
  * - privateCollectionAtom: Derived atom for private collection
  * - activeCollectionAtom: Derived atom for active collection object
  */
 export function useCollections({
   workspaceId,
 }: UseCollectionsOptions): UseCollectionsResult {
-  // Use Jotai atoms for shared state
+  const queryClient = useQueryClient();
+
+  // Jotai atoms for client state
   const [collections, setCollections] = useAtom(collectionsAtom);
   const [activeCollectionId, setActiveCollectionId] = useAtom(
     activeCollectionIdAtom,
@@ -70,115 +75,27 @@ export function useCollections({
   const activeCollection = useAtomValue(activeCollectionAtom);
   const triggerCollectionsRefresh = useSetAtom(triggerCollectionsRefreshAtom);
 
-  // Local loading state
-  const [isLoading, setIsLoading] = useState(false);
-
   // Track if we've set the default collection to prevent infinite loops
   const hasSetDefaultCollectionRef = useRef(false);
 
-  // Load collections for current workspace
-  const loadCollections = useCallback(async () => {
-    if (!workspaceId) {
-      return;
+  // React Query for fetching collections
+  const {
+    data: fetchedCollections = [],
+    isLoading,
+    refetch,
+  } = useQuery({
+    queryKey: queryKeys.collections.list(workspaceId || ""),
+    queryFn: () => listCollections(workspaceId!),
+    enabled: !!workspaceId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  // Sync React Query data to Jotai atom
+  useEffect(() => {
+    if (fetchedCollections.length > 0) {
+      setCollections(fetchedCollections as CollectionData[]);
     }
-
-    setIsLoading(true);
-    try {
-      const data = await listCollections(workspaceId);
-      setCollections(data as CollectionData[]);
-    } catch (err) {
-      console.error("Failed to load collections:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [workspaceId, setCollections]);
-
-  // Create collection
-  const createCollection = useCallback(
-    async (data: CreateCollectionData): Promise<Collection | null> => {
-      if (!workspaceId || !data.name.trim()) {
-        return null;
-      }
-
-      try {
-        const collection = await createCollectionApi(workspaceId, {
-          name: data.name.trim(),
-          icon: data.icon,
-        });
-        setCollections((prev) => [...prev, collection as CollectionData]);
-        triggerCollectionsRefresh();
-        return collection;
-      } catch (err) {
-        console.error("Failed to create collection:", err);
-        showError(
-          t("workspace.createCollectionError") || "Failed to create collection",
-        );
-        return null;
-      }
-    },
-    [workspaceId, setCollections, triggerCollectionsRefresh],
-  );
-
-  // Update collection
-  const updateCollection = useCallback(
-    async (
-      id: string,
-      data: UpdateCollectionData,
-    ): Promise<Collection | null> => {
-      try {
-        const updated = await updateCollectionApi(id, {
-          name: data.name?.trim(),
-          icon: data.icon || undefined,
-        });
-        setCollections((prev) =>
-          prev.map((c) =>
-            c.id === updated.id ? (updated as CollectionData) : c,
-          ),
-        );
-        triggerCollectionsRefresh();
-        return updated;
-      } catch (err) {
-        console.error("Failed to update collection:", err);
-        showError(
-          t("workspace.updateCollectionError") || "Failed to update collection",
-        );
-        return null;
-      }
-    },
-    [setCollections, triggerCollectionsRefresh],
-  );
-
-  // Delete collection
-  const deleteCollection = useCallback(
-    async (collectionId: string): Promise<boolean> => {
-      if (!confirm(t("workspace.confirmDeleteCollection"))) {
-        return false;
-      }
-
-      try {
-        await deleteCollectionApi(collectionId);
-        setCollections((prev) => prev.filter((c) => c.id !== collectionId));
-        if (activeCollectionId === collectionId) {
-          setActiveCollectionId(privateCollection?.id || null);
-        }
-        triggerCollectionsRefresh();
-        return true;
-      } catch (err) {
-        console.error("Failed to delete collection:", err);
-        showError(
-          t("workspace.deleteCollectionError") || "Failed to delete collection",
-        );
-        return false;
-      }
-    },
-    [
-      activeCollectionId,
-      privateCollection,
-      setActiveCollectionId,
-      setCollections,
-      triggerCollectionsRefresh,
-    ],
-  );
+  }, [fetchedCollections, setCollections]);
 
   // Set default active collection to Private when collections are loaded
   useEffect(() => {
@@ -200,12 +117,132 @@ export function useCollections({
     hasSetDefaultCollectionRef.current = false;
   }, [workspaceId]);
 
-  // Load collections when workspace changes
-  useEffect(() => {
-    if (workspaceId) {
-      loadCollections();
+  // Load collections (triggers refetch)
+  const loadCollections = useCallback(async () => {
+    if (!workspaceId) {
+      return;
     }
-  }, [workspaceId, loadCollections]);
+    await refetch();
+  }, [workspaceId, refetch]);
+
+  // Create collection
+  const createCollection = useCallback(
+    async (data: CreateCollectionData): Promise<Collection | null> => {
+      if (!workspaceId || !data.name.trim()) {
+        return null;
+      }
+
+      try {
+        const collection = await createCollectionApi(workspaceId, {
+          name: data.name.trim(),
+          icon: data.icon,
+        });
+
+        // Update local state optimistically
+        setCollections((prev) => [...prev, collection as CollectionData]);
+
+        // Invalidate and refetch
+        await queryClient.invalidateQueries({
+          queryKey: queryKeys.collections.list(workspaceId),
+        });
+
+        triggerCollectionsRefresh();
+        return collection;
+      } catch (err) {
+        console.error("Failed to create collection:", err);
+        showError(
+          t("workspace.createCollectionError") || "Failed to create collection",
+        );
+        return null;
+      }
+    },
+    [workspaceId, setCollections, queryClient, triggerCollectionsRefresh],
+  );
+
+  // Update collection
+  const updateCollection = useCallback(
+    async (
+      id: string,
+      data: UpdateCollectionData,
+    ): Promise<Collection | null> => {
+      try {
+        const updated = await updateCollectionApi(id, {
+          name: data.name?.trim(),
+          icon: data.icon || undefined,
+        });
+
+        // Update local state optimistically
+        setCollections((prev) =>
+          prev.map((c) =>
+            c.id === updated.id ? (updated as CollectionData) : c,
+          ),
+        );
+
+        // Invalidate cache
+        if (workspaceId) {
+          await queryClient.invalidateQueries({
+            queryKey: queryKeys.collections.list(workspaceId),
+          });
+        }
+
+        triggerCollectionsRefresh();
+        return updated;
+      } catch (err) {
+        console.error("Failed to update collection:", err);
+        showError(
+          t("workspace.updateCollectionError") || "Failed to update collection",
+        );
+        return null;
+      }
+    },
+    [workspaceId, setCollections, queryClient, triggerCollectionsRefresh],
+  );
+
+  // Delete collection
+  const deleteCollection = useCallback(
+    async (collectionId: string): Promise<boolean> => {
+      if (!confirm(t("workspace.confirmDeleteCollection"))) {
+        return false;
+      }
+
+      try {
+        await deleteCollectionApi(collectionId);
+
+        // Update local state
+        setCollections((prev) => prev.filter((c) => c.id !== collectionId));
+
+        // If deleted collection was active, switch to private
+        if (activeCollectionId === collectionId) {
+          setActiveCollectionId(privateCollection?.id || null);
+        }
+
+        // Invalidate cache
+        if (workspaceId) {
+          await queryClient.invalidateQueries({
+            queryKey: queryKeys.collections.list(workspaceId),
+          });
+        }
+
+        triggerCollectionsRefresh();
+        return true;
+      } catch (err) {
+        console.error("Failed to delete collection:", err);
+        showError(
+          t("workspace.deleteCollectionError") || "Failed to delete collection",
+        );
+        return false;
+      }
+    },
+    [
+      workspaceId,
+      activeCollectionId,
+      privateCollection,
+      setActiveCollectionId,
+      setCollections,
+      queryClient,
+      triggerCollectionsRefresh,
+    ],
+  );
 
   return {
     collections: collections as Collection[],
