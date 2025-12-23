@@ -9,6 +9,24 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.61] - 2025-12-23
+
+### Changed
+
+- **API Client Refactoring** - Split `workspaceApi.ts` (1,634 lines) into modular structure
+  - Created `auth/api/` directory with domain-specific modules
+  - `client.ts` - Base fetch wrapper with `ApiError` class and centralized error handling
+  - `types.ts` - All TypeScript interfaces (~120 lines)
+  - `scenes.ts` - Scene CRUD, collaboration, thumbnails
+  - `talktracks.ts` - Talktrack recording management
+  - `users.ts` - User profile and avatar
+  - `workspaces.ts` - Workspace CRUD and avatar
+  - `members.ts` - Workspace member management
+  - `invites.ts` - Invite link management
+  - `teams.ts` - Team CRUD
+  - `collections.ts` - Collection CRUD and team access
+  - Full backward compatibility via re-exports from `workspaceApi.ts`
+
 ## [0.18.0-beta0.60] - 2025-12-23
 
 ### Added
