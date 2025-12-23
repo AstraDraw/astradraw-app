@@ -9,6 +9,18 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.73] - 2025-12-23
+
+### Added
+
+- **Comment System - Phase 2: Frontend State & API**
+  - New API client `auth/api/comments.ts` with all endpoint functions
+  - TypeScript interfaces for `CommentThread`, `Comment`, and related DTOs
+  - React Query hooks: `useCommentThreads` (fetch with caching), `useCommentMutations` (CRUD with optimistic updates)
+  - Jotai atoms for UI state: `selectedThreadIdAtom`, `isCommentModeAtom`, `commentFiltersAtom`
+  - Query keys added to `queryClient.ts` for cache management
+  - 2-minute stale time for comments (more frequent updates than scenes)
+
 ## [0.18.0-beta0.72] - 2025-12-23
 
 ### Changed

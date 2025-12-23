@@ -35,6 +35,15 @@ export type {
   // User types
   UserProfile,
   UpdateProfileDto,
+  // Comment types
+  UserSummary,
+  CommentThread,
+  Comment,
+  CreateThreadDto,
+  CreateCommentDto,
+  UpdateThreadDto,
+  UpdateCommentDto,
+  ThreadFilters,
 } from "./types";
 
 // Scene API
@@ -118,3 +127,17 @@ export {
   setCollectionTeamAccess,
   removeCollectionTeamAccess,
 } from "./collections";
+
+// Comments API
+export {
+  listThreads,
+  getThread,
+  createThread,
+  updateThread,
+  deleteThread,
+  resolveThread,
+  reopenThread,
+  addComment,
+  updateComment,
+  deleteComment,
+} from "./comments";

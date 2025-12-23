@@ -192,3 +192,89 @@ export interface UpdateProfileDto {
   name?: string;
   avatarUrl?: string | null;
 }
+
+// ============================================================================
+// Comment System Types
+// ============================================================================
+
+/**
+ * Minimal user info for display in comments
+ */
+export interface UserSummary {
+  id: string;
+  name: string;
+  avatar?: string;
+}
+
+/**
+ * A comment thread anchored to a specific canvas position
+ */
+export interface CommentThread {
+  id: string;
+  sceneId: string;
+  x: number;
+  y: number;
+  resolved: boolean;
+  resolvedAt?: string;
+  resolvedBy?: UserSummary;
+  createdBy: UserSummary;
+  comments: Comment[];
+  commentCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * An individual comment within a thread
+ */
+export interface Comment {
+  id: string;
+  threadId: string;
+  content: string;
+  mentions: string[];
+  createdBy: UserSummary;
+  editedAt?: string;
+  createdAt: string;
+}
+
+/**
+ * DTO for creating a new thread with its first comment
+ */
+export interface CreateThreadDto {
+  x: number;
+  y: number;
+  content: string;
+  mentions?: string[];
+}
+
+/**
+ * DTO for adding a reply to an existing thread
+ */
+export interface CreateCommentDto {
+  content: string;
+  mentions?: string[];
+}
+
+/**
+ * DTO for updating thread position
+ */
+export interface UpdateThreadDto {
+  x?: number;
+  y?: number;
+}
+
+/**
+ * DTO for editing a comment
+ */
+export interface UpdateCommentDto {
+  content: string;
+}
+
+/**
+ * Filter and sort options for thread listing
+ */
+export interface ThreadFilters {
+  resolved?: boolean;
+  sort: "date" | "unread";
+  search: string;
+}

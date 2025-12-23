@@ -70,6 +70,14 @@ export const queryKeys = {
     list: (sceneId: string) => ["talktracks", sceneId] as const,
   },
 
+  // Comment Threads
+  commentThreads: {
+    all: ["commentThreads"] as const,
+    list: (sceneId: string) => ["commentThreads", sceneId] as const,
+    detail: (threadId: string) =>
+      ["commentThreads", "detail", threadId] as const,
+  },
+
   // Mutations (for useMutation hooks)
   mutations: {
     deleteScene: ["deleteScene"] as const,
