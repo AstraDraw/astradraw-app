@@ -9,14 +9,14 @@ import React from "react";
 
 import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 
-import { isExcalidrawPlusSignedUser } from "../app_constants";
+import { isExcalidrawPlusSignedUser } from "../../app_constants";
 
-import { DebugFooter, isVisualDebuggerEnabled } from "./DebugCanvas";
-import { EncryptedIcon } from "./EncryptedIcon";
+import { DebugFooter, isVisualDebuggerEnabled } from "../DebugCanvas";
+import { EncryptedIcon } from "../EncryptedIcon";
 
-import "./AppFooter.scss";
+import styles from "./AppFooter.module.scss";
 
-interface AppFooterProps {
+export interface AppFooterProps {
   onChange: () => void;
   excalidrawAPI: ExcalidrawImperativeAPI | null;
 }
@@ -73,13 +73,13 @@ export const AppFooter = React.memo(
         <FooterLeftExtra>
           <Tooltip label={`${t("presentation.title")} (⌘])`}>
             <button
-              className="app-footer__sidebar-button"
+              className={styles.sidebarButton}
               onClick={handleTogglePresentationSidebar}
               onPointerDown={(e) => e.stopPropagation()}
               type="button"
               aria-label={t("presentation.title")}
             >
-              <div className="ToolIcon__icon" aria-hidden="true">
+              <div className={styles.toolIconWrapper} aria-hidden="true">
                 {presentationIcon}
               </div>
             </button>
@@ -87,13 +87,13 @@ export const AppFooter = React.memo(
 
           <Tooltip label={`${t("talktrack.title")} (⌘])`}>
             <button
-              className="app-footer__sidebar-button"
+              className={styles.sidebarButton}
               onClick={handleToggleTalktrackSidebar}
               onPointerDown={(e) => e.stopPropagation()}
               type="button"
               aria-label={t("talktrack.title")}
             >
-              <div className="ToolIcon__icon" aria-hidden="true">
+              <div className={styles.toolIconWrapper} aria-hidden="true">
                 {videoIcon}
               </div>
             </button>

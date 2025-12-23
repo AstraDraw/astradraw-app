@@ -2,14 +2,14 @@ import React, { useEffect, useCallback } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 import { useTunnels } from "@excalidraw/excalidraw";
 
-import { useAtomValue, useSetAtom } from "../../app-jotai";
-import { useAuth } from "../../auth";
+import { useAtomValue, useSetAtom } from "../../../app-jotai";
+import { useAuth } from "../../../auth";
 import {
   workspaceSidebarOpenAtom,
   toggleWorkspaceSidebarAtom,
-} from "../Settings/settingsState";
+} from "../../Settings/settingsState";
 
-import "./WorkspaceSidebarTrigger.scss";
+import styles from "./WorkspaceSidebarTrigger.module.scss";
 
 // Sidebar panel icon (like Excalidraw+)
 const sidebarIcon = (
@@ -56,19 +56,22 @@ export const WorkspaceSidebarTrigger: React.FC = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyDown]);
 
+  const buttonClasses = [
+    styles.button,
+    isOpen ? styles.active : "",
+    isAuthenticated ? styles.authenticated : "",
+    !isOpen ? styles.closed : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   // Render through tunnel to place before hamburger menu
   return (
     <WorkspaceTriggerTunnel.In>
-      <div className="workspace-sidebar-trigger">
+      <div className={styles.trigger}>
         <button
           type="button"
-          className={`workspace-sidebar-trigger__button ${
-            isOpen ? "workspace-sidebar-trigger__button--active" : ""
-          } ${
-            isAuthenticated
-              ? "workspace-sidebar-trigger__button--authenticated"
-              : ""
-          } ${!isOpen ? "workspace-sidebar-trigger__button--closed" : ""}`}
+          className={buttonClasses}
           onClick={toggleSidebar}
           aria-label={t("workspace.title")}
           aria-pressed={isOpen}

@@ -18,9 +18,9 @@
  *
  * SIZES:
  * - xs, small, normal, large, custom, mobile
- * - See AstradrawLogo.scss for size values
+ * - See AstradrawLogo.module.scss for size values
  */
-import "./AstradrawLogo.scss";
+import styles from "./AstradrawLogo.module.scss";
 
 /**
  * Logo Icon - Triangle with sparkle shape
@@ -30,7 +30,7 @@ const LogoIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 54 49"
-    className="AstradrawLogo-icon"
+    className={styles.icon}
     fill="none"
   >
     <path
@@ -64,7 +64,7 @@ const LogoText = () => (
     viewBox="0 0 220 40"
     xmlns="http://www.w3.org/2000/svg"
     fill="none"
-    className="AstradrawLogo-text"
+    className={styles.text}
   >
     <text
       x="110"
@@ -83,19 +83,28 @@ const LogoText = () => (
 
 type LogoSize = "xs" | "small" | "normal" | "large" | "custom" | "mobile";
 
-interface LogoProps {
+export interface AstradrawLogoProps {
   size?: LogoSize;
   withText?: boolean;
   style?: React.CSSProperties;
 }
 
+const sizeClasses: Record<LogoSize, string> = {
+  mobile: styles.mobile,
+  xs: styles.xs,
+  small: styles.small,
+  normal: styles.normal,
+  large: styles.large,
+  custom: "",
+};
+
 export const AstradrawLogo = ({
   style,
   size = "small",
   withText,
-}: LogoProps) => {
+}: AstradrawLogoProps) => {
   return (
-    <div className={`AstradrawLogo is-${size}`} style={style}>
+    <div className={`${styles.logo} ${sizeClasses[size]}`} style={style}>
       <LogoIcon />
       {withText && <LogoText />}
     </div>

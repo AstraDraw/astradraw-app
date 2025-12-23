@@ -1,11 +1,10 @@
 import { Tooltip } from "@excalidraw/excalidraw/components/Tooltip";
 import { warning } from "@excalidraw/excalidraw/components/icons";
-import clsx from "clsx";
 import { useEffect, useRef, useState } from "react";
 
-import { atom } from "../app-jotai";
+import { atom } from "../../app-jotai";
 
-import "./CollabError.scss";
+import styles from "./CollabError.module.scss";
 
 type ErrorIndicator = {
   message: string | null;
@@ -39,11 +38,7 @@ const CollabError = ({ collabError }: { collabError: ErrorIndicator }) => {
 
   return (
     <Tooltip label={collabError.message} long={true}>
-      <div
-        className={clsx("collab-errors-button", {
-          "collab-errors-button-shake": isAnimating,
-        })}
-      >
+      <div className={`${styles.button} ${isAnimating ? styles.shake : ""}`}>
         {warning}
       </div>
     </Tooltip>

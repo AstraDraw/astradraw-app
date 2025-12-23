@@ -11,13 +11,13 @@ import { useUIAppState } from "@excalidraw/excalidraw/context/ui-appState";
 
 import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 
-import { PresentationPanel } from "./Presentation";
-import { StickersPanel } from "./Stickers";
-import { TalktrackPanel, TalktrackManager } from "./Talktrack";
+import { PresentationPanel } from "../Presentation";
+import { StickersPanel } from "../Stickers";
+import { TalktrackPanel, TalktrackManager } from "../Talktrack";
 
-import "./AppSidebar.scss";
+import styles from "./AppSidebar.module.scss";
 
-interface AppSidebarProps {
+export interface AppSidebarProps {
   excalidrawAPI: ExcalidrawImperativeAPI | null;
   sceneId: string | null;
 }
@@ -67,20 +67,18 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
           </Sidebar.TabTrigger>
         </DefaultSidebar.TabTriggers>
         <Sidebar.Tab tab="comments">
-          <div className="app-sidebar-promo-container">
+          <div className={styles.promoContainer}>
             <div
-              className="app-sidebar-promo-image"
+              className={styles.promoImage}
               style={{
-                ["--image-source" as any]: `url(/oss_promo_comments_${
+                ["--image-source" as string]: `url(/oss_promo_comments_${
                   theme === THEME.DARK ? "dark" : "light"
                 }.jpg)`,
                 opacity: 0.7,
               }}
             />
-            <div className="app-sidebar-promo-text">
-              {t("comments.promoTitle")}
-            </div>
-            <div className="app-sidebar-promo-coming-soon">
+            <div className={styles.promoText}>{t("comments.promoTitle")}</div>
+            <div className={styles.promoComingSoon}>
               {t("comments.comingSoon")}
             </div>
           </div>

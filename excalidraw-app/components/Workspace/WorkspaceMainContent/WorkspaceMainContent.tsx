@@ -2,28 +2,28 @@ import React from "react";
 
 import type { Theme } from "@excalidraw/element/types";
 
-import { useAtomValue } from "../../app-jotai";
+import { useAtomValue } from "../../../app-jotai";
 
 import {
   dashboardViewAtom,
   searchQueryAtom,
   currentWorkspaceAtom,
   activeCollectionAtom,
-} from "../Settings/settingsState";
+} from "../../Settings/settingsState";
 
-import { ProfilePage } from "../Settings/ProfilePage";
-import { PreferencesPage } from "../Settings/PreferencesPage";
-import { WorkspaceSettingsPage } from "../Settings/WorkspaceSettingsPage";
-import { MembersPage } from "../Settings/MembersPage";
-import { TeamsCollectionsPage } from "../Settings/TeamsCollectionsPage";
+import { ProfilePage } from "../../Settings/ProfilePage";
+import { PreferencesPage } from "../../Settings/PreferencesPage";
+import { WorkspaceSettingsPage } from "../../Settings/WorkspaceSettingsPage";
+import { MembersPage } from "../../Settings/MembersPage";
+import { TeamsCollectionsPage } from "../../Settings/TeamsCollectionsPage";
 
-import { DashboardView } from "./DashboardView";
-import { CollectionView } from "./CollectionView";
-import { SearchResultsView } from "./SearchResultsView";
+import { DashboardView } from "../DashboardView";
+import { CollectionView } from "../CollectionView";
+import { SearchResultsView } from "../SearchResultsView";
 
-import "./WorkspaceMainContent.scss";
+import styles from "./WorkspaceMainContent.module.scss";
 
-interface WorkspaceMainContentProps {
+export interface WorkspaceMainContentProps {
   isAdmin: boolean;
   onNewScene: (collectionId?: string) => void;
   onUpdateWorkspace?: (data: { name?: string }) => Promise<void>;
@@ -49,7 +49,7 @@ export const WorkspaceMainContent: React.FC<WorkspaceMainContentProps> = ({
   // If there's a search query, show search results instead of normal content
   if (searchQuery.trim()) {
     return (
-      <div className="workspace-main-content">
+      <div className={styles.container}>
         <SearchResultsView />
       </div>
     );
@@ -94,7 +94,7 @@ export const WorkspaceMainContent: React.FC<WorkspaceMainContentProps> = ({
     }
   };
 
-  return <div className="workspace-main-content">{renderContent()}</div>;
+  return <div className={styles.container}>{renderContent()}</div>;
 };
 
 export default WorkspaceMainContent;

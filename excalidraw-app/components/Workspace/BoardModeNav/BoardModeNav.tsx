@@ -1,9 +1,11 @@
 import React from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 
-import { SceneCard } from "./SceneCard";
+import { SceneCard } from "../SceneCard";
 
-import type { WorkspaceScene, Collection } from "../../auth/workspaceApi";
+import styles from "./BoardModeNav.module.scss";
+
+import type { WorkspaceScene, Collection } from "../../../auth/workspaceApi";
 
 // Icons
 const dashboardIcon = (
@@ -46,7 +48,7 @@ const plusIcon = (
   </svg>
 );
 
-interface BoardModeNavProps {
+export interface BoardModeNavProps {
   activeCollection: Collection | null;
   scenes: WorkspaceScene[];
   currentSceneId: string | null;
@@ -84,36 +86,30 @@ export const BoardModeNav: React.FC<BoardModeNavProps> = ({
     : activeCollection?.name || t("workspace.untitled");
 
   return (
-    <div className="board-mode-nav">
+    <div className={styles.nav}>
       {/* Dashboard link */}
-      <button className="board-mode-nav__dashboard" onClick={onDashboardClick}>
-        <span className="board-mode-nav__icon">{dashboardIcon}</span>
-        <span className="board-mode-nav__label">
-          {t("workspace.dashboard")}
-        </span>
+      <button className={styles.dashboard} onClick={onDashboardClick}>
+        <span className={styles.icon}>{dashboardIcon}</span>
+        <span className={styles.label}>{t("workspace.dashboard")}</span>
       </button>
 
       {/* Active collection header */}
-      <div className="board-mode-nav__collection-header">
+      <div className={styles.collectionHeader}>
         <button
-          className="board-mode-nav__back"
+          className={styles.back}
           onClick={onBackClick}
           title={t("workspace.backToDashboard")}
         >
           {backIcon}
         </button>
-        <span className="board-mode-nav__collection-icon">
-          {collectionIcon}
-        </span>
-        <span className="board-mode-nav__collection-name">
-          {collectionName}
-        </span>
-        <div className="board-mode-nav__collection-actions">
-          <button className="board-mode-nav__sort" title={t("workspace.sort")}>
+        <span className={styles.collectionIcon}>{collectionIcon}</span>
+        <span className={styles.collectionName}>{collectionName}</span>
+        <div className={styles.collectionActions}>
+          <button className={styles.sort} title={t("workspace.sort")}>
             {sortIcon}
           </button>
           <button
-            className="board-mode-nav__add"
+            className={styles.add}
             onClick={() => onNewScene(activeCollection?.id)}
             title={t("workspace.createScene")}
           >
@@ -123,20 +119,20 @@ export const BoardModeNav: React.FC<BoardModeNavProps> = ({
       </div>
 
       {/* Scene list */}
-      <div className="board-mode-nav__scenes">
+      <div className={styles.scenes}>
         {isLoading ? (
-          <div className="board-mode-nav__loading">
-            <div className="board-mode-nav__spinner" />
+          <div className={styles.loading}>
+            <div className={styles.spinner} />
           </div>
         ) : scenes.length === 0 ? (
-          <div className="board-mode-nav__empty">
+          <div className={styles.empty}>
             <p>{t("workspace.noScenes")}</p>
-            <span className="board-mode-nav__empty-hint">
+            <span className={styles.emptyHint}>
               {t("workspace.noScenesHint")}
             </span>
           </div>
         ) : (
-          <div className="board-mode-nav__scene-list">
+          <div className={styles.sceneList}>
             {scenes.map((scene) => (
               <SceneCard
                 key={scene.id}

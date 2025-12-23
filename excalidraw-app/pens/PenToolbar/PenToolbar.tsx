@@ -1,5 +1,4 @@
 import React, { useCallback, useState } from "react";
-import clsx from "clsx";
 
 import { t } from "@excalidraw/excalidraw/i18n";
 import { useUIAppState } from "@excalidraw/excalidraw/context/ui-appState";
@@ -10,10 +9,10 @@ import type {
   AppState,
 } from "@excalidraw/excalidraw/types";
 
-import { PENS } from "./pens";
-import { PenSettingsModal, getPenTypeLabel } from "./PenSettingsModal";
+import { PENS } from "../pens";
+import { PenSettingsModal, getPenTypeLabel } from "../PenSettingsModal";
 
-import "./PenToolbar.scss";
+import styles from "./PenToolbar.module.scss";
 
 // Simple pen icons using SVG paths
 const PenIcon = ({ type, isActive }: { type: string; isActive: boolean }) => {
@@ -86,7 +85,7 @@ const PenIcon = ({ type, isActive }: { type: string; isActive: boolean }) => {
   );
 };
 
-interface PenToolbarProps {
+export interface PenToolbarProps {
   excalidrawAPI: ExcalidrawImperativeAPI;
 }
 
@@ -231,20 +230,20 @@ export const PenToolbar: React.FC<PenToolbarProps> = ({ excalidrawAPI }) => {
   return (
     <>
       <div
-        className={clsx("pen-toolbar", {
-          "pen-toolbar--sidebar-open": isSidebarOpen,
-        })}
+        className={`${styles.toolbar} ${
+          isSidebarOpen ? styles.sidebarOpen : ""
+        }`}
       >
-        <div className="pen-toolbar__pens">
+        <div className={styles.pens}>
           {pens.map((pen, index) => {
             const isActive = isPenActive(pen);
 
             return (
               <button
                 key={pen.type}
-                className={clsx("pen-toolbar__button", {
-                  "pen-toolbar__button--active": isActive,
-                })}
+                className={`${styles.button} ${
+                  isActive ? styles.buttonActive : ""
+                }`}
                 onClick={() => {
                   if (isActive) {
                     resetToDefault();
