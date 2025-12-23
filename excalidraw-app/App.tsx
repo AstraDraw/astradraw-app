@@ -172,6 +172,8 @@ import {
   updateSceneData,
   listWorkspaces,
   listCollections,
+  updateWorkspace,
+  uploadWorkspaceAvatar,
 } from "./auth/workspaceApi";
 import {
   loadWorkspaceScene,
@@ -1550,6 +1552,37 @@ const ExcalidrawWrapper = () => {
     ],
   );
 
+  // Handler for updating workspace settings (name, etc.)
+  const handleUpdateWorkspace = useCallback(
+    async (data: { name?: string }) => {
+      if (!currentWorkspace) {
+        throw new Error("No workspace selected");
+      }
+
+      const updated = await updateWorkspace(currentWorkspace.id, data);
+      setCurrentWorkspace(updated);
+
+      // If slug changed, update the URL
+      if (updated.slug !== currentWorkspace.slug) {
+        setCurrentWorkspaceSlug(updated.slug);
+      }
+    },
+    [currentWorkspace],
+  );
+
+  // Handler for uploading workspace avatar
+  const handleUploadWorkspaceAvatar = useCallback(
+    async (file: File) => {
+      if (!currentWorkspace) {
+        throw new Error("No workspace selected");
+      }
+
+      const updated = await uploadWorkspaceAvatar(currentWorkspace.id, file);
+      setCurrentWorkspace(updated);
+    },
+    [currentWorkspace],
+  );
+
   const handleSaveToWorkspace = useCallback(async () => {
     if (!excalidrawAPI) {
       return;
@@ -1918,6 +1951,7 @@ const ExcalidrawWrapper = () => {
           onClose={() => setWorkspaceSidebarOpen(false)}
           onNewScene={handleNewScene}
           currentSceneId={currentSceneId}
+          workspace={currentWorkspace}
           onWorkspaceChange={(workspace, privateColId) => {
             setCurrentWorkspace(workspace);
             setCurrentWorkspaceSlug(workspace.slug);
@@ -1944,6 +1978,8 @@ const ExcalidrawWrapper = () => {
             collections={collections}
             isAdmin={isWorkspaceAdmin}
             onNewScene={handleNewScene}
+            onUpdateWorkspace={handleUpdateWorkspace}
+            onUploadWorkspaceAvatar={handleUploadWorkspaceAvatar}
             theme={appTheme}
             setTheme={setAppTheme}
           />

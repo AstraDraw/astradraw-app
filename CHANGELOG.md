@@ -25,12 +25,14 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 ### Changed
 
 - **New Logo Design** - Updated AstraDraw logo with new icon and text styling
+
   - New triangle/sparkle icon with purple→blue gradient
   - "AstraDraw" text using Alexandria Google Font
   - "Astra" in bold (700), "Draw" in light (300), 5% letter spacing
   - Increased logo size on welcome screen
 
 - **Updated Slogan** - "Space for journeys through galaxies of ideas ✨"
+
   - New slogan text in both English and Russian
   - Alexandria font (Thin/100 weight) instead of Excalifont
   - Slightly larger and better contrast

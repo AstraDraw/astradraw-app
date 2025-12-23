@@ -774,7 +774,7 @@ export async function createWorkspace(data: {
  */
 export async function updateWorkspace(
   workspaceId: string,
-  data: { name?: string; slug?: string; avatarUrl?: string },
+  data: { name?: string; slug?: string },
 ): Promise<Workspace> {
   const response = await fetch(`${getApiBaseUrl()}/workspaces/${workspaceId}`, {
     method: "PUT",
@@ -793,6 +793,45 @@ export async function updateWorkspace(
       throw new Error("Admin access required");
     }
     throw new Error("Failed to update workspace");
+  }
+
+  return response.json();
+}
+
+/**
+ * Upload workspace avatar image
+ */
+export async function uploadWorkspaceAvatar(
+  workspaceId: string,
+  file: File,
+): Promise<Workspace> {
+  const formData = new FormData();
+  formData.append("avatar", file);
+
+  const response = await fetch(
+    `${getApiBaseUrl()}/workspaces/${workspaceId}/avatar`,
+    {
+      method: "POST",
+      credentials: "include",
+      body: formData,
+    },
+  );
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("Not authenticated");
+    }
+    if (response.status === 403) {
+      throw new Error("Admin access required");
+    }
+    if (response.status === 400) {
+      const error = await response.json();
+      throw new Error(error.message || "Invalid file");
+    }
+    if (response.status === 413) {
+      throw new Error("Image file is too large");
+    }
+    throw new Error("Failed to upload workspace avatar");
   }
 
   return response.json();

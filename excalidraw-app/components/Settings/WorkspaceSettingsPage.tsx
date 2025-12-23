@@ -12,15 +12,14 @@ const stopPropagation = (e: React.KeyboardEvent) => {
 
 interface WorkspaceSettingsPageProps {
   workspace: Workspace | null;
-  onUpdateWorkspace?: (data: {
-    name?: string;
-    avatarUrl?: string;
-  }) => Promise<void>;
+  onUpdateWorkspace?: (data: { name?: string }) => Promise<void>;
+  onUploadWorkspaceAvatar?: (file: File) => Promise<void>;
 }
 
 export const WorkspaceSettingsPage: React.FC<WorkspaceSettingsPageProps> = ({
   workspace,
   onUpdateWorkspace,
+  onUploadWorkspaceAvatar,
 }) => {
   const [name, setName] = useState(workspace?.name || "");
   const [isEditingName, setIsEditingName] = useState(false);
@@ -54,28 +53,30 @@ export const WorkspaceSettingsPage: React.FC<WorkspaceSettingsPageProps> = ({
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !onUpdateWorkspace) {
+    if (!file || !onUploadWorkspaceAvatar) {
       return;
     }
 
-    // For now, we'll convert to base64 - in production you'd upload to storage
-    const reader = new FileReader();
-    reader.onload = async () => {
-      setIsSaving(true);
-      setError(null);
-      try {
-        await onUpdateWorkspace({ avatarUrl: reader.result as string });
-        showSuccess(t("settings.workspaceAvatarUpdated"));
-      } catch (err: any) {
-        setError(err.message || "Failed to update workspace avatar");
-      } finally {
-        setIsSaving(false);
-      }
-    };
-    reader.readAsDataURL(file);
+    // Validate file size (2MB max)
+    if (file.size > 2 * 1024 * 1024) {
+      setError(t("settings.imageTooLarge"));
+      return;
+    }
 
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+    setIsSaving(true);
+    setError(null);
+
+    try {
+      await onUploadWorkspaceAvatar(file);
+      showSuccess(t("settings.workspaceAvatarUpdated"));
+    } catch (err: any) {
+      setError(err.message || "Failed to update workspace avatar");
+    } finally {
+      setIsSaving(false);
+      // Reset file input after processing is complete
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     }
   };
 

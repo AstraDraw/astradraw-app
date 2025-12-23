@@ -27,10 +27,8 @@ interface WorkspaceMainContentProps {
   collections: Collection[];
   isAdmin: boolean;
   onNewScene: (collectionId?: string) => void;
-  onUpdateWorkspace?: (data: {
-    name?: string;
-    avatarUrl?: string;
-  }) => Promise<void>;
+  onUpdateWorkspace?: (data: { name?: string }) => Promise<void>;
+  onUploadWorkspaceAvatar?: (file: File) => Promise<void>;
   theme: Theme | "system";
   setTheme: (theme: Theme | "system") => void;
 }
@@ -41,6 +39,7 @@ export const WorkspaceMainContent: React.FC<WorkspaceMainContentProps> = ({
   isAdmin,
   onNewScene,
   onUpdateWorkspace,
+  onUploadWorkspaceAvatar,
   theme,
   setTheme,
 }) => {
@@ -76,6 +75,7 @@ export const WorkspaceMainContent: React.FC<WorkspaceMainContentProps> = ({
           <WorkspaceSettingsPage
             workspace={workspace}
             onUpdateWorkspace={onUpdateWorkspace}
+            onUploadWorkspaceAvatar={onUploadWorkspaceAvatar}
           />
         );
       case "members":

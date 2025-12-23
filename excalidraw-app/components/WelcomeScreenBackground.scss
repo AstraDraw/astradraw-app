@@ -140,16 +140,8 @@
       rgba(255, 255, 255, 0.3),
       transparent
     ),
-    radial-gradient(
-      2px 2px at 40px 70px,
-      rgba(255, 255, 255, 0.2),
-      transparent
-    ),
-    radial-gradient(
-      1px 1px at 90px 40px,
-      rgba(255, 255, 255, 0.4),
-      transparent
-    ),
+    radial-gradient(2px 2px at 40px 70px, rgba(255, 255, 255, 0.2), transparent),
+    radial-gradient(1px 1px at 90px 40px, rgba(255, 255, 255, 0.4), transparent),
     radial-gradient(
       2px 2px at 130px 80px,
       rgba(255, 255, 255, 0.2),
@@ -260,4 +252,3 @@
     display: none !important;
   }
 }
-

@@ -302,83 +302,80 @@ export const FullModeNav: React.FC<FullModeNavProps> = ({
                 <span className="full-mode-nav__collection-name">
                   {collection.name}
                 </span>
-                {collection.canWrite && (
-                  <div
-                    className="full-mode-nav__collection-actions"
-                    ref={collectionMenuOpen === collection.id ? menuRef : null}
+              </button>
+              {collection.canWrite && (
+                <div
+                  className="full-mode-nav__collection-actions"
+                  ref={collectionMenuOpen === collection.id ? menuRef : null}
+                >
+                  <button
+                    className="full-mode-nav__collection-more"
                     onClick={(e) => {
                       e.stopPropagation();
+                      setCollectionMenuOpen(
+                        collectionMenuOpen === collection.id
+                          ? null
+                          : collection.id,
+                      );
                     }}
                   >
-                    <button
-                      className="full-mode-nav__collection-more"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setCollectionMenuOpen(
-                          collectionMenuOpen === collection.id
-                            ? null
-                            : collection.id,
-                        );
-                      }}
-                    >
-                      {moreIcon}
-                    </button>
-                    {collectionMenuOpen === collection.id && (
-                      <div className="full-mode-nav__collection-menu">
+                    {moreIcon}
+                  </button>
+                  {collectionMenuOpen === collection.id && (
+                    <div className="full-mode-nav__collection-menu">
+                      <button
+                        onClick={() => {
+                          onNewScene(collection.id);
+                          setCollectionMenuOpen(null);
+                        }}
+                      >
+                        {t("workspace.createScene")}
+                      </button>
+                      {onCopyCollection && (
                         <button
                           onClick={() => {
-                            onNewScene(collection.id);
+                            onCopyCollection(collection);
                             setCollectionMenuOpen(null);
                           }}
                         >
-                          {t("workspace.createScene")}
+                          {t("workspace.copyToWorkspace")}
                         </button>
-                        {onCopyCollection && (
-                          <button
-                            onClick={() => {
-                              onCopyCollection(collection);
-                              setCollectionMenuOpen(null);
-                            }}
-                          >
-                            {t("workspace.copyToWorkspace")}
-                          </button>
-                        )}
-                        {onMoveCollection && (
-                          <button
-                            onClick={() => {
-                              onMoveCollection(collection);
-                              setCollectionMenuOpen(null);
-                            }}
-                          >
-                            {t("workspace.moveToWorkspace")}
-                          </button>
-                        )}
+                      )}
+                      {onMoveCollection && (
                         <button
                           onClick={() => {
-                            if (onEditCollection) {
-                              onEditCollection(collection);
-                            }
+                            onMoveCollection(collection);
                             setCollectionMenuOpen(null);
                           }}
                         >
-                          {t("workspace.edit")}
+                          {t("workspace.moveToWorkspace")}
                         </button>
-                        {collection.isOwner && onDeleteCollection && (
-                          <button
-                            className="full-mode-nav__menu-item--danger"
-                            onClick={() => {
-                              onDeleteCollection(collection.id);
-                              setCollectionMenuOpen(null);
-                            }}
-                          >
-                            {t("workspace.delete")}
-                          </button>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </button>
+                      )}
+                      <button
+                        onClick={() => {
+                          if (onEditCollection) {
+                            onEditCollection(collection);
+                          }
+                          setCollectionMenuOpen(null);
+                        }}
+                      >
+                        {t("workspace.edit")}
+                      </button>
+                      {collection.isOwner && onDeleteCollection && (
+                        <button
+                          className="full-mode-nav__menu-item--danger"
+                          onClick={() => {
+                            onDeleteCollection(collection.id);
+                            setCollectionMenuOpen(null);
+                          }}
+                        >
+                          {t("workspace.delete")}
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           ))}
         </div>

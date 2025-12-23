@@ -394,7 +394,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = () => {
           </div>
           <div className="profile-page__row-content">
             <button
-              className="profile-page__button profile-page__button--primary"
+              className="profile-page__button profile-page__button--primary profile-page__button--signout"
               onClick={logout}
             >
               {logoutIcon}

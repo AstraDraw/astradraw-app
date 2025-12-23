@@ -350,6 +350,11 @@
         background: var(--default-border-color, #e5e5e5);
       }
     }
+
+    &--signout {
+      width: auto;
+      max-width: 150px;
+    }
   }
 
   // Section divider

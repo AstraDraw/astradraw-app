@@ -100,6 +100,8 @@ interface WorkspaceSidebarProps {
     privateCollectionId: string | null,
   ) => void;
   onCurrentSceneTitleChange?: (newTitle: string) => void;
+  // Workspace passed from parent - when updated externally (e.g., settings page)
+  workspace?: Workspace | null;
 }
 
 export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
@@ -109,6 +111,7 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
   currentSceneId,
   onWorkspaceChange,
   onCurrentSceneTitleChange,
+  workspace: externalWorkspace,
 }) => {
   const {
     user,
@@ -289,6 +292,26 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
   useEffect(() => {
     hasSetDefaultCollectionRef.current = false;
   }, [currentWorkspace]);
+
+  // Sync with external workspace updates (e.g., when avatar/name is changed in settings)
+  useEffect(() => {
+    if (externalWorkspace && currentWorkspace) {
+      // Only update if it's the same workspace but with different data
+      if (
+        externalWorkspace.id === currentWorkspace.id &&
+        (externalWorkspace.avatarUrl !== currentWorkspace.avatarUrl ||
+          externalWorkspace.name !== currentWorkspace.name)
+      ) {
+        setCurrentWorkspace(externalWorkspace);
+        // Also update in the workspaces list
+        setWorkspaces((prev) =>
+          prev.map((ws) =>
+            ws.id === externalWorkspace.id ? externalWorkspace : ws,
+          ),
+        );
+      }
+    }
+  }, [externalWorkspace, currentWorkspace]);
 
   // Notify parent when workspace changes (only once per workspace)
   // This prevents infinite loops when App.tsx reloads collections in response
