@@ -23,6 +23,10 @@
     .welcome-screen-decor {
       color: var(--color-gray-60);
     }
+    // Brighter toolbar hint in dark mode for visibility against galaxy background
+    .welcome-screen-decor-hint--toolbar .welcome-screen-decor-hint__label {
+      color: var(--color-gray-40);
+    }
   }
 
   // WelcomeScreen.Hints
@@ -78,24 +82,30 @@
     &--toolbar {
       position: absolute;
       top: 100%;
-      left: 50%;
-      transform: translateX(-50%);
-      margin-top: 2.5rem;
+      // Position to the right side of the toolbar, not centered
+      right: -120px;
+      left: auto;
+      transform: none;
+      margin-top: 0.5rem;
       display: flex;
       align-items: baseline;
 
       .welcome-screen-decor-hint__label {
-        width: 120px;
+        width: 140px;
         position: relative;
         top: -0.5rem;
+        // Brighter text for better visibility against dark background
+        color: var(--color-gray-50);
       }
 
       svg {
         width: 38px;
         height: 78px;
+        // Rotate -20 degrees and move up 20px
+        transform: rotate(-40deg) translateY(-55px) translateX(-55px);
 
         :root[dir="rtl"] & {
-          transform: scaleX(-1);
+          transform: scaleX(-1) rotate(-30deg) translateY(-20px) translateX(-20px);
         }
       }
     }
@@ -345,6 +355,61 @@
     align-items: center;
     column-gap: 0.75rem;
     font-size: 2.25rem;
+    // Logo glow is added via ::before pseudo-element in dark mode (see below)
+    position: relative;
+  }
+
+  // =========================================================================
+  // LOGO GLOW EFFECT - Radial light emanating from logo
+  // Creates focus and "celestial body emitting light" effect
+  // Dark mode only - complements the galaxy background
+  // =========================================================================
+  &.theme--dark .welcome-screen-center__logo::before {
+    content: "";
+    position: absolute;
+    // Center the glow on the logo
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    // Size: large enough to create ambient glow, not too large to overwhelm
+    width: 400px;
+    height: 400px;
+    // Radial gradient: purple/blue brand colors fading to transparent
+    // Very subtle opacity to create "feeling" rather than obvious effect
+    background: radial-gradient(
+      circle,
+      rgba(103, 76, 220, 0.25) 0%,      // Purple center (brand color)
+      rgba(80, 100, 220, 0.15) 20%,     // Purple-blue blend
+      rgba(30, 140, 229, 0.08) 40%,     // Blue (brand color)
+      transparent 70%                    // Fade to transparent
+    );
+    // Behind the logo content
+    z-index: -1;
+    // Soft edges
+    filter: blur(20px);
+    // Subtle pulse animation for "living" effect
+    animation: logo-glow-pulse 8s ease-in-out infinite alternate;
+    // Don't block interactions
+    pointer-events: none;
+  }
+
+  // Subtle pulse animation - logo glow breathes gently
+  @keyframes logo-glow-pulse {
+    0% {
+      opacity: 0.8;
+      transform: translate(-50%, -50%) scale(1);
+    }
+    100% {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1.1);
+    }
+  }
+
+  // Disable logo glow on mobile (matches galaxy background behavior)
+  @media (max-width: 768px) {
+    &.theme--dark .welcome-screen-center__logo::before {
+      display: none;
+    }
   }
 
   .welcome-screen-center__heading {
