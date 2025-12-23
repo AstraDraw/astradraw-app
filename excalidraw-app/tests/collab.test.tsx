@@ -5,14 +5,14 @@ import {
 } from "@excalidraw/excalidraw/actions/actionHistory";
 import { syncInvalidIndices } from "@excalidraw/element";
 import { API } from "@excalidraw/excalidraw/tests/helpers/api";
-import { act, render, waitFor } from "@excalidraw/excalidraw/tests/test-utils";
+import { act, waitFor } from "@excalidraw/excalidraw/tests/test-utils";
 import { vi } from "vitest";
 
 import { StoreIncrement } from "@excalidraw/element";
 
 import type { DurableIncrement, EphemeralIncrement } from "@excalidraw/element";
 
-import ExcalidrawApp from "../App";
+import { renderExcalidrawApp } from "./testUtils";
 
 const { h } = window;
 
@@ -73,7 +73,7 @@ describe("collaboration", () => {
     const durableIncrements: DurableIncrement[] = [];
     const ephemeralIncrements: EphemeralIncrement[] = [];
 
-    await render(<ExcalidrawApp />);
+    await renderExcalidrawApp();
 
     h.store.onStoreIncrementEmitter.on((increment) => {
       if (StoreIncrement.isDurable(increment)) {
@@ -143,7 +143,7 @@ describe("collaboration", () => {
   });
 
   it("should allow to undo / redo even on force-deleted elements", async () => {
-    await render(<ExcalidrawApp />);
+    await renderExcalidrawApp();
     const rect1Props = {
       type: "rectangle",
       id: "A",

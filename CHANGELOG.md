@@ -9,6 +9,17 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.69] - 2025-12-23
+
+### Fixed
+
+- **Test Infrastructure** - Fixed 140 failing tests caused by AstraDraw's React Query integration
+  - Created `renderExcalidrawApp()` wrapper in `testUtils.tsx` for tests that render the full app
+  - Updated `LanguageList.test.tsx`, `MobileMenu.test.tsx`, `collab.test.tsx` to use new wrapper
+  - Fixed i18n mock in `useSceneActions.test.tsx` to use `importOriginal` for missing exports
+  - Updated 134 snapshot files to reflect AstraDraw UI changes (logo, custom components)
+  - All 1,130 tests now pass (1,083 passed | 46 skipped | 1 todo)
+
 ## [0.18.0-beta0.68] - 2025-12-23
 
 ### Added

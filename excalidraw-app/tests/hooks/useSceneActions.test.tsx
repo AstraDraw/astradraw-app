@@ -44,9 +44,15 @@ vi.mock("../../utils/toast", () => ({
 }));
 
 // Mock translations
-vi.mock("@excalidraw/excalidraw/i18n", () => ({
-  t: (key: string) => key,
-}));
+vi.mock("@excalidraw/excalidraw/i18n", async (importOriginal) => {
+  const actual = await importOriginal<
+    typeof import("@excalidraw/excalidraw/i18n")
+  >();
+  return {
+    ...actual,
+    t: (key: string) => key,
+  };
+});
 
 describe("useSceneActions", () => {
   const workspaceId = "workspace-1";

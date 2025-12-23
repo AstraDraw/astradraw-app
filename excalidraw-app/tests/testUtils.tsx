@@ -4,12 +4,16 @@
  * Provides:
  * - React Query test setup with fresh QueryClient per test
  * - Provider wrapper for hooks testing
+ * - renderExcalidrawApp for full app tests
  * - Mock API helpers
  */
 
 import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderHook } from "@testing-library/react";
+import { render as rtlRender } from "@excalidraw/excalidraw/tests/test-utils";
+
+import ExcalidrawApp from "../App";
 
 import type {
   RenderHookOptions,
@@ -224,4 +228,39 @@ export async function waitForCondition(
     }
     await new Promise((resolve) => setTimeout(resolve, interval));
   }
+}
+
+// ============================================
+// Full App Rendering
+// ============================================
+
+/**
+ * Render ExcalidrawApp with all required providers for testing.
+ *
+ * This wraps ExcalidrawApp with QueryClientProvider which is required
+ * since the app uses React Query for data fetching.
+ *
+ * @example
+ * ```tsx
+ * describe("Test Feature", () => {
+ *   beforeEach(async () => {
+ *     await renderExcalidrawApp();
+ *   });
+ *
+ *   it("should do something", () => {
+ *     // test code
+ *   });
+ * });
+ * ```
+ */
+export async function renderExcalidrawApp() {
+  const queryClient = createTestQueryClient();
+
+  const result = await rtlRender(
+    <QueryClientProvider client={queryClient}>
+      <ExcalidrawApp />
+    </QueryClientProvider>,
+  );
+
+  return { ...result, queryClient };
 }

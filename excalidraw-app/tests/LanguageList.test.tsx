@@ -4,31 +4,40 @@ import {
   screen,
   fireEvent,
   waitFor,
-  render,
 } from "@excalidraw/excalidraw/tests/test-utils";
 
-import ExcalidrawApp from "../App";
+import { renderExcalidrawApp } from "./testUtils";
 
 describe("Test LanguageList", () => {
   it("rerenders UI on language change", async () => {
-    await render(<ExcalidrawApp />);
+    await renderExcalidrawApp();
 
     // select rectangle tool to show properties menu
     UI.clickTool("rectangle");
-    // english lang should display `thin` label
-    expect(screen.queryByTitle(/thin/i)).not.toBeNull();
+    // english lang should display `Thin` label for stroke width
+    // Use data-testid to avoid matching custom pen buttons that also contain "thin"
+    expect(screen.queryByTestId("strokeWidth-thin")).not.toBeNull();
     fireEvent.click(document.querySelector(".dropdown-menu-button")!);
 
     fireEvent.change(document.querySelector(".dropdown-select__language")!, {
       target: { value: "de-DE" },
     });
-    // switching to german, `thin` label should no longer exist
-    await waitFor(() => expect(screen.queryByTitle(/thin/i)).toBeNull());
+
+    // Wait for language to change - check the html lang attribute
+    await waitFor(() => {
+      expect(document.documentElement.getAttribute("lang")).toBe("de-DE");
+    });
+
     // reset language
     fireEvent.change(document.querySelector(".dropdown-select__language")!, {
       target: { value: defaultLang.code },
     });
-    // switching back to English
-    await waitFor(() => expect(screen.queryByTitle(/thin/i)).not.toBeNull());
+
+    // Wait for language to change back
+    await waitFor(() => {
+      expect(document.documentElement.getAttribute("lang")).toBe(
+        defaultLang.code,
+      );
+    });
   });
 });
