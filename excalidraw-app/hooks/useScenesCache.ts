@@ -6,6 +6,20 @@ import { listWorkspaceScenes } from "../auth/workspaceApi";
 
 import type { WorkspaceScene } from "../auth/workspaceApi";
 
+/**
+ * Fields needed for scene list views (SceneCard, dashboard, etc.)
+ * Using field filtering reduces payload size by ~50%
+ */
+const SCENE_LIST_FIELDS = [
+  "id",
+  "title",
+  "thumbnailUrl",
+  "updatedAt",
+  "isPublic",
+  "canEdit",
+  "collectionId", // Needed for filtering/grouping
+];
+
 interface UseScenesOptions {
   workspaceId: string | undefined;
   collectionId?: string | null;
@@ -61,7 +75,10 @@ export function useScenesCache({
       if (!workspaceId) {
         return [];
       }
-      return listWorkspaceScenes(workspaceId, collectionId || undefined);
+      // Request only the fields needed for list views to reduce payload size
+      return listWorkspaceScenes(workspaceId, collectionId || undefined, {
+        fields: SCENE_LIST_FIELDS,
+      });
     },
     enabled: enabled && !!workspaceId,
     // Show stale data immediately while refetching

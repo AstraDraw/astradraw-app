@@ -124,15 +124,36 @@ export async function duplicateScene(id: string): Promise<WorkspaceScene> {
 }
 
 /**
+ * Options for listing scenes
+ */
+export interface ListScenesOptions {
+  /**
+   * Filter response to include only specified fields.
+   * Reduces payload size when you don't need all scene data.
+   *
+   * Example: ['id', 'title', 'thumbnailUrl', 'updatedAt', 'isPublic', 'canEdit']
+   */
+  fields?: string[];
+}
+
+/**
  * List scenes in a workspace (optionally filtered by collection)
+ *
+ * @param workspaceId - The workspace to list scenes from
+ * @param collectionId - Optional collection filter
+ * @param options - Optional settings like field filtering
  */
 export async function listWorkspaceScenes(
   workspaceId: string,
   collectionId?: string,
+  options?: ListScenesOptions,
 ): Promise<WorkspaceScene[]> {
   const params = new URLSearchParams({ workspaceId });
   if (collectionId) {
     params.append("collectionId", collectionId);
+  }
+  if (options?.fields?.length) {
+    params.append("fields", options.fields.join(","));
   }
 
   return apiRequest(`/workspace/scenes?${params.toString()}`, {

@@ -15,12 +15,39 @@ import type {
 // ============================================================================
 
 /**
+ * Options for listing collections
+ */
+export interface ListCollectionsOptions {
+  /**
+   * Filter response to include only specified fields.
+   * Reduces payload size when you don't need all collection data.
+   *
+   * Example: ['id', 'name', 'icon', 'isPrivate', 'sceneCount', 'canWrite', 'isOwner']
+   */
+  fields?: string[];
+}
+
+/**
  * List all accessible collections in a workspace
+ *
+ * @param workspaceId - The workspace to list collections from
+ * @param options - Optional settings like field filtering
  */
 export async function listCollections(
   workspaceId: string,
+  options?: ListCollectionsOptions,
 ): Promise<Collection[]> {
-  return apiRequest(`/workspaces/${workspaceId}/collections`, {
+  const params = new URLSearchParams();
+  if (options?.fields?.length) {
+    params.append("fields", options.fields.join(","));
+  }
+
+  const queryString = params.toString();
+  const url = queryString
+    ? `/workspaces/${workspaceId}/collections?${queryString}`
+    : `/workspaces/${workspaceId}/collections`;
+
+  return apiRequest(url, {
     errorMessage: "Failed to list collections",
   });
 }
