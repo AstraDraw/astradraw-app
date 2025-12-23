@@ -7,7 +7,7 @@ import { t } from "@excalidraw/excalidraw/i18n";
 import type { ExcalidrawFrameLikeElement } from "@excalidraw/element/types";
 import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 
-import "./SlidesLayoutDialog.scss";
+import styles from "./SlidesLayoutDialog.module.scss";
 
 export type LayoutType = "row" | "column" | "grid";
 
@@ -40,154 +40,188 @@ export const SlidesLayoutDialog: React.FC<SlidesLayoutDialogProps> = ({
       title={t("slidesLayout.title")}
       size="wide"
     >
-      <div className="slides-layout-dialog">
-        <p className="slides-layout-dialog__description">
-          {t("slidesLayout.description")}
-        </p>
+      <div className={styles.dialog}>
+        <p className={styles.description}>{t("slidesLayout.description")}</p>
 
-        <p className="slides-layout-dialog__order-note">
+        <p className={styles.orderNote}>
           <strong>{t("slidesLayout.orderNote")}</strong>
           <br />
-          <span className="slides-layout-dialog__order-note-sub">
+          <span className={styles.orderNoteSub}>
             {t("slidesLayout.orderNoteSub")}
           </span>
         </p>
 
-        <div className="slides-layout-dialog__options">
+        <div className={styles.options}>
           {/* Row Layout */}
           <button
-            className={clsx("slides-layout-dialog__option", {
-              "slides-layout-dialog__option--selected":
-                selectedLayout === "row",
+            className={clsx(styles.option, {
+              [styles.optionSelected]: selectedLayout === "row",
             })}
             onClick={() => setSelectedLayout("row")}
           >
-            <div className="slides-layout-dialog__option-preview slides-layout-dialog__option-preview--row">
-              <div className="slides-layout-dialog__mock-window">
-                <div className="slides-layout-dialog__window-dots">
-                  <span className="slides-layout-dialog__dot slides-layout-dialog__dot--red" />
-                  <span className="slides-layout-dialog__dot slides-layout-dialog__dot--yellow" />
-                  <span className="slides-layout-dialog__dot slides-layout-dialog__dot--green" />
+            <div className={styles.optionPreview}>
+              <div className={styles.mockWindow}>
+                <div className={styles.windowDots}>
+                  <span className={clsx(styles.dot, styles.dotRed)} />
+                  <span className={clsx(styles.dot, styles.dotYellow)} />
+                  <span className={clsx(styles.dot, styles.dotGreen)} />
                 </div>
-                <div className="slides-layout-dialog__mock-frames slides-layout-dialog__mock-frames--row">
-                  <div className="slides-layout-dialog__mock-frame">
-                    <span className="slides-layout-dialog__mock-shape slides-layout-dialog__mock-shape--circle" />
+                <div className={clsx(styles.mockFrames, styles.mockFramesRow)}>
+                  <div className={styles.mockFrame}>
+                    <span
+                      className={clsx(styles.mockShape, styles.mockShapeCircle)}
+                    />
                   </div>
-                  <div className="slides-layout-dialog__mock-frame">
-                    <span className="slides-layout-dialog__mock-shape slides-layout-dialog__mock-shape--square" />
+                  <div className={styles.mockFrame}>
+                    <span
+                      className={clsx(styles.mockShape, styles.mockShapeSquare)}
+                    />
                   </div>
-                  <div className="slides-layout-dialog__mock-frame">
-                    <span className="slides-layout-dialog__mock-shape slides-layout-dialog__mock-shape--triangle" />
+                  <div className={styles.mockFrame}>
+                    <span
+                      className={clsx(
+                        styles.mockShape,
+                        styles.mockShapeTriangle,
+                      )}
+                    />
                   </div>
                 </div>
               </div>
             </div>
-            <div className="slides-layout-dialog__option-label">
-              <span className="slides-layout-dialog__option-name">
-                {t("slidesLayout.row")}
-              </span>
+            <div className={styles.optionLabel}>
+              <span className={styles.optionName}>{t("slidesLayout.row")}</span>
               {selectedLayout === "row" && (
-                <span className="slides-layout-dialog__option-check">✓</span>
+                <span className={styles.optionCheck}>✓</span>
               )}
             </div>
           </button>
 
           {/* Column Layout */}
           <button
-            className={clsx("slides-layout-dialog__option", {
-              "slides-layout-dialog__option--selected":
-                selectedLayout === "column",
+            className={clsx(styles.option, {
+              [styles.optionSelected]: selectedLayout === "column",
             })}
             onClick={() => setSelectedLayout("column")}
           >
-            <div className="slides-layout-dialog__option-preview slides-layout-dialog__option-preview--column">
-              <div className="slides-layout-dialog__mock-window">
-                <div className="slides-layout-dialog__window-dots">
-                  <span className="slides-layout-dialog__dot slides-layout-dialog__dot--red" />
-                  <span className="slides-layout-dialog__dot slides-layout-dialog__dot--yellow" />
-                  <span className="slides-layout-dialog__dot slides-layout-dialog__dot--green" />
+            <div className={styles.optionPreview}>
+              <div className={styles.mockWindow}>
+                <div className={styles.windowDots}>
+                  <span className={clsx(styles.dot, styles.dotRed)} />
+                  <span className={clsx(styles.dot, styles.dotYellow)} />
+                  <span className={clsx(styles.dot, styles.dotGreen)} />
                 </div>
-                <div className="slides-layout-dialog__mock-frames slides-layout-dialog__mock-frames--column">
-                  <div className="slides-layout-dialog__mock-frame">
-                    <span className="slides-layout-dialog__mock-shape slides-layout-dialog__mock-shape--circle" />
+                <div
+                  className={clsx(styles.mockFrames, styles.mockFramesColumn)}
+                >
+                  <div className={styles.mockFrame}>
+                    <span
+                      className={clsx(styles.mockShape, styles.mockShapeCircle)}
+                    />
                   </div>
-                  <div className="slides-layout-dialog__mock-frame">
-                    <span className="slides-layout-dialog__mock-shape slides-layout-dialog__mock-shape--square" />
+                  <div className={styles.mockFrame}>
+                    <span
+                      className={clsx(styles.mockShape, styles.mockShapeSquare)}
+                    />
                   </div>
-                  <div className="slides-layout-dialog__mock-frame">
-                    <span className="slides-layout-dialog__mock-shape slides-layout-dialog__mock-shape--triangle" />
+                  <div className={styles.mockFrame}>
+                    <span
+                      className={clsx(
+                        styles.mockShape,
+                        styles.mockShapeTriangle,
+                      )}
+                    />
                   </div>
                 </div>
               </div>
             </div>
-            <div className="slides-layout-dialog__option-label">
-              <span className="slides-layout-dialog__option-name">
+            <div className={styles.optionLabel}>
+              <span className={styles.optionName}>
                 {t("slidesLayout.column")}
               </span>
               {selectedLayout === "column" && (
-                <span className="slides-layout-dialog__option-check">✓</span>
+                <span className={styles.optionCheck}>✓</span>
               )}
             </div>
           </button>
 
           {/* Grid Layout */}
           <button
-            className={clsx("slides-layout-dialog__option", {
-              "slides-layout-dialog__option--selected":
-                selectedLayout === "grid",
+            className={clsx(styles.option, {
+              [styles.optionSelected]: selectedLayout === "grid",
             })}
             onClick={() => setSelectedLayout("grid")}
           >
-            <div className="slides-layout-dialog__option-preview slides-layout-dialog__option-preview--grid">
-              <div className="slides-layout-dialog__mock-window">
-                <div className="slides-layout-dialog__window-dots">
-                  <span className="slides-layout-dialog__dot slides-layout-dialog__dot--red" />
-                  <span className="slides-layout-dialog__dot slides-layout-dialog__dot--yellow" />
-                  <span className="slides-layout-dialog__dot slides-layout-dialog__dot--green" />
+            <div className={styles.optionPreview}>
+              <div className={styles.mockWindow}>
+                <div className={styles.windowDots}>
+                  <span className={clsx(styles.dot, styles.dotRed)} />
+                  <span className={clsx(styles.dot, styles.dotYellow)} />
+                  <span className={clsx(styles.dot, styles.dotGreen)} />
                 </div>
-                <div className="slides-layout-dialog__mock-frames slides-layout-dialog__mock-frames--grid">
-                  <div className="slides-layout-dialog__mock-frame">
-                    <span className="slides-layout-dialog__mock-shape slides-layout-dialog__mock-shape--circle" />
+                <div className={clsx(styles.mockFrames, styles.mockFramesGrid)}>
+                  <div className={styles.mockFrame}>
+                    <span
+                      className={clsx(styles.mockShape, styles.mockShapeCircle)}
+                    />
                   </div>
-                  <div className="slides-layout-dialog__mock-frame">
-                    <span className="slides-layout-dialog__mock-shape slides-layout-dialog__mock-shape--square" />
+                  <div className={styles.mockFrame}>
+                    <span
+                      className={clsx(styles.mockShape, styles.mockShapeSquare)}
+                    />
                   </div>
-                  <div className="slides-layout-dialog__mock-frame">
-                    <span className="slides-layout-dialog__mock-shape slides-layout-dialog__mock-shape--triangle" />
+                  <div className={styles.mockFrame}>
+                    <span
+                      className={clsx(
+                        styles.mockShape,
+                        styles.mockShapeTriangle,
+                      )}
+                    />
                   </div>
-                  <div className="slides-layout-dialog__mock-frame">
-                    <span className="slides-layout-dialog__mock-shape slides-layout-dialog__mock-shape--star" />
+                  <div className={styles.mockFrame}>
+                    <span
+                      className={clsx(styles.mockShape, styles.mockShapeStar)}
+                    />
                   </div>
-                  <div className="slides-layout-dialog__mock-frame">
-                    <span className="slides-layout-dialog__mock-shape slides-layout-dialog__mock-shape--diamond" />
+                  <div className={styles.mockFrame}>
+                    <span
+                      className={clsx(
+                        styles.mockShape,
+                        styles.mockShapeDiamond,
+                      )}
+                    />
                   </div>
-                  <div className="slides-layout-dialog__mock-frame">
-                    <span className="slides-layout-dialog__mock-shape slides-layout-dialog__mock-shape--hexagon" />
+                  <div className={styles.mockFrame}>
+                    <span
+                      className={clsx(
+                        styles.mockShape,
+                        styles.mockShapeHexagon,
+                      )}
+                    />
                   </div>
                 </div>
               </div>
             </div>
-            <div className="slides-layout-dialog__option-label">
-              <span className="slides-layout-dialog__option-name">
+            <div className={styles.optionLabel}>
+              <span className={styles.optionName}>
                 {t("slidesLayout.grid")}
               </span>
               {selectedLayout === "grid" && (
-                <span className="slides-layout-dialog__option-check">✓</span>
+                <span className={styles.optionCheck}>✓</span>
               )}
             </div>
           </button>
         </div>
 
         {/* Column count selector for grid */}
-        <div className="slides-layout-dialog__column-count">
-          <label className="slides-layout-dialog__column-label">
+        <div className={styles.columnCount}>
+          <label className={styles.columnLabel}>
             {t("slidesLayout.columnCount")}
-            <span className="slides-layout-dialog__column-description">
+            <span className={styles.columnDescription}>
               {t("slidesLayout.columnCountDescription")}
             </span>
           </label>
           <select
-            className="slides-layout-dialog__column-select"
+            className={styles.columnSelect}
             value={columnCount}
             onChange={(e) => setColumnCount(Number(e.target.value))}
             disabled={selectedLayout !== "grid"}
@@ -201,15 +235,15 @@ export const SlidesLayoutDialog: React.FC<SlidesLayoutDialogProps> = ({
         </div>
 
         {/* Action buttons */}
-        <div className="slides-layout-dialog__actions">
+        <div className={styles.actions}>
           <button
-            className="slides-layout-dialog__button slides-layout-dialog__button--secondary"
+            className={clsx(styles.button, styles.buttonSecondary)}
             onClick={onClose}
           >
             {t("slidesLayout.close")}
           </button>
           <button
-            className="slides-layout-dialog__button slides-layout-dialog__button--primary"
+            className={clsx(styles.button, styles.buttonPrimary)}
             onClick={handleApply}
           >
             {t("slidesLayout.apply")}

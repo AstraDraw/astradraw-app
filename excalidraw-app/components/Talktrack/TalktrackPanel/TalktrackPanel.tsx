@@ -13,15 +13,15 @@ import {
   deleteTalktrack,
   updateTalktrackStatus,
   type TalktrackRecording,
-} from "../../auth/workspaceApi";
+} from "../../../auth/workspaceApi";
 
 import {
   isKinescopeConfigured,
   getKinescopeEmbedUrl,
   checkVideoStatus,
-} from "./kinescopeApi";
+} from "../kinescopeApi";
 
-import "./TalktrackPanel.scss";
+import styles from "./TalktrackPanel.module.scss";
 
 interface TalktrackPanelProps {
   excalidrawAPI: ExcalidrawImperativeAPI | null;
@@ -117,16 +117,16 @@ const RecordingItem: React.FC<RecordingItemProps> = ({
   const isOwner = recording.isOwner;
 
   return (
-    <div className="talktrack-panel__recording">
+    <div className={styles.recording}>
       <div
-        className={clsx("talktrack-panel__recording-thumbnail", {
-          "talktrack-panel__recording-thumbnail--processing": isProcessing,
+        className={clsx(styles.recordingThumbnail, {
+          [styles.recordingThumbnailProcessing]: isProcessing,
         })}
       >
         {/* Placeholder thumbnail - Kinescope provides thumbnails after processing */}
-        <div className="talktrack-panel__recording-thumbnail-placeholder">
+        <div className={styles.recordingThumbnailPlaceholder}>
           {isProcessing ? (
-            <div className="talktrack-panel__processing-indicator">
+            <div className={styles.processingIndicator}>
               <svg
                 width="24"
                 height="24"
@@ -162,17 +162,17 @@ const RecordingItem: React.FC<RecordingItemProps> = ({
           )}
         </div>
         {isProcessing && (
-          <div className="talktrack-panel__processing-overlay">
+          <div className={styles.processingOverlay}>
             <span>{t("talktrack.processing")}</span>
           </div>
         )}
       </div>
 
-      <div className="talktrack-panel__recording-info">
+      <div className={styles.recordingInfo}>
         {isEditing ? (
           <input
             type="text"
-            className="talktrack-panel__recording-title-input"
+            className={styles.recordingTitleInput}
             value={editTitle}
             onChange={(e) => setEditTitle(e.target.value)}
             onBlur={handleSaveRename}
@@ -180,23 +180,19 @@ const RecordingItem: React.FC<RecordingItemProps> = ({
             autoFocus
           />
         ) : (
-          <div className="talktrack-panel__recording-title">
-            {recording.title}
-          </div>
+          <div className={styles.recordingTitle}>{recording.title}</div>
         )}
-        <div className="talktrack-panel__recording-meta">
-          <span className="talktrack-panel__recording-duration">
+        <div className={styles.recordingMeta}>
+          <span className={styles.recordingDuration}>
             {formatDuration(recording.duration)}
           </span>
-          <span className="talktrack-panel__recording-date">
-            {formatDate(recording.createdAt)}
-          </span>
+          <span>{formatDate(recording.createdAt)}</span>
         </div>
       </div>
 
-      <div className="talktrack-panel__recording-actions">
+      <div className={styles.recordingActions}>
         <button
-          className="talktrack-panel__action-button"
+          className={styles.actionButton}
           onClick={handleCopyLink}
           title={t("talktrack.copyLink")}
         >
@@ -215,9 +211,9 @@ const RecordingItem: React.FC<RecordingItemProps> = ({
 
         {/* Only show menu for owners */}
         {isOwner && (
-          <div className="talktrack-panel__menu-container">
+          <div className={styles.menuContainer}>
             <button
-              className="talktrack-panel__action-button"
+              className={styles.actionButton}
               onClick={handleMenuClick}
               title={t("talktrack.moreOptions")}
             >
@@ -234,9 +230,9 @@ const RecordingItem: React.FC<RecordingItemProps> = ({
             </button>
 
             {isMenuOpen && (
-              <div className="talktrack-panel__menu">
+              <div className={styles.menu}>
                 <button
-                  className="talktrack-panel__menu-item"
+                  className={styles.menuItem}
                   onClick={() => {
                     onAddToBoard(recording);
                     setIsMenuOpen(false);
@@ -256,10 +252,7 @@ const RecordingItem: React.FC<RecordingItemProps> = ({
                   </svg>
                   {t("talktrack.addToBoard")}
                 </button>
-                <button
-                  className="talktrack-panel__menu-item"
-                  onClick={handleRename}
-                >
+                <button className={styles.menuItem} onClick={handleRename}>
                   <svg
                     width="16"
                     height="16"
@@ -274,7 +267,7 @@ const RecordingItem: React.FC<RecordingItemProps> = ({
                   {t("talktrack.rename")}
                 </button>
                 <button
-                  className="talktrack-panel__menu-item talktrack-panel__menu-item--danger"
+                  className={clsx(styles.menuItem, styles.menuItemDanger)}
                   onClick={handleDelete}
                 >
                   <svg
@@ -300,8 +293,8 @@ const RecordingItem: React.FC<RecordingItemProps> = ({
 };
 
 const EmptyState: React.FC<{ onRecord: () => void }> = ({ onRecord }) => (
-  <div className="talktrack-panel__empty">
-    <div className="talktrack-panel__empty-icon">
+  <div className={styles.empty}>
+    <div className={styles.emptyIcon}>
       <svg
         width="64"
         height="64"
@@ -315,13 +308,9 @@ const EmptyState: React.FC<{ onRecord: () => void }> = ({ onRecord }) => (
         <circle cx="18" cy="7" r="1" fill="currentColor" />
       </svg>
     </div>
-    <h3 className="talktrack-panel__empty-title">
-      {t("talktrack.emptyTitle")}
-    </h3>
-    <p className="talktrack-panel__empty-description">
-      {t("talktrack.emptyDescription")}
-    </p>
-    <button className="talktrack-panel__record-button" onClick={onRecord}>
+    <h3 className={styles.emptyTitle}>{t("talktrack.emptyTitle")}</h3>
+    <p className={styles.emptyDescription}>{t("talktrack.emptyDescription")}</p>
+    <button className={styles.recordButton} onClick={onRecord}>
       <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
         <circle cx="12" cy="12" r="10" />
       </svg>
@@ -331,20 +320,20 @@ const EmptyState: React.FC<{ onRecord: () => void }> = ({ onRecord }) => (
 );
 
 const NotConfigured: React.FC = () => (
-  <div className="talktrack-panel__not-configured">
-    <div className="talktrack-panel__not-configured-icon">⚠️</div>
-    <h3 className="talktrack-panel__not-configured-title">
+  <div className={styles.notConfigured}>
+    <div className={styles.notConfiguredIcon}>⚠️</div>
+    <h3 className={styles.notConfiguredTitle}>
       {t("talktrack.notConfiguredTitle")}
     </h3>
-    <p className="talktrack-panel__not-configured-description">
+    <p className={styles.notConfiguredDescription}>
       {t("talktrack.notConfiguredDescription")}
     </p>
   </div>
 );
 
 const NoSceneState: React.FC = () => (
-  <div className="talktrack-panel__no-scene">
-    <div className="talktrack-panel__no-scene-icon">
+  <div className={styles.noScene}>
+    <div className={styles.noSceneIcon}>
       <svg
         width="48"
         height="48"
@@ -358,10 +347,10 @@ const NoSceneState: React.FC = () => (
         <polyline points="7 3 7 8 15 8" />
       </svg>
     </div>
-    <h3 className="talktrack-panel__no-scene-title">
+    <h3 className={styles.noSceneTitle}>
       {t("talktrack.noSceneTitle") || "Save your scene first"}
     </h3>
-    <p className="talktrack-panel__no-scene-description">
+    <p className={styles.noSceneDescription}>
       {t("talktrack.noSceneDescription") ||
         "Talktrack recordings are saved with your scene. Save your scene to the workspace to start recording."}
     </p>
@@ -562,7 +551,7 @@ export const TalktrackPanel: React.FC<TalktrackPanelProps> = ({
   // Check if Kinescope is configured
   if (!isKinescopeConfigured()) {
     return (
-      <div className="talktrack-panel" onWheel={(e) => e.stopPropagation()}>
+      <div className={styles.panel} onWheel={(e) => e.stopPropagation()}>
         <NotConfigured />
       </div>
     );
@@ -571,7 +560,7 @@ export const TalktrackPanel: React.FC<TalktrackPanelProps> = ({
   // Show "save scene first" message if no sceneId
   if (!sceneId) {
     return (
-      <div className="talktrack-panel" onWheel={(e) => e.stopPropagation()}>
+      <div className={styles.panel} onWheel={(e) => e.stopPropagation()}>
         <NoSceneState />
       </div>
     );
@@ -580,9 +569,9 @@ export const TalktrackPanel: React.FC<TalktrackPanelProps> = ({
   // Show loading state
   if (isLoading && recordings.length === 0) {
     return (
-      <div className="talktrack-panel" onWheel={(e) => e.stopPropagation()}>
-        <div className="talktrack-panel__loading">
-          <div className="talktrack-panel__processing-indicator">
+      <div className={styles.panel} onWheel={(e) => e.stopPropagation()}>
+        <div className={styles.loading}>
+          <div className={styles.processingIndicator}>
             <svg
               width="24"
               height="24"
@@ -613,8 +602,8 @@ export const TalktrackPanel: React.FC<TalktrackPanelProps> = ({
   // Show error state
   if (error) {
     return (
-      <div className="talktrack-panel" onWheel={(e) => e.stopPropagation()}>
-        <div className="talktrack-panel__error">
+      <div className={styles.panel} onWheel={(e) => e.stopPropagation()}>
+        <div className={styles.error}>
           <span>{error}</span>
           <button onClick={loadRecordings}>
             {t("talktrack.retry") || "Retry"}
@@ -627,18 +616,16 @@ export const TalktrackPanel: React.FC<TalktrackPanelProps> = ({
   const hasRecordings = recordings.length > 0;
 
   return (
-    <div className="talktrack-panel" onWheel={(e) => e.stopPropagation()}>
+    <div className={styles.panel} onWheel={(e) => e.stopPropagation()}>
       {hasRecordings ? (
         <>
           {/* Header */}
-          <div className="talktrack-panel__header">
-            <span className="talktrack-panel__title">
-              {t("talktrack.title")}
-            </span>
+          <div className={styles.header}>
+            <span className={styles.title}>{t("talktrack.title")}</span>
           </div>
 
           {/* Recordings list */}
-          <div className="talktrack-panel__recordings">
+          <div className={styles.recordings}>
             {recordings.map((recording) => (
               <RecordingItem
                 key={recording.id}
@@ -652,11 +639,8 @@ export const TalktrackPanel: React.FC<TalktrackPanelProps> = ({
           </div>
 
           {/* Record button at bottom */}
-          <div className="talktrack-panel__footer">
-            <button
-              className="talktrack-panel__record-button"
-              onClick={onStartRecording}
-            >
+          <div className={styles.footer}>
+            <button className={styles.recordButton} onClick={onStartRecording}>
               <svg
                 width="16"
                 height="16"

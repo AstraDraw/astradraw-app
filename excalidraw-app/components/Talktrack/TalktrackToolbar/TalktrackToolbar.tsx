@@ -3,9 +3,9 @@ import { useCallback, useEffect, useState, useRef } from "react";
 
 import { t } from "@excalidraw/excalidraw/i18n";
 
-import { formatDuration, type RecordingState } from "./TalktrackRecorder";
+import { formatDuration, type RecordingState } from "../TalktrackRecorder";
 
-import "./TalktrackToolbar.scss";
+import styles from "./TalktrackToolbar.module.scss";
 
 interface TalktrackToolbarProps {
   recordingState: RecordingState;
@@ -211,8 +211,8 @@ export const TalktrackToolbar: React.FC<TalktrackToolbarProps> = ({
       {cameraEnabled && (
         <div
           ref={cameraBubbleRef}
-          className={clsx("talktrack-toolbar__camera-preview", {
-            "talktrack-toolbar__camera-preview--dragging": isDraggingBubble,
+          className={clsx(styles.cameraPreview, {
+            [styles.cameraPreviewDragging]: isDraggingBubble,
           })}
           style={{
             position: "fixed",
@@ -227,7 +227,7 @@ export const TalktrackToolbar: React.FC<TalktrackToolbarProps> = ({
             autoPlay
             muted
             playsInline
-            className="talktrack-toolbar__camera-video"
+            className={styles.cameraVideo}
           />
         </div>
       )}
@@ -235,8 +235,8 @@ export const TalktrackToolbar: React.FC<TalktrackToolbarProps> = ({
       {/* Main toolbar - draggable */}
       <div
         ref={toolbarRef}
-        className={clsx("talktrack-toolbar", {
-          "talktrack-toolbar--dragging": isDraggingToolbar,
+        className={clsx(styles.toolbar, {
+          [styles.dragging]: isDraggingToolbar,
         })}
         style={{
           position: "fixed",
@@ -244,14 +244,11 @@ export const TalktrackToolbar: React.FC<TalktrackToolbarProps> = ({
           top: `${toolbarPosition.y}px`,
         }}
       >
-        <div
-          className="talktrack-toolbar__controls"
-          onMouseDown={handleToolbarMouseDown}
-        >
+        <div className={styles.controls} onMouseDown={handleToolbarMouseDown}>
           {/* Delete button */}
           <button
-            className={clsx("talktrack-toolbar__button", {
-              "talktrack-toolbar__button--confirm": showConfirmDelete,
+            className={clsx(styles.button, {
+              [styles.buttonConfirm]: showConfirmDelete,
             })}
             onClick={handleDeleteClick}
             title={
@@ -275,7 +272,7 @@ export const TalktrackToolbar: React.FC<TalktrackToolbarProps> = ({
 
           {/* Restart button */}
           <button
-            className="talktrack-toolbar__button"
+            className={styles.button}
             onClick={onRestart}
             title={t("talktrack.restart")}
           >
@@ -294,7 +291,7 @@ export const TalktrackToolbar: React.FC<TalktrackToolbarProps> = ({
 
           {/* Pause/Resume button */}
           <button
-            className="talktrack-toolbar__button"
+            className={styles.button}
             onClick={handlePauseResume}
             title={isPaused ? t("talktrack.resume") : t("talktrack.pause")}
           >
@@ -322,15 +319,15 @@ export const TalktrackToolbar: React.FC<TalktrackToolbarProps> = ({
 
           {/* Timer */}
           <div
-            className={clsx("talktrack-toolbar__timer", {
-              "talktrack-toolbar__timer--paused": isPaused,
+            className={clsx(styles.timer, {
+              [styles.timerPaused]: isPaused,
             })}
           >
             {formatDuration(recordingState.duration)}
           </div>
 
           {/* Stop button */}
-          <button className="talktrack-toolbar__stop-button" onClick={onStop}>
+          <button className={styles.stopButton} onClick={onStop}>
             {t("talktrack.stop")}
           </button>
         </div>

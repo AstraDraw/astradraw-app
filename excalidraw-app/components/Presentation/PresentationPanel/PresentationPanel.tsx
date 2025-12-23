@@ -11,12 +11,12 @@ import type {
   BinaryFiles,
 } from "@excalidraw/excalidraw/types";
 
-import { usePresentationMode } from "./usePresentationMode";
-import { SlidesLayoutDialog, applyLayoutToFrames } from "./SlidesLayoutDialog";
+import { usePresentationMode } from "../usePresentationMode";
+import { SlidesLayoutDialog, applyLayoutToFrames } from "../SlidesLayoutDialog";
 
-import "./PresentationPanel.scss";
+import styles from "./PresentationPanel.module.scss";
 
-import type { LayoutType } from "./SlidesLayoutDialog";
+import type { LayoutType } from "../SlidesLayoutDialog";
 
 // Helper to extract the order prefix from a frame name (e.g., "3. My Frame" -> 3)
 const extractOrderPrefix = (name: string | null): number | null => {
@@ -193,10 +193,10 @@ const SlideThumb: React.FC<SlideThumbProps> = ({
 
   return (
     <div
-      className={clsx("presentation-panel__slide", {
-        "presentation-panel__slide--active": isActive,
-        "presentation-panel__slide--dragging": isDragging,
-        "presentation-panel__slide--drag-over": isDragOver,
+      className={clsx(styles.slide, {
+        [styles.slideActive]: isActive,
+        [styles.slideDragging]: isDragging,
+        [styles.slideDragOver]: isDragOver,
       })}
       draggable
       onDragStart={onDragStart}
@@ -206,10 +206,10 @@ const SlideThumb: React.FC<SlideThumbProps> = ({
       onDrop={onDrop}
     >
       {/* Drop indicator line */}
-      {isDragOver && <div className="presentation-panel__drop-indicator" />}
+      {isDragOver && <div className={styles.dropIndicator} />}
 
       <div
-        className="presentation-panel__slide-content"
+        className={styles.slideContent}
         onClick={onClick}
         role="button"
         tabIndex={0}
@@ -221,22 +221,20 @@ const SlideThumb: React.FC<SlideThumbProps> = ({
         }}
         title={`${t("presentation.goToSlide")} ${frameName}`}
       >
-        <div className="presentation-panel__slide-preview">
+        <div className={styles.slidePreview}>
           <canvas
             ref={canvasRef}
             width={280}
             height={158}
-            className="presentation-panel__slide-canvas"
+            className={styles.slideCanvas}
           />
           {previewError && (
-            <span className="presentation-panel__slide-number">
-              {index + 1}
-            </span>
+            <span className={styles.slideNumber}>{index + 1}</span>
           )}
           {/* Hover overlay with actions */}
-          <div className="presentation-panel__slide-overlay">
+          <div className={styles.slideOverlay}>
             <button
-              className="presentation-panel__overlay-action"
+              className={styles.overlayAction}
               onClick={handleStartEditing}
               title={t("presentation.renameFrame")}
             >
@@ -253,7 +251,7 @@ const SlideThumb: React.FC<SlideThumbProps> = ({
               </svg>
             </button>
             <div
-              className="presentation-panel__overlay-drag-handle"
+              className={styles.overlayDragHandle}
               title={t("presentation.dragToReorder")}
             >
               <svg
@@ -279,7 +277,7 @@ const SlideThumb: React.FC<SlideThumbProps> = ({
         <input
           ref={inputRef}
           type="text"
-          className="presentation-panel__slide-name-input"
+          className={styles.slideNameInput}
           value={editValue}
           onChange={(e) => setEditValue(e.target.value)}
           onBlur={handleFinishEditing}
@@ -289,7 +287,7 @@ const SlideThumb: React.FC<SlideThumbProps> = ({
         />
       ) : (
         <span
-          className="presentation-panel__slide-name"
+          className={styles.slideName}
           onDoubleClick={handleStartEditing}
           title={t("presentation.doubleClickToRename")}
         >
@@ -304,8 +302,8 @@ const PresentationInstructions: React.FC<{
   onCreateSlide: () => void;
 }> = ({ onCreateSlide }) => {
   return (
-    <div className="presentation-panel__instructions">
-      <div className="presentation-panel__instructions-icon">
+    <div className={styles.instructions}>
+      <div className={styles.instructionsIcon}>
         <svg
           width="64"
           height="64"
@@ -323,22 +321,19 @@ const PresentationInstructions: React.FC<{
           <path d="M8 12l3 -3l2 2l3 -3" />
         </svg>
       </div>
-      <h3 className="presentation-panel__instructions-title">
+      <h3 className={styles.instructionsTitle}>
         {t("presentation.noFramesTitle")}
       </h3>
-      <p className="presentation-panel__instructions-text">
+      <p className={styles.instructionsText}>
         {t("presentation.noFramesDescription")}
       </p>
-      <ol className="presentation-panel__instructions-steps">
+      <ol className={styles.instructionsSteps}>
         <li>{t("presentation.noFramesStep1")}</li>
         <li>{t("presentation.noFramesStep2")}</li>
         <li>{t("presentation.noFramesStep3")}</li>
         <li>{t("presentation.noFramesStep4")}</li>
       </ol>
-      <button
-        className="presentation-panel__create-slide-button"
-        onClick={onCreateSlide}
-      >
+      <button className={styles.createSlideButton} onClick={onCreateSlide}>
         {PlusIcon}
         <span>{t("presentation.createFirstSlide")}</span>
       </button>
@@ -683,17 +678,15 @@ export const PresentationPanel: React.FC<PresentationPanelProps> = ({
   const hasFrames = orderedFrames.length > 0;
 
   return (
-    <div className="presentation-panel" onWheel={(e) => e.stopPropagation()}>
+    <div className={styles.panel} onWheel={(e) => e.stopPropagation()}>
       {hasFrames ? (
         <>
           {/* Header */}
-          <div className="presentation-panel__header">
-            <span className="presentation-panel__title">
-              {t("presentation.title")}
-            </span>
-            <div className="presentation-panel__header-actions">
+          <div className={styles.header}>
+            <span className={styles.title}>{t("presentation.title")}</span>
+            <div className={styles.headerActions}>
               <button
-                className="presentation-panel__header-button"
+                className={styles.headerButton}
                 onClick={() => setIsLayoutDialogOpen(true)}
                 title={t("slidesLayout.title")}
               >
@@ -712,7 +705,7 @@ export const PresentationPanel: React.FC<PresentationPanelProps> = ({
                 </svg>
               </button>
               <button
-                className="presentation-panel__header-button"
+                className={styles.headerButton}
                 onClick={handleCreateSlide}
                 title={t("presentation.createSlide")}
               >
@@ -730,7 +723,7 @@ export const PresentationPanel: React.FC<PresentationPanelProps> = ({
 
           {/* Slides list */}
           <div
-            className="presentation-panel__slides"
+            className={styles.slides}
             ref={slidesContainerRef}
             onWheel={(e) => e.stopPropagation()}
           >
@@ -756,9 +749,9 @@ export const PresentationPanel: React.FC<PresentationPanelProps> = ({
           </div>
 
           {/* Start button */}
-          <div className="presentation-panel__footer">
+          <div className={styles.footer}>
             <button
-              className="presentation-panel__start-button"
+              className={styles.startButton}
               onClick={handleStartPresentation}
             >
               <svg

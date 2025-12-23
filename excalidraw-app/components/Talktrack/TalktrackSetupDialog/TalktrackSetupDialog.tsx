@@ -8,9 +8,9 @@ import {
   getVideoDevices,
   getAudioDevices,
   type RecordingDevice,
-} from "./TalktrackRecorder";
+} from "../TalktrackRecorder";
 
-import "./TalktrackSetupDialog.scss";
+import styles from "./TalktrackSetupDialog.module.scss";
 
 interface TalktrackSetupDialogProps {
   isOpen: boolean;
@@ -149,21 +149,21 @@ export const TalktrackSetupDialog: React.FC<TalktrackSetupDialogProps> = ({
     <Dialog
       onCloseRequest={onClose}
       title={t("talktrack.setupTitle")}
-      className="talktrack-setup-dialog"
+      className={styles.dialog}
     >
-      <div className="talktrack-setup-dialog__content">
+      <div className={styles.content}>
         {/* Camera preview */}
-        <div className="talktrack-setup-dialog__preview">
+        <div className={styles.preview}>
           {videoEnabled && selectedVideo ? (
             <video
               ref={videoPreviewRef}
               autoPlay
               muted
               playsInline
-              className="talktrack-setup-dialog__video"
+              className={styles.video}
             />
           ) : (
-            <div className="talktrack-setup-dialog__avatar">
+            <div className={styles.avatar}>
               <svg
                 width="64"
                 height="64"
@@ -177,12 +177,11 @@ export const TalktrackSetupDialog: React.FC<TalktrackSetupDialogProps> = ({
         </div>
 
         {/* Toggle buttons */}
-        <div className="talktrack-setup-dialog__toggles">
+        <div className={styles.toggles}>
           <button
-            className={clsx("talktrack-setup-dialog__toggle", {
-              "talktrack-setup-dialog__toggle--active": videoEnabled,
-              "talktrack-setup-dialog__toggle--disabled":
-                videoDevices.length === 0,
+            className={clsx(styles.toggle, {
+              [styles.toggleActive]: videoEnabled,
+              [styles.toggleDisabled]: videoDevices.length === 0,
             })}
             onClick={toggleVideo}
             disabled={videoDevices.length === 0}
@@ -221,10 +220,9 @@ export const TalktrackSetupDialog: React.FC<TalktrackSetupDialogProps> = ({
           </button>
 
           <button
-            className={clsx("talktrack-setup-dialog__toggle", {
-              "talktrack-setup-dialog__toggle--active": audioEnabled,
-              "talktrack-setup-dialog__toggle--disabled":
-                audioDevices.length === 0,
+            className={clsx(styles.toggle, {
+              [styles.toggleActive]: audioEnabled,
+              [styles.toggleDisabled]: audioDevices.length === 0,
             })}
             onClick={toggleAudio}
             disabled={audioDevices.length === 0}
@@ -269,21 +267,21 @@ export const TalktrackSetupDialog: React.FC<TalktrackSetupDialogProps> = ({
 
         {/* Device selection */}
         {loading ? (
-          <div className="talktrack-setup-dialog__loading">
-            <div className="talktrack-setup-dialog__spinner" />
+          <div className={styles.loading}>
+            <div className={styles.spinner} />
             <span>{t("talktrack.loadingDevices")}</span>
           </div>
         ) : error ? (
-          <div className="talktrack-setup-dialog__error">{error}</div>
+          <div className={styles.error}>{error}</div>
         ) : (
-          <div className="talktrack-setup-dialog__devices">
+          <div className={styles.devices}>
             {/* Video source */}
-            <div className="talktrack-setup-dialog__device-row">
-              <label className="talktrack-setup-dialog__label">
+            <div className={styles.deviceRow}>
+              <label className={styles.label}>
                 {t("talktrack.videoSource")}
               </label>
               <select
-                className="talktrack-setup-dialog__select"
+                className={styles.select}
                 value={selectedVideo || "none"}
                 onChange={(e) =>
                   setSelectedVideo(
@@ -302,12 +300,12 @@ export const TalktrackSetupDialog: React.FC<TalktrackSetupDialogProps> = ({
             </div>
 
             {/* Audio source */}
-            <div className="talktrack-setup-dialog__device-row">
-              <label className="talktrack-setup-dialog__label">
+            <div className={styles.deviceRow}>
+              <label className={styles.label}>
                 {t("talktrack.audioSource")}
               </label>
               <select
-                className="talktrack-setup-dialog__select"
+                className={styles.select}
                 value={selectedAudio || "none"}
                 onChange={(e) =>
                   setSelectedAudio(
@@ -328,18 +326,15 @@ export const TalktrackSetupDialog: React.FC<TalktrackSetupDialogProps> = ({
         )}
 
         {/* Action buttons */}
-        <div className="talktrack-setup-dialog__actions">
+        <div className={styles.actions}>
           <button
-            className="talktrack-setup-dialog__start-button"
+            className={styles.startButton}
             onClick={handleStart}
             disabled={loading}
           >
             {t("talktrack.startRecording")}
           </button>
-          <button
-            className="talktrack-setup-dialog__back-button"
-            onClick={onClose}
-          >
+          <button className={styles.backButton} onClick={onClose}>
             {t("talktrack.goBackToLibrary")}
           </button>
         </div>

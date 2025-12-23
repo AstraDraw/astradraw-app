@@ -9,6 +9,35 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.72] - 2025-12-23
+
+### Changed
+
+- **CSS Modules Migration - Batch 4** - Migrated 9 Feature Components to CSS Modules with folder reorganization
+  - Migrated `TalktrackToolbar` (147 lines): recording controls, camera bubble, timer display
+  - Migrated `TalktrackSetupDialog` (219 lines): device selection, preview, permissions
+  - Migrated `TalktrackPanel` (391 lines): recording list, playback controls, timeline
+  - Migrated `PresentationControls` (130 lines): slide navigation, fullscreen toggle
+  - Migrated `PresentationPanel` (513 lines): slide thumbnails, reordering, settings
+  - Migrated `SlidesLayoutDialog` (349 lines): layout grid, aspect ratio selection
+  - Migrated `PenSettingsModal` (242 lines): pen customization, pressure curves
+  - Migrated `StickersPanel` (333 lines): sticker grid, categories, search
+  - Migrated `EmojiPicker` (327 lines): emoji grid, categories, search
+  - Each component now in dedicated folder with `index.ts`, `Component.tsx`, and `Component.module.scss`
+  - Total: ~2,700 lines of SCSS migrated to CSS Modules
+
+### Removed
+
+- `Talktrack/TalktrackToolbar.tsx`, `Talktrack/TalktrackToolbar.scss` - Moved to folder structure
+- `Talktrack/TalktrackSetupDialog.tsx`, `Talktrack/TalktrackSetupDialog.scss` - Moved to folder structure
+- `Talktrack/TalktrackPanel.tsx`, `Talktrack/TalktrackPanel.scss` - Moved to folder structure
+- `Presentation/PresentationControls.tsx`, `Presentation/PresentationControls.scss` - Moved to folder structure
+- `Presentation/PresentationPanel.tsx`, `Presentation/PresentationPanel.scss` - Moved to folder structure
+- `Presentation/SlidesLayoutDialog.tsx`, `Presentation/SlidesLayoutDialog.scss` - Moved to folder structure
+- `pens/PenSettingsModal.tsx`, `pens/PenSettingsModal.scss` - Moved to folder structure
+- `Stickers/StickersPanel.tsx`, `Stickers/StickersPanel.scss` - Moved to folder structure
+- `EmojiPicker/EmojiPicker.scss` - Replaced with CSS Module
+
 ## [0.18.0-beta0.71] - 2025-12-23
 
 ### Changed

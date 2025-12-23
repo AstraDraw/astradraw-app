@@ -20,7 +20,7 @@ import {
   isApiKeyConfigured,
   type ContentType,
   type GiphyItem,
-} from "./giphyApi";
+} from "../giphyApi";
 
 import {
   fetchEmojiData,
@@ -30,9 +30,9 @@ import {
   type TwemojiItem,
   type TwemojiGroup,
   type EmojiGroupSlug,
-} from "./twemojiApi";
+} from "../twemojiApi";
 
-import "./StickersPanel.scss";
+import styles from "./StickersPanel.module.scss";
 
 // Extended content type to include static emojis
 type ExtendedContentType = ContentType | "static";
@@ -542,13 +542,12 @@ export const StickersPanel: React.FC<StickersPanelProps> = ({
     <>
       {/* Category tabs for static emojis */}
       {!searchQuery.trim() && (
-        <div className="stickers-panel__emoji-categories">
+        <div className={styles.emojiCategories}>
           {EMOJI_GROUPS.map((group) => (
             <button
               key={group.slug}
-              className={clsx("stickers-panel__emoji-category", {
-                "stickers-panel__emoji-category--active":
-                  selectedEmojiGroup === group.slug,
+              className={clsx(styles.emojiCategory, {
+                [styles.emojiCategoryActive]: selectedEmojiGroup === group.slug,
               })}
               onClick={() => setSelectedEmojiGroup(group.slug)}
               title={group.name}
@@ -560,7 +559,7 @@ export const StickersPanel: React.FC<StickersPanelProps> = ({
       )}
 
       {/* Section header */}
-      <div className="stickers-panel__section-header">
+      <div className={styles.sectionHeader}>
         {searchQuery.trim()
           ? searchQuery
           : EMOJI_GROUPS.find((g) => g.slug === selectedEmojiGroup)?.name ||
@@ -569,35 +568,31 @@ export const StickersPanel: React.FC<StickersPanelProps> = ({
 
       {/* Static emoji grid */}
       <div
-        className="stickers-panel__grid-container"
+        className={styles.gridContainer}
         ref={gridContainerRef}
         onWheel={(e) => e.stopPropagation()}
       >
         {loading && twemojiItems.length === 0 ? (
-          <div className="stickers-panel__loading">
-            <div className="stickers-panel__spinner" />
+          <div className={styles.loading}>
+            <div className={styles.spinner} />
             <span>{t("stickers.loading")}</span>
           </div>
         ) : error ? (
-          <div className="stickers-panel__error">
+          <div className={styles.error}>
             <p>{error}</p>
           </div>
         ) : twemojiItems.length === 0 ? (
-          <div className="stickers-panel__empty">
+          <div className={styles.empty}>
             <p>{t("stickers.noResults")}</p>
           </div>
         ) : (
-          <div className="stickers-panel__grid stickers-panel__grid--static">
+          <div className={clsx(styles.grid, styles.gridStatic)}>
             {twemojiItems.map((emoji) => (
               <button
                 key={emoji.slug}
-                className={clsx(
-                  "stickers-panel__item stickers-panel__item--static",
-                  {
-                    "stickers-panel__item--inserting":
-                      insertingId === emoji.slug,
-                  },
-                )}
+                className={clsx(styles.item, styles.itemStatic, {
+                  [styles.itemInserting]: insertingId === emoji.slug,
+                })}
                 onClick={() => handleStaticEmojiClick(emoji)}
                 onDragStart={(e) => handleStaticEmojiDragStart(e, emoji)}
                 draggable
@@ -613,8 +608,10 @@ export const StickersPanel: React.FC<StickersPanelProps> = ({
                   draggable={false}
                 />
                 {insertingId === emoji.slug && (
-                  <div className="stickers-panel__item-loading">
-                    <div className="stickers-panel__spinner stickers-panel__spinner--small" />
+                  <div className={styles.itemLoading}>
+                    <div
+                      className={clsx(styles.spinner, styles.spinnerSmall)}
+                    />
                   </div>
                 )}
               </button>
@@ -624,8 +621,8 @@ export const StickersPanel: React.FC<StickersPanelProps> = ({
       </div>
 
       {/* Footer with Twemoji attribution */}
-      <div className="stickers-panel__footer">
-        <span className="stickers-panel__powered-by stickers-panel__powered-by--small">
+      <div className={styles.footer}>
+        <span className={clsx(styles.poweredBy, styles.poweredBySmall)}>
           {t("stickers.poweredByTwemoji")}
         </span>
       </div>
@@ -636,41 +633,41 @@ export const StickersPanel: React.FC<StickersPanelProps> = ({
   const renderGiphyContent = () => (
     <>
       {/* Trending/Search results label */}
-      <div className="stickers-panel__section-header">
+      <div className={styles.sectionHeader}>
         {searchQuery.trim() ? searchQuery : t("stickers.trending")}
       </div>
 
       {/* Content grid */}
       <div
-        className="stickers-panel__grid-container"
+        className={styles.gridContainer}
         ref={gridContainerRef}
         onWheel={(e) => e.stopPropagation()}
       >
         {apiKeyMissing ? (
-          <div className="stickers-panel__error">
-            <div className="stickers-panel__error-icon">⚠️</div>
+          <div className={styles.error}>
+            <div className={styles.errorIcon}>⚠️</div>
             <p>{t("stickers.apiKeyMissing")}</p>
           </div>
         ) : loading && items.length === 0 ? (
-          <div className="stickers-panel__loading">
-            <div className="stickers-panel__spinner" />
+          <div className={styles.loading}>
+            <div className={styles.spinner} />
             <span>{t("stickers.loading")}</span>
           </div>
         ) : error ? (
-          <div className="stickers-panel__error">
+          <div className={styles.error}>
             <p>{error}</p>
           </div>
         ) : items.length === 0 ? (
-          <div className="stickers-panel__empty">
+          <div className={styles.empty}>
             <p>{t("stickers.noResults")}</p>
           </div>
         ) : (
-          <div className="stickers-panel__grid">
+          <div className={styles.grid}>
             {items.map((item) => (
               <button
                 key={item.id}
-                className={clsx("stickers-panel__item", {
-                  "stickers-panel__item--inserting": insertingId === item.id,
+                className={clsx(styles.item, {
+                  [styles.itemInserting]: insertingId === item.id,
                 })}
                 onClick={() => handleItemClick(item)}
                 onDragStart={(e) => handleDragStart(e, item)}
@@ -704,8 +701,10 @@ export const StickersPanel: React.FC<StickersPanelProps> = ({
                   }}
                 />
                 {insertingId === item.id && (
-                  <div className="stickers-panel__item-loading">
-                    <div className="stickers-panel__spinner stickers-panel__spinner--small" />
+                  <div className={styles.itemLoading}>
+                    <div
+                      className={clsx(styles.spinner, styles.spinnerSmall)}
+                    />
                   </div>
                 )}
               </button>
@@ -715,8 +714,8 @@ export const StickersPanel: React.FC<StickersPanelProps> = ({
       </div>
 
       {/* Footer with GIPHY attribution */}
-      <div className="stickers-panel__footer">
-        <span className="stickers-panel__powered-by">
+      <div className={styles.footer}>
+        <span className={styles.poweredBy}>
           {t("stickers.poweredBy")} <GiphyLogo />
         </span>
       </div>
@@ -724,14 +723,14 @@ export const StickersPanel: React.FC<StickersPanelProps> = ({
   );
 
   return (
-    <div className="stickers-panel" onWheel={(e) => e.stopPropagation()}>
+    <div className={styles.panel} onWheel={(e) => e.stopPropagation()}>
       {/* Search input */}
-      <div className="stickers-panel__search">
-        <span className="stickers-panel__search-icon">{searchIcon}</span>
+      <div className={styles.search}>
+        <span className={styles.searchIcon}>{searchIcon}</span>
         <input
           ref={searchInputRef}
           type="text"
-          className="stickers-panel__search-input"
+          className={styles.searchInput}
           placeholder={t("stickers.search")}
           value={searchQuery}
           onChange={handleSearchChange}
@@ -739,12 +738,12 @@ export const StickersPanel: React.FC<StickersPanelProps> = ({
       </div>
 
       {/* Content type tabs */}
-      <div className="stickers-panel__tabs">
+      <div className={styles.tabs}>
         {CONTENT_TABS.map((tab) => (
           <button
             key={tab.id}
-            className={clsx("stickers-panel__tab", {
-              "stickers-panel__tab--active": activeTab === tab.id,
+            className={clsx(styles.tab, {
+              [styles.tabActive]: activeTab === tab.id,
             })}
             onClick={() => setActiveTab(tab.id)}
           >

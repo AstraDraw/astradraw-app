@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from "react";
+import clsx from "clsx";
 
 import { Dialog } from "@excalidraw/excalidraw/components/Dialog";
 import { t } from "@excalidraw/excalidraw/i18n";
@@ -10,10 +11,10 @@ import type {
   ExtendedFillStyle,
 } from "@excalidraw/excalidraw/types";
 
-import { PENS } from "./pens";
-import { EASING_FUNCTIONS } from "./constants";
+import { PENS } from "../pens";
+import { EASING_FUNCTIONS } from "../constants";
 
-import "./PenSettingsModal.scss";
+import styles from "./PenSettingsModal.module.scss";
 
 interface PenSettingsModalProps {
   excalidrawAPI: ExcalidrawImperativeAPI;
@@ -176,25 +177,21 @@ export const PenSettingsModal: React.FC<PenSettingsModalProps> = ({
     <Dialog
       onCloseRequest={handleSave}
       title={t("pens.settings")}
-      className="pen-settings-modal"
+      className={styles.modal}
       size="regular"
     >
-      <div className="pen-settings-modal__content">
-        <h2 className="pen-settings-modal__section-title">
-          {t("pens.settingsTitle")}
-        </h2>
+      <div className={styles.content}>
+        <h2 className={styles.sectionTitle}>{t("pens.settingsTitle")}</h2>
 
         {/* Pen Type Selector */}
-        <div className="pen-settings-modal__field">
-          <label className="pen-settings-modal__label">
+        <div className={styles.field}>
+          <label className={styles.label}>
             {t("pens.penType")}
-            <span className="pen-settings-modal__desc">
-              {t("pens.selectPenType")}
-            </span>
+            <span className={styles.desc}>{t("pens.selectPenType")}</span>
           </label>
-          <div className="pen-settings-modal__row">
+          <div className={styles.row}>
             <select
-              className="pen-settings-modal__select"
+              className={styles.select}
               value={pen.type}
               onChange={(e) => updatePen({ type: e.target.value as PenType })}
             >
@@ -206,7 +203,7 @@ export const PenSettingsModal: React.FC<PenSettingsModalProps> = ({
             </select>
             <button
               type="button"
-              className="pen-settings-modal__button"
+              className={styles.button}
               onClick={() => applyPreset(pen.type)}
             >
               {t("pens.apply")}
@@ -215,13 +212,13 @@ export const PenSettingsModal: React.FC<PenSettingsModalProps> = ({
         </div>
 
         {/* Stroke & Fill Scope */}
-        <div className="pen-settings-modal__field">
-          <label className="pen-settings-modal__label">
+        <div className={styles.field}>
+          <label className={styles.label}>
             {t("pens.strokeFillAppliesTo")}{" "}
             <strong>
               {pen.freedrawOnly ? t("pens.freedrawOnly") : t("pens.allShapes")}
             </strong>
-            <span className="pen-settings-modal__desc">
+            <span className={styles.desc}>
               {pen.freedrawOnly
                 ? t("pens.freedrawOnlyDesc")
                 : t("pens.allShapesDesc")}
@@ -229,22 +226,22 @@ export const PenSettingsModal: React.FC<PenSettingsModalProps> = ({
           </label>
           <input
             type="checkbox"
-            className="pen-settings-modal__toggle"
+            className={styles.toggle}
             checked={pen.freedrawOnly}
             onChange={(e) => updatePen({ freedrawOnly: e.target.checked })}
           />
         </div>
 
         {/* Stroke Color */}
-        <div className="pen-settings-modal__field">
-          <label className="pen-settings-modal__label">
+        <div className={styles.field}>
+          <label className={styles.label}>
             {t("pens.strokeColor")}{" "}
             <strong>{pen.strokeColor || t("labels.canvasColors")}</strong>
           </label>
-          <div className="pen-settings-modal__row">
+          <div className={styles.row}>
             <input
               type="text"
-              className="pen-settings-modal__input"
+              className={styles.input}
               value={pen.strokeColor || ""}
               placeholder={t("pens.useCanvasCurrent")}
               onChange={(e) =>
@@ -253,7 +250,7 @@ export const PenSettingsModal: React.FC<PenSettingsModalProps> = ({
             />
             <input
               type="color"
-              className="pen-settings-modal__color-picker"
+              className={styles.colorPicker}
               value={pen.strokeColor || "#000000"}
               onChange={(e) => updatePen({ strokeColor: e.target.value })}
             />
@@ -261,15 +258,15 @@ export const PenSettingsModal: React.FC<PenSettingsModalProps> = ({
         </div>
 
         {/* Background Color */}
-        <div className="pen-settings-modal__field">
-          <label className="pen-settings-modal__label">
+        <div className={styles.field}>
+          <label className={styles.label}>
             {t("pens.backgroundColor")}{" "}
             <strong>{pen.backgroundColor || t("labels.canvasColors")}</strong>
           </label>
-          <div className="pen-settings-modal__row">
+          <div className={styles.row}>
             <input
               type="text"
-              className="pen-settings-modal__input"
+              className={styles.input}
               value={pen.backgroundColor || ""}
               placeholder={t("pens.useCanvasCurrent")}
               onChange={(e) =>
@@ -278,7 +275,7 @@ export const PenSettingsModal: React.FC<PenSettingsModalProps> = ({
             />
             <input
               type="color"
-              className="pen-settings-modal__color-picker"
+              className={styles.colorPicker}
               value={
                 pen.backgroundColor === "transparent"
                   ? "#ffffff"
@@ -290,12 +287,10 @@ export const PenSettingsModal: React.FC<PenSettingsModalProps> = ({
         </div>
 
         {/* Fill Style */}
-        <div className="pen-settings-modal__field">
-          <label className="pen-settings-modal__label">
-            {t("pens.fillStyle")}
-          </label>
+        <div className={styles.field}>
+          <label className={styles.label}>{t("pens.fillStyle")}</label>
           <select
-            className="pen-settings-modal__select"
+            className={styles.select}
             value={pen.fillStyle}
             onChange={(e) =>
               updatePen({ fillStyle: e.target.value as ExtendedFillStyle })
@@ -310,17 +305,15 @@ export const PenSettingsModal: React.FC<PenSettingsModalProps> = ({
         </div>
 
         {/* Sloppiness (Roughness) */}
-        <div className="pen-settings-modal__field">
-          <label className="pen-settings-modal__label">
+        <div className={styles.field}>
+          <label className={styles.label}>
             {t("pens.sloppiness")}{" "}
             <strong>{getRoughnessLabel(pen.roughness)}</strong>
-            <span className="pen-settings-modal__desc">
-              {t("pens.sloppinessDesc")}
-            </span>
+            <span className={styles.desc}>{t("pens.sloppinessDesc")}</span>
           </label>
           <input
             type="range"
-            className="pen-settings-modal__slider"
+            className={styles.slider}
             min="-0.5"
             max="3"
             step="0.5"
@@ -333,8 +326,8 @@ export const PenSettingsModal: React.FC<PenSettingsModalProps> = ({
         </div>
 
         {/* Stroke Width */}
-        <div className="pen-settings-modal__field">
-          <label className="pen-settings-modal__label">
+        <div className={styles.field}>
+          <label className={styles.label}>
             {t("pens.strokeWidth")}{" "}
             <strong>
               {pen.strokeWidth === 0 ? t("pens.notSet") : pen.strokeWidth}
@@ -342,7 +335,7 @@ export const PenSettingsModal: React.FC<PenSettingsModalProps> = ({
           </label>
           <input
             type="range"
-            className="pen-settings-modal__slider"
+            className={styles.slider}
             min="0"
             max="8"
             step="0.1"
@@ -354,13 +347,11 @@ export const PenSettingsModal: React.FC<PenSettingsModalProps> = ({
         </div>
 
         {/* Highlighter Toggle */}
-        <div className="pen-settings-modal__field pen-settings-modal__field--row">
-          <label className="pen-settings-modal__label">
-            {t("pens.highlighterPen")}
-          </label>
+        <div className={clsx(styles.field, styles.fieldRow)}>
+          <label className={styles.label}>{t("pens.highlighterPen")}</label>
           <input
             type="checkbox"
-            className="pen-settings-modal__toggle"
+            className={styles.toggle}
             checked={pen.penOptions.highlighter}
             onChange={(e) =>
               updatePenOptions({ highlighter: e.target.checked })
@@ -369,16 +360,16 @@ export const PenSettingsModal: React.FC<PenSettingsModalProps> = ({
         </div>
 
         {/* Pressure Sensitive Toggle */}
-        <div className="pen-settings-modal__field pen-settings-modal__field--row">
-          <label className="pen-settings-modal__label">
+        <div className={clsx(styles.field, styles.fieldRow)}>
+          <label className={styles.label}>
             {t("pens.pressureSensitive")}
-            <span className="pen-settings-modal__desc">
+            <span className={styles.desc}>
               {t("pens.pressureSensitiveDesc")}
             </span>
           </label>
           <input
             type="checkbox"
-            className="pen-settings-modal__toggle"
+            className={styles.toggle}
             checked={!pen.penOptions.constantPressure}
             onChange={(e) =>
               updatePenOptions({ constantPressure: !e.target.checked })
@@ -387,18 +378,16 @@ export const PenSettingsModal: React.FC<PenSettingsModalProps> = ({
         </div>
 
         {/* Outline Width */}
-        <div className="pen-settings-modal__field">
-          <label className="pen-settings-modal__label">
+        <div className={styles.field}>
+          <label className={styles.label}>
             {pen.penOptions.outlineWidth === 0
               ? t("pens.noOutline")
               : `${t("pens.outlineWidth")} ${pen.penOptions.outlineWidth}`}
-            <span className="pen-settings-modal__desc">
-              {t("pens.outlineDesc")}
-            </span>
+            <span className={styles.desc}>{t("pens.outlineDesc")}</span>
           </label>
           <input
             type="range"
-            className="pen-settings-modal__slider"
+            className={styles.slider}
             min="0"
             max="8"
             step="0.1"
@@ -411,10 +400,8 @@ export const PenSettingsModal: React.FC<PenSettingsModalProps> = ({
         </div>
 
         {/* Perfect Freehand Settings */}
-        <h2 className="pen-settings-modal__section-title">
-          {t("pens.perfectFreehand")}
-        </h2>
-        <p className="pen-settings-modal__info">
+        <h2 className={styles.sectionTitle}>{t("pens.perfectFreehand")}</h2>
+        <p className={styles.info}>
           {t("pens.perfectFreehandLink")}{" "}
           <a
             href="https://github.com/steveruizok/perfect-freehand#documentation"
@@ -427,17 +414,15 @@ export const PenSettingsModal: React.FC<PenSettingsModalProps> = ({
         </p>
 
         {/* Thinning */}
-        <div className="pen-settings-modal__field">
-          <label className="pen-settings-modal__label">
+        <div className={styles.field}>
+          <label className={styles.label}>
             {t("pens.thinning")}{" "}
             <strong>{pen.penOptions.options.thinning}</strong>
-            <span className="pen-settings-modal__desc">
-              {t("pens.thinningDesc")}
-            </span>
+            <span className={styles.desc}>{t("pens.thinningDesc")}</span>
           </label>
           <input
             type="range"
-            className="pen-settings-modal__slider"
+            className={styles.slider}
             min="-1"
             max="1"
             step="0.05"
@@ -449,17 +434,15 @@ export const PenSettingsModal: React.FC<PenSettingsModalProps> = ({
         </div>
 
         {/* Smoothing */}
-        <div className="pen-settings-modal__field">
-          <label className="pen-settings-modal__label">
+        <div className={styles.field}>
+          <label className={styles.label}>
             {t("pens.smoothing")}{" "}
             <strong>{pen.penOptions.options.smoothing}</strong>
-            <span className="pen-settings-modal__desc">
-              {t("pens.smoothingDesc")}
-            </span>
+            <span className={styles.desc}>{t("pens.smoothingDesc")}</span>
           </label>
           <input
             type="range"
-            className="pen-settings-modal__slider"
+            className={styles.slider}
             min="0"
             max="1"
             step="0.05"
@@ -471,17 +454,15 @@ export const PenSettingsModal: React.FC<PenSettingsModalProps> = ({
         </div>
 
         {/* Streamline */}
-        <div className="pen-settings-modal__field">
-          <label className="pen-settings-modal__label">
+        <div className={styles.field}>
+          <label className={styles.label}>
             {t("pens.streamline")}{" "}
             <strong>{pen.penOptions.options.streamline}</strong>
-            <span className="pen-settings-modal__desc">
-              {t("pens.streamlineDesc")}
-            </span>
+            <span className={styles.desc}>{t("pens.streamlineDesc")}</span>
           </label>
           <input
             type="range"
-            className="pen-settings-modal__slider"
+            className={styles.slider}
             min="0"
             max="1"
             step="0.05"
@@ -493,10 +474,10 @@ export const PenSettingsModal: React.FC<PenSettingsModalProps> = ({
         </div>
 
         {/* Easing Function */}
-        <div className="pen-settings-modal__field">
-          <label className="pen-settings-modal__label">
+        <div className={styles.field}>
+          <label className={styles.label}>
             {t("pens.easingFunction")}
-            <span className="pen-settings-modal__desc">
+            <span className={styles.desc}>
               <a
                 href="https://easings.net/"
                 target="_blank"
@@ -507,7 +488,7 @@ export const PenSettingsModal: React.FC<PenSettingsModalProps> = ({
             </span>
           </label>
           <select
-            className="pen-settings-modal__select"
+            className={styles.select}
             value={pen.penOptions.options.easing}
             onChange={(e) => updateStrokeOptions({ easing: e.target.value })}
           >
@@ -521,12 +502,10 @@ export const PenSettingsModal: React.FC<PenSettingsModalProps> = ({
 
         {/* Simulate Pressure */}
         {!pen.penOptions.constantPressure && (
-          <div className="pen-settings-modal__field">
-            <label className="pen-settings-modal__label">
-              {t("pens.simulatePressure")}
-            </label>
+          <div className={styles.field}>
+            <label className={styles.label}>{t("pens.simulatePressure")}</label>
             <select
-              className="pen-settings-modal__select"
+              className={styles.select}
               value={
                 pen.penOptions.options.simulatePressure === true
                   ? "true"
@@ -554,31 +533,27 @@ export const PenSettingsModal: React.FC<PenSettingsModalProps> = ({
         )}
 
         {/* Start Taper */}
-        <h3 className="pen-settings-modal__subsection-title">
-          {t("pens.start")}
-        </h3>
-        <p className="pen-settings-modal__info">{t("pens.startDesc")}</p>
+        <h3 className={styles.subsectionTitle}>{t("pens.start")}</h3>
+        <p className={styles.info}>{t("pens.startDesc")}</p>
 
-        <div className="pen-settings-modal__field pen-settings-modal__field--row">
-          <label className="pen-settings-modal__label">
-            {t("pens.capStart")}
-          </label>
+        <div className={clsx(styles.field, styles.fieldRow)}>
+          <label className={styles.label}>{t("pens.capStart")}</label>
           <input
             type="checkbox"
-            className="pen-settings-modal__toggle"
+            className={styles.toggle}
             checked={pen.penOptions.options.start.cap}
             onChange={(e) => updateStartTaper({ cap: e.target.checked })}
           />
         </div>
 
-        <div className="pen-settings-modal__field">
-          <label className="pen-settings-modal__label">
+        <div className={styles.field}>
+          <label className={styles.label}>
             {t("pens.taper")}{" "}
             <strong>{getTaperLabel(pen.penOptions.options.start.taper)}</strong>
           </label>
           <input
             type="range"
-            className="pen-settings-modal__slider"
+            className={styles.slider}
             min="0"
             max="151"
             step="1"
@@ -594,12 +569,10 @@ export const PenSettingsModal: React.FC<PenSettingsModalProps> = ({
           />
         </div>
 
-        <div className="pen-settings-modal__field">
-          <label className="pen-settings-modal__label">
-            {t("pens.easingFunction")}
-          </label>
+        <div className={styles.field}>
+          <label className={styles.label}>{t("pens.easingFunction")}</label>
           <select
-            className="pen-settings-modal__select"
+            className={styles.select}
             value={pen.penOptions.options.start.easing}
             onChange={(e) => updateStartTaper({ easing: e.target.value })}
           >
@@ -612,31 +585,27 @@ export const PenSettingsModal: React.FC<PenSettingsModalProps> = ({
         </div>
 
         {/* End Taper */}
-        <h3 className="pen-settings-modal__subsection-title">
-          {t("pens.end")}
-        </h3>
-        <p className="pen-settings-modal__info">{t("pens.endDesc")}</p>
+        <h3 className={styles.subsectionTitle}>{t("pens.end")}</h3>
+        <p className={styles.info}>{t("pens.endDesc")}</p>
 
-        <div className="pen-settings-modal__field pen-settings-modal__field--row">
-          <label className="pen-settings-modal__label">
-            {t("pens.capEnd")}
-          </label>
+        <div className={clsx(styles.field, styles.fieldRow)}>
+          <label className={styles.label}>{t("pens.capEnd")}</label>
           <input
             type="checkbox"
-            className="pen-settings-modal__toggle"
+            className={styles.toggle}
             checked={pen.penOptions.options.end.cap}
             onChange={(e) => updateEndTaper({ cap: e.target.checked })}
           />
         </div>
 
-        <div className="pen-settings-modal__field">
-          <label className="pen-settings-modal__label">
+        <div className={styles.field}>
+          <label className={styles.label}>
             {t("pens.taper")}{" "}
             <strong>{getTaperLabel(pen.penOptions.options.end.taper)}</strong>
           </label>
           <input
             type="range"
-            className="pen-settings-modal__slider"
+            className={styles.slider}
             min="0"
             max="151"
             step="1"
@@ -652,12 +621,10 @@ export const PenSettingsModal: React.FC<PenSettingsModalProps> = ({
           />
         </div>
 
-        <div className="pen-settings-modal__field">
-          <label className="pen-settings-modal__label">
-            {t("pens.easingFunction")}
-          </label>
+        <div className={styles.field}>
+          <label className={styles.label}>{t("pens.easingFunction")}</label>
           <select
-            className="pen-settings-modal__select"
+            className={styles.select}
             value={pen.penOptions.options.end.easing}
             onChange={(e) => updateEndTaper({ easing: e.target.value })}
           >

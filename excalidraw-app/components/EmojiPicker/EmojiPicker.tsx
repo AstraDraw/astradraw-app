@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import clsx from "clsx";
 import { t } from "@excalidraw/excalidraw/i18n";
 
 import {
@@ -11,7 +12,7 @@ import {
   type EmojiGroupSlug,
 } from "../Stickers/twemojiApi";
 
-import "./EmojiPicker.scss";
+import styles from "./EmojiPicker.module.scss";
 
 interface EmojiPickerProps {
   value: string;
@@ -141,34 +142,34 @@ export const EmojiPicker: React.FC<EmojiPickerProps> = ({
   const displayEmojis = searchQuery.trim() ? searchResults : currentGroupEmojis;
 
   return (
-    <div className="emoji-picker" ref={pickerRef}>
+    <div className={styles.picker} ref={pickerRef}>
       {/* Trigger button */}
       <button
         type="button"
-        className={`emoji-picker__trigger ${
-          !value ? "emoji-picker__trigger--empty" : ""
-        }`}
+        className={clsx(styles.trigger, {
+          [styles.triggerEmpty]: !value,
+        })}
         onClick={() => setIsOpen(!isOpen)}
         aria-label={t("emojiPicker.selectEmoji")}
       >
-        {value && <span className="emoji-picker__selected">{value}</span>}
+        {value && <span className={styles.selected}>{value}</span>}
       </button>
 
       {/* Dropdown */}
       {isOpen && (
-        <div className="emoji-picker__dropdown">
+        <div className={styles.dropdown}>
           {/* Header with Random/Remove */}
-          <div className="emoji-picker__header">
+          <div className={styles.header}>
             <button
               type="button"
-              className="emoji-picker__action"
+              className={styles.action}
               onClick={handleRandom}
             >
               {t("emojiPicker.random")}
             </button>
             <button
               type="button"
-              className="emoji-picker__action"
+              className={styles.action}
               onClick={handleRemove}
             >
               {t("emojiPicker.remove")}
@@ -176,16 +177,15 @@ export const EmojiPicker: React.FC<EmojiPickerProps> = ({
           </div>
 
           {/* Category tabs */}
-          <div className="emoji-picker__categories">
+          <div className={styles.categories}>
             {EMOJI_GROUPS.map((group) => (
               <button
                 key={group.slug}
                 type="button"
-                className={`emoji-picker__category ${
-                  selectedGroup === group.slug && !searchQuery
-                    ? "emoji-picker__category--active"
-                    : ""
-                }`}
+                className={clsx(styles.category, {
+                  [styles.categoryActive]:
+                    selectedGroup === group.slug && !searchQuery,
+                })}
                 onClick={() => {
                   setSelectedGroup(group.slug);
                   setSearchQuery("");
@@ -198,11 +198,11 @@ export const EmojiPicker: React.FC<EmojiPickerProps> = ({
           </div>
 
           {/* Search input */}
-          <div className="emoji-picker__search">
+          <div className={styles.search}>
             <input
               ref={searchInputRef}
               type="text"
-              className="emoji-picker__search-input"
+              className={styles.searchInput}
               placeholder={t("emojiPicker.search")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -212,25 +212,25 @@ export const EmojiPicker: React.FC<EmojiPickerProps> = ({
           </div>
 
           {/* Emoji grid */}
-          <div className="emoji-picker__content">
+          <div className={styles.content}>
             {loading ? (
-              <div className="emoji-picker__loading">
-                <div className="emoji-picker__spinner" />
+              <div className={styles.loading}>
+                <div className={styles.spinner} />
               </div>
             ) : (
               <>
                 {/* Frequently used (only when not searching) */}
                 {!searchQuery && (
-                  <div className="emoji-picker__section">
-                    <h4 className="emoji-picker__section-title">
+                  <div className={styles.section}>
+                    <h4 className={styles.sectionTitle}>
                       {t("emojiPicker.frequentlyUsed")}
                     </h4>
-                    <div className="emoji-picker__grid">
+                    <div className={styles.grid}>
                       {popularEmojis.map((item) => (
                         <button
                           key={item.slug}
                           type="button"
-                          className="emoji-picker__emoji"
+                          className={styles.emoji}
                           onClick={() => handleEmojiSelect(item.emoji)}
                           title={item.name}
                         >
@@ -242,24 +242,24 @@ export const EmojiPicker: React.FC<EmojiPickerProps> = ({
                 )}
 
                 {/* Main emoji grid */}
-                <div className="emoji-picker__section">
+                <div className={styles.section}>
                   {!searchQuery && (
-                    <h4 className="emoji-picker__section-title">
+                    <h4 className={styles.sectionTitle}>
                       {EMOJI_GROUPS.find((g) => g.slug === selectedGroup)
                         ?.name || ""}
                     </h4>
                   )}
                   {searchQuery && searchResults.length === 0 ? (
-                    <div className="emoji-picker__empty">
+                    <div className={styles.empty}>
                       {t("emojiPicker.noResults")}
                     </div>
                   ) : (
-                    <div className="emoji-picker__grid">
+                    <div className={styles.grid}>
                       {displayEmojis.map((item) => (
                         <button
                           key={item.slug}
                           type="button"
-                          className="emoji-picker__emoji"
+                          className={styles.emoji}
                           onClick={() => handleEmojiSelect(item.emoji)}
                           title={item.name}
                         >

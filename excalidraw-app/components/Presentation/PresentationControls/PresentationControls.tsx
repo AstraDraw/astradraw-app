@@ -10,7 +10,7 @@ import {
 import { useUIAppState } from "@excalidraw/excalidraw/context/ui-appState";
 import { t } from "@excalidraw/excalidraw/i18n";
 
-import "./PresentationControls.scss";
+import styles from "./PresentationControls.module.scss";
 
 interface PresentationControlsProps {
   currentSlide: number;
@@ -87,16 +87,16 @@ export const PresentationControls: React.FC<PresentationControlsProps> = ({
 
   return (
     <div
-      className={clsx("presentation-controls", {
-        "presentation-controls--hidden": !isVisible,
+      className={clsx(styles.controls, {
+        [styles.hidden]: !isVisible,
       })}
       onMouseEnter={handleControlsMouseEnter}
       onMouseLeave={handleControlsMouseLeave}
     >
-      <div className="presentation-controls__bar">
+      <div className={styles.bar}>
         {/* Navigation */}
         <button
-          className="presentation-controls__button"
+          className={styles.button}
           onClick={onPrevSlide}
           disabled={currentSlide === 0}
           title={`${t("presentation.previousSlide")} (←)`}
@@ -114,12 +114,12 @@ export const PresentationControls: React.FC<PresentationControlsProps> = ({
           </svg>
         </button>
 
-        <span className="presentation-controls__counter">
+        <span className={styles.counter}>
           {t("presentation.slide")} {currentSlide + 1}/{totalSlides}
         </span>
 
         <button
-          className="presentation-controls__button"
+          className={styles.button}
           onClick={onNextSlide}
           disabled={currentSlide === totalSlides - 1}
           title={`${t("presentation.nextSlide")} (→)`}
@@ -137,12 +137,12 @@ export const PresentationControls: React.FC<PresentationControlsProps> = ({
           </svg>
         </button>
 
-        <div className="presentation-controls__divider" />
+        <div className={styles.divider} />
 
         {/* Laser pointer */}
         <button
-          className={clsx("presentation-controls__button", {
-            "presentation-controls__button--active": isLaserActive,
+          className={clsx(styles.button, {
+            [styles.buttonActive]: isLaserActive,
           })}
           onClick={onToggleLaser}
           title={`${t("presentation.toggleLaser")} (L)`}
@@ -153,7 +153,7 @@ export const PresentationControls: React.FC<PresentationControlsProps> = ({
 
         {/* Theme toggle */}
         <button
-          className="presentation-controls__button"
+          className={styles.button}
           onClick={onToggleTheme}
           title={t("presentation.toggleTheme")}
           aria-label={t("presentation.toggleTheme")}
@@ -163,7 +163,7 @@ export const PresentationControls: React.FC<PresentationControlsProps> = ({
 
         {/* Fullscreen */}
         <button
-          className="presentation-controls__button"
+          className={styles.button}
           onClick={onToggleFullscreen}
           title={`${t("presentation.toggleFullscreen")} (F)`}
           aria-label={t("presentation.toggleFullscreen")}
@@ -171,11 +171,11 @@ export const PresentationControls: React.FC<PresentationControlsProps> = ({
           {fullscreenIcon}
         </button>
 
-        <div className="presentation-controls__divider" />
+        <div className={styles.divider} />
 
         {/* End presentation */}
         <button
-          className="presentation-controls__button presentation-controls__button--end"
+          className={clsx(styles.button, styles.buttonEnd)}
           onClick={onEndPresentation}
           title={`${t("presentation.endPresentation")} (Esc)`}
         >
