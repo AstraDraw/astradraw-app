@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React from "react";
 
 import type { Theme } from "@excalidraw/element/types";
 
@@ -6,8 +6,9 @@ import { useAtomValue } from "../../app-jotai";
 
 import {
   dashboardViewAtom,
-  activeCollectionIdAtom,
   searchQueryAtom,
+  currentWorkspaceAtom,
+  activeCollectionAtom,
 } from "../Settings/settingsState";
 
 import { ProfilePage } from "../Settings/ProfilePage";
@@ -22,11 +23,7 @@ import { SearchResultsView } from "./SearchResultsView";
 
 import "./WorkspaceMainContent.scss";
 
-import type { Workspace, Collection } from "../../auth/workspaceApi";
-
 interface WorkspaceMainContentProps {
-  workspace: Workspace | null;
-  collections: Collection[];
   isAdmin: boolean;
   onNewScene: (collectionId?: string) => void;
   onUpdateWorkspace?: (data: { name?: string }) => Promise<void>;
@@ -36,8 +33,6 @@ interface WorkspaceMainContentProps {
 }
 
 export const WorkspaceMainContent: React.FC<WorkspaceMainContentProps> = ({
-  workspace,
-  collections,
   isAdmin,
   onNewScene,
   onUpdateWorkspace,
@@ -45,23 +40,17 @@ export const WorkspaceMainContent: React.FC<WorkspaceMainContentProps> = ({
   theme,
   setTheme,
 }) => {
+  // Read workspace and collections from Jotai atoms
+  const workspace = useAtomValue(currentWorkspaceAtom);
+  const activeCollection = useAtomValue(activeCollectionAtom);
   const dashboardView = useAtomValue(dashboardViewAtom);
-  const activeCollectionId = useAtomValue(activeCollectionIdAtom);
   const searchQuery = useAtomValue(searchQueryAtom);
-
-  // Find the active collection
-  const activeCollection = useMemo(() => {
-    if (!activeCollectionId) {
-      return null;
-    }
-    return collections.find((c) => c.id === activeCollectionId) || null;
-  }, [activeCollectionId, collections]);
 
   // If there's a search query, show search results instead of normal content
   if (searchQuery.trim()) {
     return (
       <div className="workspace-main-content">
-        <SearchResultsView workspace={workspace} />
+        <SearchResultsView />
       </div>
     );
   }
@@ -69,11 +58,10 @@ export const WorkspaceMainContent: React.FC<WorkspaceMainContentProps> = ({
   const renderContent = () => {
     switch (dashboardView) {
       case "home":
-        return <DashboardView workspace={workspace} onNewScene={onNewScene} />;
+        return <DashboardView onNewScene={onNewScene} />;
       case "collection":
         return (
           <CollectionView
-            workspace={workspace}
             collection={activeCollection}
             onNewScene={onNewScene}
           />
@@ -102,7 +90,7 @@ export const WorkspaceMainContent: React.FC<WorkspaceMainContentProps> = ({
           />
         );
       default:
-        return <DashboardView workspace={workspace} onNewScene={onNewScene} />;
+        return <DashboardView onNewScene={onNewScene} />;
     }
   };
 

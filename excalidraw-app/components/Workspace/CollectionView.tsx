@@ -2,15 +2,12 @@ import React, { useState, useCallback } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 
 import { useAtomValue, useSetAtom } from "../../app-jotai";
-import {
-  type WorkspaceScene,
-  type Workspace,
-  type Collection,
-} from "../../auth/workspaceApi";
+import { type WorkspaceScene, type Collection } from "../../auth/workspaceApi";
 import {
   navigateToCanvasAtom,
   navigateToSceneAtom,
   currentWorkspaceSlugAtom,
+  currentWorkspaceAtom,
 } from "../Settings/settingsState";
 import { useScenesCache } from "../../hooks/useScenesCache";
 import { useSceneActions } from "../../hooks/useSceneActions";
@@ -57,16 +54,16 @@ const sortIcon = (
 );
 
 interface CollectionViewProps {
-  workspace: Workspace | null;
   collection: Collection | null;
   onNewScene: (collectionId?: string) => void;
 }
 
 export const CollectionView: React.FC<CollectionViewProps> = ({
-  workspace,
   collection,
   onNewScene,
 }) => {
+  // Read workspace from Jotai atom
+  const workspace = useAtomValue(currentWorkspaceAtom);
   const navigateToCanvas = useSetAtom(navigateToCanvasAtom);
   const navigateToScene = useSetAtom(navigateToSceneAtom);
   const workspaceSlug = useAtomValue(currentWorkspaceSlugAtom);

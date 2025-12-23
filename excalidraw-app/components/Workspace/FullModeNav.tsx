@@ -1,6 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 
+import { useAtomValue } from "../../app-jotai";
+import {
+  collectionsAtom,
+  activeCollectionIdAtom,
+} from "../Settings/settingsState";
 import { CollectionItemSkeletonList } from "../Skeletons";
 
 import type { Collection } from "../../auth/workspaceApi";
@@ -90,8 +95,6 @@ const preferencesIcon = (
 );
 
 interface FullModeNavProps {
-  collections: Collection[];
-  activeCollectionId: string | null;
   currentView: DashboardView;
   isAdmin: boolean;
   isCollectionsLoading?: boolean;
@@ -111,8 +114,6 @@ interface FullModeNavProps {
 }
 
 export const FullModeNav: React.FC<FullModeNavProps> = ({
-  collections,
-  activeCollectionId,
   currentView,
   isAdmin,
   isCollectionsLoading = false,
@@ -130,6 +131,10 @@ export const FullModeNav: React.FC<FullModeNavProps> = ({
   onCopyCollection,
   onMoveCollection,
 }) => {
+  // Read collections from Jotai atom
+  const collections = useAtomValue(collectionsAtom) as Collection[];
+  const activeCollectionId = useAtomValue(activeCollectionIdAtom);
+
   const [collectionMenuOpen, setCollectionMenuOpen] = useState<string | null>(
     null,
   );

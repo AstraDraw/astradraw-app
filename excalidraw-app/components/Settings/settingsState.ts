@@ -289,6 +289,99 @@ export const navigateToTeamsCollectionsAtom = atom(null, (get, set) => {
   }
 });
 
+// ============================================================================
+// Workspace & Collections Data Atoms
+// ============================================================================
+
+/**
+ * Types imported inline to avoid circular dependencies
+ * These match the types in auth/api/types.ts
+ */
+export interface WorkspaceData {
+  id: string;
+  name: string;
+  slug: string;
+  avatarUrl: string | null;
+  role: "ADMIN" | "MEMBER" | "VIEWER";
+  type?: "PERSONAL" | "SHARED";
+  memberCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CollectionData {
+  id: string;
+  name: string;
+  icon: string | null;
+  color: string | null;
+  isPrivate: boolean;
+  userId: string;
+  workspaceId: string;
+  sceneCount: number;
+  canWrite: boolean;
+  isOwner: boolean;
+  createdAt: string;
+  updatedAt: string;
+  teams?: Array<{
+    teamId: string;
+    teamName: string;
+    teamColor: string;
+  }>;
+}
+
+/**
+ * List of all workspaces the user has access to
+ */
+export const workspacesAtom = atom<WorkspaceData[]>([]);
+
+/**
+ * Currently active workspace object
+ */
+export const currentWorkspaceAtom = atom<WorkspaceData | null>(null);
+
+/**
+ * Collections for the current workspace
+ */
+export const collectionsAtom = atom<CollectionData[]>([]);
+
+/**
+ * Derived atom: Get the private collection from collections list
+ */
+export const privateCollectionAtom = atom<CollectionData | null>((get) => {
+  const collections = get(collectionsAtom);
+  return collections.find((c) => c.isPrivate) || null;
+});
+
+/**
+ * Derived atom: Get the active collection object based on activeCollectionIdAtom
+ * Falls back to private collection if no active collection is set
+ */
+export const activeCollectionAtom = atom<CollectionData | null>((get) => {
+  const activeId = get(activeCollectionIdAtom);
+  const collections = get(collectionsAtom);
+  const privateCol = get(privateCollectionAtom);
+
+  if (!activeId) {
+    return privateCol;
+  }
+  return collections.find((c) => c.id === activeId) || null;
+});
+
+/**
+ * Action atom to clear workspace data (e.g., on logout)
+ */
+export const clearWorkspaceDataAtom = atom(null, (get, set) => {
+  set(workspacesAtom, []);
+  set(currentWorkspaceAtom, null);
+  set(collectionsAtom, []);
+  set(activeCollectionIdAtom, null);
+  set(currentWorkspaceSlugAtom, null);
+});
+
+// ============================================================================
+// Refresh Trigger Atoms
+// ============================================================================
+
 /**
  * Refresh trigger atoms - increment to trigger re-fetch in subscribed components
  * This allows cross-component communication without prop drilling

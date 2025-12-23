@@ -2,11 +2,12 @@ import React, { useCallback, useMemo } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 
 import { useAtomValue, useSetAtom } from "../../app-jotai";
-import { type WorkspaceScene, type Workspace } from "../../auth/workspaceApi";
+import { type WorkspaceScene } from "../../auth/workspaceApi";
 import {
   navigateToCanvasAtom,
   navigateToSceneAtom,
   currentWorkspaceSlugAtom,
+  currentWorkspaceAtom,
 } from "../Settings/settingsState";
 import { useScenesCache } from "../../hooks/useScenesCache";
 import { useSceneActions } from "../../hooks/useSceneActions";
@@ -34,14 +35,12 @@ const plusIcon = (
 );
 
 interface DashboardViewProps {
-  workspace: Workspace | null;
   onNewScene: (collectionId?: string) => void;
 }
 
-export const DashboardView: React.FC<DashboardViewProps> = ({
-  workspace,
-  onNewScene,
-}) => {
+export const DashboardView: React.FC<DashboardViewProps> = ({ onNewScene }) => {
+  // Read workspace from Jotai atom
+  const workspace = useAtomValue(currentWorkspaceAtom);
   const navigateToCanvas = useSetAtom(navigateToCanvasAtom);
   const navigateToScene = useSetAtom(navigateToSceneAtom);
   const workspaceSlug = useAtomValue(currentWorkspaceSlugAtom);

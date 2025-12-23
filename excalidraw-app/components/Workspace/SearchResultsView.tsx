@@ -5,12 +5,12 @@ import { useAtom, useAtomValue, useSetAtom } from "../../app-jotai";
 import {
   listWorkspaceScenes,
   type WorkspaceScene,
-  type Workspace,
 } from "../../auth/workspaceApi";
 import {
   searchQueryAtom,
   navigateToSceneAtom,
   currentWorkspaceSlugAtom,
+  currentWorkspaceAtom,
   scenesRefreshAtom,
 } from "../Settings/settingsState";
 import { useSceneActions } from "../../hooks/useSceneActions";
@@ -33,13 +33,9 @@ const closeIcon = (
   </svg>
 );
 
-interface SearchResultsViewProps {
-  workspace: Workspace | null;
-}
-
-export const SearchResultsView: React.FC<SearchResultsViewProps> = ({
-  workspace,
-}) => {
+export const SearchResultsView: React.FC = () => {
+  // Read workspace from Jotai atom
+  const workspace = useAtomValue(currentWorkspaceAtom);
   const [searchQuery, setSearchQuery] = useAtom(searchQueryAtom);
   const navigateToScene = useSetAtom(navigateToSceneAtom);
   const workspaceSlug = useAtomValue(currentWorkspaceSlugAtom);

@@ -1,10 +1,14 @@
-import { useState, useCallback, useMemo, useRef, useEffect } from "react";
+import { useCallback, useRef, useEffect, useState } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 
-import { useAtom, useSetAtom } from "../app-jotai";
+import { useAtom, useAtomValue, useSetAtom } from "../app-jotai";
 import {
   activeCollectionIdAtom,
   triggerCollectionsRefreshAtom,
+  collectionsAtom,
+  privateCollectionAtom,
+  activeCollectionAtom,
+  type CollectionData,
 } from "../components/Settings/settingsState";
 import { showError } from "../utils/toast";
 import {
@@ -48,34 +52,29 @@ interface UseCollectionsResult {
 /**
  * Hook for collection CRUD operations.
  *
- * Extracted from WorkspaceSidebar.tsx to centralize collection logic.
+ * Uses Jotai atoms for shared state:
+ * - collectionsAtom: List of collections for current workspace
+ * - activeCollectionIdAtom: Currently selected collection ID
+ * - privateCollectionAtom: Derived atom for private collection
+ * - activeCollectionAtom: Derived atom for active collection object
  */
 export function useCollections({
   workspaceId,
 }: UseCollectionsOptions): UseCollectionsResult {
-  const [collections, setCollections] = useState<Collection[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-
+  // Use Jotai atoms for shared state
+  const [collections, setCollections] = useAtom(collectionsAtom);
   const [activeCollectionId, setActiveCollectionId] = useAtom(
     activeCollectionIdAtom,
   );
+  const privateCollection = useAtomValue(privateCollectionAtom);
+  const activeCollection = useAtomValue(activeCollectionAtom);
   const triggerCollectionsRefresh = useSetAtom(triggerCollectionsRefreshAtom);
+
+  // Local loading state
+  const [isLoading, setIsLoading] = useState(false);
 
   // Track if we've set the default collection to prevent infinite loops
   const hasSetDefaultCollectionRef = useRef(false);
-
-  // Find the private collection
-  const privateCollection = useMemo(() => {
-    return collections.find((c) => c.isPrivate);
-  }, [collections]);
-
-  // Get the active collection object
-  const activeCollection = useMemo(() => {
-    if (!activeCollectionId) {
-      return privateCollection || null;
-    }
-    return collections.find((c) => c.id === activeCollectionId) || null;
-  }, [activeCollectionId, collections, privateCollection]);
 
   // Load collections for current workspace
   const loadCollections = useCallback(async () => {
@@ -86,13 +85,13 @@ export function useCollections({
     setIsLoading(true);
     try {
       const data = await listCollections(workspaceId);
-      setCollections(data);
+      setCollections(data as CollectionData[]);
     } catch (err) {
       console.error("Failed to load collections:", err);
     } finally {
       setIsLoading(false);
     }
-  }, [workspaceId]);
+  }, [workspaceId, setCollections]);
 
   // Create collection
   const createCollection = useCallback(
@@ -106,7 +105,7 @@ export function useCollections({
           name: data.name.trim(),
           icon: data.icon,
         });
-        setCollections((prev) => [...prev, collection]);
+        setCollections((prev) => [...prev, collection as CollectionData]);
         triggerCollectionsRefresh();
         return collection;
       } catch (err) {
@@ -117,7 +116,7 @@ export function useCollections({
         return null;
       }
     },
-    [workspaceId, triggerCollectionsRefresh],
+    [workspaceId, setCollections, triggerCollectionsRefresh],
   );
 
   // Update collection
@@ -132,7 +131,9 @@ export function useCollections({
           icon: data.icon || undefined,
         });
         setCollections((prev) =>
-          prev.map((c) => (c.id === updated.id ? updated : c)),
+          prev.map((c) =>
+            c.id === updated.id ? (updated as CollectionData) : c,
+          ),
         );
         triggerCollectionsRefresh();
         return updated;
@@ -144,7 +145,7 @@ export function useCollections({
         return null;
       }
     },
-    [triggerCollectionsRefresh],
+    [setCollections, triggerCollectionsRefresh],
   );
 
   // Delete collection
@@ -174,6 +175,7 @@ export function useCollections({
       activeCollectionId,
       privateCollection,
       setActiveCollectionId,
+      setCollections,
       triggerCollectionsRefresh,
     ],
   );
@@ -206,12 +208,12 @@ export function useCollections({
   }, [workspaceId, loadCollections]);
 
   return {
-    collections,
+    collections: collections as Collection[],
     isLoading,
     activeCollectionId,
     setActiveCollectionId,
-    privateCollection,
-    activeCollection,
+    privateCollection: privateCollection as Collection | undefined,
+    activeCollection: activeCollection as Collection | null,
     loadCollections,
     createCollection,
     updateCollection,

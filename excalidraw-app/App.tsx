@@ -164,6 +164,10 @@ import {
   openWorkspaceSidebarAtom,
   closeWorkspaceSidebarAtom,
   toggleWorkspaceSidebarAtom,
+  // Workspace data atoms
+  currentWorkspaceAtom,
+  privateCollectionAtom,
+  type WorkspaceData,
 } from "./components/Settings";
 
 import { buildSceneUrl } from "./router";
@@ -188,7 +192,6 @@ import { useAutoSave } from "./hooks/useAutoSave";
 import { useSceneLoader } from "./hooks/useSceneLoader";
 import { useUrlRouting } from "./hooks/useUrlRouting";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
-import { useWorkspaceData } from "./hooks/useWorkspaceData";
 
 import type { CollabAPI } from "./collab/Collab";
 
@@ -439,6 +442,12 @@ const ExcalidrawWrapper = () => {
   // Quick Search modal state
   const setQuickSearchOpen = useSetAtom(quickSearchOpenAtom);
 
+  // Workspace data from Jotai atoms
+  const currentWorkspace = useAtomValue(currentWorkspaceAtom);
+  const setCurrentWorkspace = useSetAtom(currentWorkspaceAtom);
+  const privateCollection = useAtomValue(privateCollectionAtom);
+  const privateCollectionId = privateCollection?.id || null;
+
   // Auth state for auto-open on login
   const { isAuthenticated } = useAuth();
   const wasAuthenticated = useRef(false);
@@ -499,19 +508,6 @@ const ExcalidrawWrapper = () => {
   // =========================================================================
   // Use extracted hooks
   // =========================================================================
-
-  // Workspace data hook
-  const {
-    currentWorkspace,
-    setCurrentWorkspace,
-    collections,
-    privateCollectionId,
-    setPrivateCollectionId,
-  } = useWorkspaceData({
-    isAuthenticated,
-    currentWorkspaceSlug: null, // Will be set by scene loader
-    setActiveCollectionId,
-  });
 
   // Scene loader hook
   const {
@@ -1355,7 +1351,7 @@ const ExcalidrawWrapper = () => {
       }
 
       const updated = await updateWorkspace(currentWorkspace.id, data);
-      setCurrentWorkspace(updated);
+      setCurrentWorkspace(updated as WorkspaceData);
 
       if (updated.slug !== currentWorkspace.slug) {
         setCurrentWorkspaceSlug(updated.slug);
@@ -1371,7 +1367,7 @@ const ExcalidrawWrapper = () => {
       }
 
       const updated = await uploadWorkspaceAvatar(currentWorkspace.id, file);
-      setCurrentWorkspace(updated);
+      setCurrentWorkspace(updated as WorkspaceData);
     },
     [currentWorkspace, setCurrentWorkspace],
   );
@@ -1456,7 +1452,7 @@ const ExcalidrawWrapper = () => {
 
   const handleInviteSuccess = useCallback(
     (workspace: Workspace) => {
-      setCurrentWorkspace(workspace);
+      setCurrentWorkspace(workspace as WorkspaceData);
       setCurrentWorkspaceSlug(workspace.slug);
       setPendingInviteCode(null);
       navigateToDashboard();
@@ -1533,10 +1529,9 @@ const ExcalidrawWrapper = () => {
             onNewScene={handleNewScene}
             currentSceneId={currentSceneId}
             workspace={currentWorkspace}
-            onWorkspaceChange={(workspace, privateColId) => {
-              setCurrentWorkspace(workspace);
+            onWorkspaceChange={(workspace) => {
+              setCurrentWorkspace(workspace as WorkspaceData);
               setCurrentWorkspaceSlug(workspace.slug);
-              setPrivateCollectionId(privateColId);
             }}
             onCurrentSceneTitleChange={(newTitle) => {
               setCurrentSceneTitle(newTitle);
@@ -1569,8 +1564,6 @@ const ExcalidrawWrapper = () => {
             }}
           >
             <WorkspaceMainContent
-              workspace={currentWorkspace}
-              collections={collections}
               isAdmin={isWorkspaceAdmin}
               onNewScene={handleNewScene}
               onUpdateWorkspace={handleUpdateWorkspace}

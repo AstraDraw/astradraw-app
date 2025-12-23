@@ -103,7 +103,6 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
 
   // Workspaces hook
   const {
-    workspaces,
     currentWorkspace,
     loadWorkspaces,
     switchWorkspace,
@@ -117,7 +116,6 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
 
   // Collections hook
   const {
-    collections,
     isLoading: isCollectionsLoading,
     activeCollectionId,
     privateCollection,
@@ -336,8 +334,6 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
     >
       <SidebarHeader
         isAuthenticated={isAuthenticated}
-        currentWorkspace={currentWorkspace}
-        workspaces={workspaces}
         user={user}
         onSwitchWorkspace={switchWorkspace}
         onCreateWorkspaceClick={() => setShowCreateWorkspace(true)}
@@ -394,8 +390,6 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
               />
             ) : (
               <FullModeNav
-                collections={collections}
-                activeCollectionId={activeCollectionId}
                 currentView={dashboardView}
                 isAdmin={isAdmin}
                 isCollectionsLoading={isCollectionsLoading}

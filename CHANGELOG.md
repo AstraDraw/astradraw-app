@@ -9,6 +9,21 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.63] - 2025-12-23
+
+### Changed
+
+- **State Management Migration** - Migrated workspace/collections data to Jotai atoms
+  - Added new atoms: `workspacesAtom`, `currentWorkspaceAtom`, `collectionsAtom`
+  - Added derived atoms: `privateCollectionAtom`, `activeCollectionAtom`
+  - Updated `useWorkspaces` and `useCollections` hooks to use atoms
+  - Removed `useWorkspaceData` hook (functionality merged into other hooks)
+  - Updated 7 components to read from atoms directly:
+    - `WorkspaceMainContent.tsx`, `DashboardView.tsx`, `CollectionView.tsx`
+    - `SearchResultsView.tsx`, `FullModeNav.tsx`, `SidebarHeader.tsx`
+  - Eliminated prop drilling for workspace/collections data
+  - Single source of truth for shared state across the app
+
 ## [0.18.0-beta0.62] - 2025-12-23
 
 ### Changed

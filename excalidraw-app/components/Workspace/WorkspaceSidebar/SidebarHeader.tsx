@@ -1,6 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 
+import { useAtomValue } from "../../../app-jotai";
+import {
+  currentWorkspaceAtom,
+  workspacesAtom,
+} from "../../Settings/settingsState";
+
 import { chevronIcon, closeIcon } from "./icons";
 
 import type { Workspace } from "../../../auth/workspaceApi";
@@ -8,8 +14,6 @@ import type { User } from "../../../auth";
 
 interface SidebarHeaderProps {
   isAuthenticated: boolean;
-  currentWorkspace: Workspace | null;
-  workspaces: Workspace[];
   user: User | null;
   onSwitchWorkspace: (workspace: Workspace) => void;
   onCreateWorkspaceClick: () => void;
@@ -18,13 +22,15 @@ interface SidebarHeaderProps {
 
 export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
   isAuthenticated,
-  currentWorkspace,
-  workspaces,
   user,
   onSwitchWorkspace,
   onCreateWorkspaceClick,
   onClose,
 }) => {
+  // Read workspace data from Jotai atoms
+  const currentWorkspace = useAtomValue(currentWorkspaceAtom);
+  const workspaces = useAtomValue(workspacesAtom) as Workspace[];
+
   const [workspaceMenuOpen, setWorkspaceMenuOpen] = useState(false);
   const workspaceMenuRef = useRef<HTMLDivElement>(null);
 

@@ -39,8 +39,17 @@ export {
   setScenesCacheAtom,
   invalidateScenesCacheAtom,
   clearScenesCacheAtom,
+  // Workspace & collections data atoms
+  workspacesAtom,
+  currentWorkspaceAtom,
+  collectionsAtom,
+  privateCollectionAtom,
+  activeCollectionAtom,
+  clearWorkspaceDataAtom,
   type AppMode,
   type SidebarMode,
   type DashboardView,
   type ScenesCacheEntry,
+  type WorkspaceData,
+  type CollectionData,
 } from "./settingsState";
