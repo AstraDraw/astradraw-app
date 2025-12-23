@@ -1,6 +1,6 @@
 import React from "react";
 
-import "./Skeleton.scss";
+import styles from "./Skeleton.module.scss";
 
 /**
  * SceneCardSkeleton
@@ -17,16 +17,16 @@ import "./Skeleton.scss";
  */
 export const SceneCardSkeleton: React.FC = () => {
   return (
-    <div className="scene-card-skeleton">
-      <div className="scene-card-skeleton__thumbnail">
-        <div className="scene-card-skeleton__time-badge" />
+    <div className={styles.sceneCardSkeleton}>
+      <div className={styles.sceneCardThumbnail}>
+        <div className={styles.sceneCardTimeBadge} />
       </div>
-      <div className="scene-card-skeleton__info">
-        <div className="scene-card-skeleton__title-row">
-          <div className="scene-card-skeleton__title" />
-          <div className="scene-card-skeleton__icon" />
+      <div className={styles.sceneCardInfo}>
+        <div className={styles.sceneCardTitleRow}>
+          <div className={styles.sceneCardTitle} />
+          <div className={styles.sceneCardIcon} />
         </div>
-        <div className="scene-card-skeleton__meta" />
+        <div className={styles.sceneCardMeta} />
       </div>
     </div>
   );
@@ -46,7 +46,7 @@ export const SceneCardSkeletonGrid: React.FC<SceneCardSkeletonGridProps> = ({
   count = 6,
 }) => {
   return (
-    <div className="skeleton-grid skeleton-container">
+    <div className={`${styles.skeletonGrid} ${styles.skeletonContainer}`}>
       {Array.from({ length: count }).map((_, index) => (
         <SceneCardSkeleton key={index} />
       ))}

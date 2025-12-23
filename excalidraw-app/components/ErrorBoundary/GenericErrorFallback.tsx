@@ -1,7 +1,7 @@
 import React from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 
-import "./ErrorBoundary.scss";
+import styles from "./ErrorBoundary.module.scss";
 
 import type { FallbackProps } from "./ErrorBoundary";
 
@@ -40,25 +40,22 @@ export const GenericErrorFallback: React.FC<GenericErrorFallbackProps> = ({
   message,
 }) => {
   return (
-    <div className="error-boundary-fallback error-boundary-fallback--generic">
-      <div className="error-boundary-fallback__icon">{alertIcon}</div>
-      <h3 className="error-boundary-fallback__title">
+    <div className={`${styles.fallback} ${styles.generic}`}>
+      <div className={styles.icon}>{alertIcon}</div>
+      <h3 className={styles.title}>
         {title || t("errorBoundary.genericTitle")}
       </h3>
-      <p className="error-boundary-fallback__message">
+      <p className={styles.message}>
         {message || t("errorBoundary.genericMessage")}
       </p>
       {error && (
-        <details className="error-boundary-fallback__details">
+        <details className={styles.details}>
           <summary>{t("errorBoundary.showDetails")}</summary>
           <pre>{error.message}</pre>
         </details>
       )}
       {resetErrorBoundary && (
-        <button
-          className="error-boundary-fallback__retry"
-          onClick={resetErrorBoundary}
-        >
+        <button className={styles.retry} onClick={resetErrorBoundary}>
           {refreshIcon}
           {t("errorBoundary.retry")}
         </button>

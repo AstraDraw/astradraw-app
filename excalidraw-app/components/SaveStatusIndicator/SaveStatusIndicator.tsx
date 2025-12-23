@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 import { Tooltip } from "@excalidraw/excalidraw/components/Tooltip";
 
-import "./SaveStatusIndicator.scss";
+import styles from "./SaveStatusIndicator.module.scss";
 
 export type SaveStatus = "saved" | "saving" | "pending" | "error" | "offline";
 
@@ -31,7 +31,7 @@ const SpinnerIcon = () => (
     strokeLinecap="round"
     strokeLinejoin="round"
     aria-hidden="true"
-    className="save-status__icon--spinning"
+    className={styles.statusIconSpinning}
   >
     <path d="M21 12a9 9 0 1 1-6.219-8.56" />
   </svg>
@@ -42,7 +42,7 @@ const DotIcon = () => (
     viewBox="0 0 24 24"
     fill="currentColor"
     aria-hidden="true"
-    className="save-status__icon--pulsing"
+    className={styles.statusIconPulsing}
   >
     <circle cx="12" cy="12" r="4" />
   </svg>
@@ -122,28 +122,28 @@ const statusConfig: Record<
 > = {
   saved: {
     icon: <CheckCircleIcon />,
-    colorClass: "save-status--saved",
+    colorClass: styles.statusSaved,
     getText: () => t("saveStatus.saved"),
   },
   saving: {
     icon: <SpinnerIcon />,
-    colorClass: "save-status--saving",
+    colorClass: styles.statusSaving,
     getText: () => t("saveStatus.saving"),
   },
   pending: {
     icon: <DotIcon />,
-    colorClass: "save-status--pending",
+    colorClass: styles.statusPending,
     getText: (isMobile) =>
       isMobile ? t("saveStatus.pendingShort") : t("saveStatus.pending"),
   },
   error: {
     icon: <AlertTriangleIcon />,
-    colorClass: "save-status--error",
+    colorClass: styles.statusError,
     getText: () => t("saveStatus.error"),
   },
   offline: {
     icon: <WifiOffIcon />,
-    colorClass: "save-status--offline",
+    colorClass: styles.statusOffline,
     getText: () => t("saveStatus.offline"),
   },
 };
@@ -241,21 +241,37 @@ export const SaveStatusIndicator: React.FC<SaveStatusIndicatorProps> = ({
   const showTimestamp = status === "saved" && lastSavedTime && !isMobile;
   const isClickable = status === "error";
 
+  const indicatorClasses = [
+    styles.indicator,
+    isMobile ? styles.indicatorMobile : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const inputClasses = [
+    styles.sceneTitleInput,
+    isSavingTitle ? styles.sceneTitleInputSaving : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const statusClasses = [
+    styles.status,
+    config.colorClass,
+    isClickable ? styles.statusClickable : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
-    <div
-      className={`save-status-indicator ${
-        isMobile ? "save-status-indicator--mobile" : ""
-      }`}
-    >
+    <div className={indicatorClasses}>
       {/* Scene Title */}
-      <div className="scene-title">
+      <div className={styles.sceneTitle}>
         {isEditing ? (
           <input
             ref={inputRef}
             type="text"
-            className={`scene-title__input ${
-              isSavingTitle ? "scene-title__input--saving" : ""
-            }`}
+            className={inputClasses}
             value={editValue}
             onChange={(e) => setEditValue(e.target.value)}
             onBlur={handleSaveTitle}
@@ -267,7 +283,7 @@ export const SaveStatusIndicator: React.FC<SaveStatusIndicatorProps> = ({
         ) : (
           <button
             type="button"
-            className="scene-title__text"
+            className={styles.sceneTitleText}
             onClick={handleTitleClick}
             title={sceneTitle}
           >
@@ -277,33 +293,29 @@ export const SaveStatusIndicator: React.FC<SaveStatusIndicatorProps> = ({
       </div>
 
       {/* Separator */}
-      <span className="save-status-indicator__separator">•</span>
+      <span className={styles.separator}>•</span>
 
       {/* Save Status */}
       {isClickable ? (
         <Tooltip label={t("saveStatus.clickToRetry")}>
           <div
-            className={`save-status ${config.colorClass} save-status--clickable`}
+            className={statusClasses}
             onClick={handleStatusClick}
             role="alert"
             aria-live="polite"
           >
-            <span className="save-status__icon">{config.icon}</span>
-            <span className="save-status__text">
+            <span className={styles.statusIcon}>{config.icon}</span>
+            <span className={styles.statusText}>
               {config.getText(isMobile)}
             </span>
           </div>
         </Tooltip>
       ) : (
-        <div
-          className={`save-status ${config.colorClass}`}
-          role="status"
-          aria-live="polite"
-        >
-          <span className="save-status__icon">{config.icon}</span>
-          <span className="save-status__text">{config.getText(isMobile)}</span>
+        <div className={statusClasses} role="status" aria-live="polite">
+          <span className={styles.statusIcon}>{config.icon}</span>
+          <span className={styles.statusText}>{config.getText(isMobile)}</span>
           {showTimestamp && (
-            <span className="save-status__time">
+            <span className={styles.statusTime}>
               {formatRelativeTime(lastSavedTime)}
             </span>
           )}

@@ -1,6 +1,6 @@
 import React from "react";
 
-import "./Skeleton.scss";
+import styles from "./Skeleton.module.scss";
 
 /**
  * CollectionItemSkeleton
@@ -15,9 +15,9 @@ import "./Skeleton.scss";
  */
 export const CollectionItemSkeleton: React.FC = () => {
   return (
-    <div className="collection-item-skeleton">
-      <div className="collection-item-skeleton__icon" />
-      <div className="collection-item-skeleton__text" />
+    <div className={styles.collectionItemSkeleton}>
+      <div className={styles.collectionItemIcon} />
+      <div className={styles.collectionItemText} />
     </div>
   );
 };
@@ -37,7 +37,7 @@ export const CollectionItemSkeletonList: React.FC<
 > = ({ count = 4 }) => {
   return (
     <div
-      className="skeleton-container"
+      className={styles.skeletonContainer}
       style={{ display: "flex", flexDirection: "column", gap: "2px" }}
     >
       {Array.from({ length: count }).map((_, index) => (

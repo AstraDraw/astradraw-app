@@ -2,6 +2,8 @@ import React from "react";
 
 import { t } from "@excalidraw/excalidraw/i18n";
 
+import styles from "./ErrorBoundary.module.scss";
+
 export interface ErrorBoundaryProps {
   /** Custom fallback UI to render when an error is caught */
   fallback?: React.ReactNode | ((props: FallbackProps) => React.ReactNode);
@@ -78,9 +80,9 @@ export class ErrorBoundary extends React.Component<
 
       // Default fallback if none provided
       return (
-        <div className="error-boundary-fallback">
+        <div className={styles.fallback}>
           <p>{t("errorBoundary.genericMessage")}</p>
-          <button onClick={this.resetErrorBoundary}>
+          <button className={styles.retry} onClick={this.resetErrorBoundary}>
             {t("errorBoundary.retry")}
           </button>
         </div>

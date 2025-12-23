@@ -1,7 +1,7 @@
 import React from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 
-import "./ErrorBoundary.scss";
+import styles from "./ErrorBoundary.module.scss";
 
 import type { FallbackProps } from "./ErrorBoundary";
 
@@ -30,16 +30,11 @@ export const SidebarErrorFallback: React.FC<Partial<FallbackProps>> = ({
   resetErrorBoundary,
 }) => {
   return (
-    <div className="error-boundary-fallback error-boundary-fallback--sidebar">
-      <div className="error-boundary-fallback__icon">{alertIcon}</div>
-      <p className="error-boundary-fallback__message">
-        {t("errorBoundary.sidebarMessage")}
-      </p>
+    <div className={`${styles.fallback} ${styles.sidebar}`}>
+      <div className={styles.icon}>{alertIcon}</div>
+      <p className={styles.message}>{t("errorBoundary.sidebarMessage")}</p>
       {resetErrorBoundary && (
-        <button
-          className="error-boundary-fallback__retry"
-          onClick={resetErrorBoundary}
-        >
+        <button className={styles.retry} onClick={resetErrorBoundary}>
           {refreshIcon}
           {t("errorBoundary.retry")}
         </button>

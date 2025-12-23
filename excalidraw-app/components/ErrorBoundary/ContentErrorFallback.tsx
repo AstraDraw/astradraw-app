@@ -1,7 +1,7 @@
 import React from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 
-import "./ErrorBoundary.scss";
+import styles from "./ErrorBoundary.module.scss";
 
 import type { FallbackProps } from "./ErrorBoundary";
 
@@ -44,32 +44,25 @@ export const ContentErrorFallback: React.FC<ContentErrorFallbackProps> = ({
   onGoHome,
 }) => {
   return (
-    <div className="error-boundary-fallback error-boundary-fallback--content">
-      <div className="error-boundary-fallback__icon">{alertIcon}</div>
-      <h3 className="error-boundary-fallback__title">
-        {t("errorBoundary.contentTitle")}
-      </h3>
-      <p className="error-boundary-fallback__message">
-        {t("errorBoundary.contentMessage")}
-      </p>
+    <div className={`${styles.fallback} ${styles.content}`}>
+      <div className={styles.icon}>{alertIcon}</div>
+      <h3 className={styles.title}>{t("errorBoundary.contentTitle")}</h3>
+      <p className={styles.message}>{t("errorBoundary.contentMessage")}</p>
       {error && (
-        <details className="error-boundary-fallback__details">
+        <details className={styles.details}>
           <summary>{t("errorBoundary.showDetails")}</summary>
           <pre>{error.message}</pre>
         </details>
       )}
-      <div className="error-boundary-fallback__actions">
+      <div className={styles.actions}>
         {resetErrorBoundary && (
-          <button
-            className="error-boundary-fallback__retry"
-            onClick={resetErrorBoundary}
-          >
+          <button className={styles.retry} onClick={resetErrorBoundary}>
             {refreshIcon}
             {t("errorBoundary.retry")}
           </button>
         )}
         {onGoHome && (
-          <button className="error-boundary-fallback__home" onClick={onGoHome}>
+          <button className={styles.home} onClick={onGoHome}>
             {homeIcon}
             {t("errorBoundary.goHome")}
           </button>

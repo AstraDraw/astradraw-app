@@ -9,6 +9,22 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.68] - 2025-12-23
+
+### Added
+
+- **CSS Modules Pilot Migration** - Migrated 3 components to CSS Modules to establish patterns
+  - Migrated `Skeletons` component: `Skeleton.module.scss` with shimmer animations
+  - Migrated `ErrorBoundary` component: `ErrorBoundary.module.scss` with variant styles
+  - Migrated `SaveStatusIndicator` component: `SaveStatusIndicator.module.scss` with status colors
+  - Added CSS Modules type declarations to `vite-env.d.ts`
+  - Established patterns for dark mode (`:global()` selectors), animations, and class composition
+  - Provides foundation for broader CSS Modules adoption if desired
+
+### Removed
+
+- `Skeleton.scss`, `ErrorBoundary.scss`, `SaveStatusIndicator.scss` - Replaced by `.module.scss` versions
+
 ## [0.18.0-beta0.67] - 2025-12-23
 
 ### Added
