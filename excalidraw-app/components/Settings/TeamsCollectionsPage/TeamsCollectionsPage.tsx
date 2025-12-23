@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 
-import { useAtomValue } from "../../app-jotai";
+import { useAtomValue } from "../../../app-jotai";
 
 import {
   listTeams,
@@ -20,20 +20,20 @@ import {
   type Collection,
   type WorkspaceMember,
   type CollectionTeamAccess,
-} from "../../auth/workspaceApi";
-import { EmojiPicker } from "../EmojiPicker";
-import { showSuccess } from "../../utils/toast";
+} from "../../../auth/workspaceApi";
+import { EmojiPicker } from "../../EmojiPicker";
+import { showSuccess } from "../../../utils/toast";
 
-import { collectionsRefreshAtom } from "./settingsState";
+import { collectionsRefreshAtom } from "../settingsState";
 
-import "./TeamsCollectionsPage.scss";
+import styles from "./TeamsCollectionsPage.module.scss";
 
 // Stop keyboard events from propagating
 const stopPropagation = (e: React.KeyboardEvent) => {
   e.stopPropagation();
 };
 
-interface TeamsCollectionsPageProps {
+export interface TeamsCollectionsPageProps {
   workspaceId: string | null;
   isAdmin: boolean;
 }
@@ -425,8 +425,8 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
 
   if (!workspaceId) {
     return (
-      <div className="teams-collections-page">
-        <div className="teams-collections-page__empty">
+      <div className={styles.page}>
+        <div className={styles.empty}>
           <p>{t("settings.noWorkspaceSelected")}</p>
         </div>
       </div>
@@ -434,20 +434,20 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
   }
 
   return (
-    <div className="teams-collections-page">
-      <div className="teams-collections-page__container">
-        <div className="teams-collections-page__header">
+    <div className={styles.page}>
+      <div>
+        <div className={styles.header}>
           <div>
-            <h1 className="teams-collections-page__title">
+            <h1 className={styles.title}>
               {t("settings.teamsAndCollections")}
             </h1>
-            <p className="teams-collections-page__subtitle">
+            <p className={styles.subtitle}>
               {t("settings.teamsAndCollectionsDescription")}
             </p>
           </div>
           {isAdmin && (
             <button
-              className="teams-collections-page__header-button"
+              className={styles.headerButton}
               onClick={openCreateTeamDialog}
             >
               {t("settings.createTeam")}
@@ -456,31 +456,27 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
         </div>
 
         {/* Separator after header */}
-        <div className="teams-collections-page__separator" />
+        <div className={styles.separator} />
 
         {/* Error messages */}
-        {error && (
-          <div className="teams-collections-page__error-inline">{error}</div>
-        )}
+        {error && <div className={styles.errorInline}>{error}</div>}
 
         {isLoading ? (
-          <div className="teams-collections-page__loading">
-            <div className="teams-collections-page__spinner" />
+          <div className={styles.loading}>
+            <div className={styles.spinner} />
           </div>
         ) : (
           <>
             {/* Teams Section */}
-            <section className="teams-collections-page__section">
-              <h2 className="teams-collections-page__section-title">
-                {t("settings.teams")}
-              </h2>
+            <section className={styles.section}>
+              <h2 className={styles.sectionTitle}>{t("settings.teams")}</h2>
 
               {teams.length === 0 ? (
-                <div className="teams-collections-page__empty-section">
+                <div className={styles.emptySection}>
                   <p>{t("settings.noTeams")}</p>
                   {isAdmin && (
                     <button
-                      className="teams-collections-page__add-button"
+                      className={styles.addButton}
                       onClick={openCreateTeamDialog}
                     >
                       <svg
@@ -496,25 +492,25 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
                   )}
                 </div>
               ) : (
-                <div className="teams-collections-page__table">
-                  <div className="teams-collections-page__table-header">
-                    <div className="teams-collections-page__table-cell teams-collections-page__table-cell--team">
+                <div className={styles.table}>
+                  <div className={styles.tableHeader}>
+                    <div className={styles.tableCellTeam}>
                       {t("settings.teams")}
                     </div>
-                    <div className="teams-collections-page__table-cell teams-collections-page__table-cell--members">
+                    <div className={styles.tableCellMembers}>
                       {t("settings.teamMembersLabel")}
                     </div>
-                    <div className="teams-collections-page__table-cell teams-collections-page__table-cell--actions" />
+                    <div className={styles.tableCellActions} />
                   </div>
                   {teams.map((team) => (
                     <div
                       key={team.id}
-                      className="teams-collections-page__table-row teams-collections-page__table-row--clickable"
+                      className={styles.tableRowClickable}
                       onClick={() => isAdmin && openEditTeamDialog(team)}
                     >
-                      <div className="teams-collections-page__table-cell teams-collections-page__table-cell--team">
+                      <div className={styles.tableCellTeam}>
                         <div
-                          className="teams-collections-page__team-color"
+                          className={styles.teamColor}
                           style={{ backgroundColor: team.color }}
                         />
                         {editingTeamId === team.id ? (
@@ -545,24 +541,22 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
                             }}
                             onClick={(e) => e.stopPropagation()}
                             autoFocus
-                            className="teams-collections-page__inline-input"
+                            className={styles.inlineInput}
                           />
                         ) : (
-                          <span className="teams-collections-page__team-name">
-                            {team.name}
-                          </span>
+                          <span className={styles.teamName}>{team.name}</span>
                         )}
                       </div>
-                      <div className="teams-collections-page__table-cell teams-collections-page__table-cell--members">
+                      <div className={styles.tableCellMembers}>
                         {t("settings.teamMemberCount", {
                           count: getEffectiveMemberCount(team),
                         })}
                       </div>
-                      <div className="teams-collections-page__table-cell teams-collections-page__table-cell--actions">
+                      <div className={styles.tableCellActions}>
                         {isAdmin && (
                           <>
                             <button
-                              className="teams-collections-page__action-button"
+                              className={styles.actionButton}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 openEditTeamDialog(team);
@@ -580,7 +574,7 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
                               </svg>
                             </button>
                             <button
-                              className="teams-collections-page__action-button teams-collections-page__action-button--danger"
+                              className={styles.actionButtonDanger}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleDeleteTeam(team.id, team.name);
@@ -606,14 +600,14 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
             </section>
 
             {/* Collections Section */}
-            <section className="teams-collections-page__section">
-              <div className="teams-collections-page__section-header">
-                <h2 className="teams-collections-page__section-title">
+            <section className={styles.section}>
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>
                   {t("settings.collections")}
                 </h2>
                 {isAdmin && (
                   <button
-                    className="teams-collections-page__add-button teams-collections-page__add-button--inline"
+                    className={styles.addButtonInline}
                     onClick={() => setShowCreateCollection(true)}
                   >
                     <svg
@@ -630,27 +624,24 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
               </div>
 
               {collections.length === 0 ? (
-                <div className="teams-collections-page__empty-section">
+                <div className={styles.emptySection}>
                   <p>{t("settings.noCollections")}</p>
                 </div>
               ) : (
-                <div className="teams-collections-page__table">
-                  <div className="teams-collections-page__table-header">
-                    <div className="teams-collections-page__table-cell teams-collections-page__table-cell--collection">
+                <div className={styles.table}>
+                  <div className={styles.tableHeader}>
+                    <div className={styles.tableCellCollection}>
                       {t("settings.collections")}
                     </div>
-                    <div className="teams-collections-page__table-cell teams-collections-page__table-cell--access">
+                    <div className={styles.tableCellAccess}>
                       {t("settings.collectionAccess")}
                     </div>
-                    <div className="teams-collections-page__table-cell teams-collections-page__table-cell--actions" />
+                    <div className={styles.tableCellActions} />
                   </div>
                   {collections.map((collection) => (
-                    <div
-                      key={collection.id}
-                      className="teams-collections-page__table-row"
-                    >
-                      <div className="teams-collections-page__table-cell teams-collections-page__table-cell--collection">
-                        <span className="teams-collections-page__collection-icon">
+                    <div key={collection.id} className={styles.tableRow}>
+                      <div className={styles.tableCellCollection}>
+                        <span className={styles.collectionIcon}>
                           {collection.icon || "📁"}
                         </span>
                         {editingCollectionId === collection.id ? (
@@ -680,26 +671,26 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
                               }
                             }}
                             autoFocus
-                            className="teams-collections-page__inline-input"
+                            className={styles.inlineInput}
                           />
                         ) : (
-                          <span className="teams-collections-page__collection-name">
+                          <span className={styles.collectionName}>
                             {collection.name}
                           </span>
                         )}
                       </div>
-                      <div className="teams-collections-page__table-cell teams-collections-page__table-cell--access">
+                      <div className={styles.tableCellAccess}>
                         {collection.isPrivate ? (
-                          <span className="teams-collections-page__access-badge teams-collections-page__access-badge--private">
+                          <span className={styles.accessBadgePrivate}>
                             {t("settings.privateCollection")}
                           </span>
                         ) : collection.teamAccess &&
                           collection.teamAccess.length > 0 ? (
-                          <div className="teams-collections-page__team-chips">
+                          <div className={styles.teamChips}>
                             {collection.teamAccess.map((ta) => (
                               <span
                                 key={ta.teamId}
-                                className="teams-collections-page__team-chip"
+                                className={styles.teamChip}
                                 style={{ backgroundColor: ta.teamColor }}
                               >
                                 {ta.teamName}
@@ -707,15 +698,15 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
                             ))}
                           </div>
                         ) : (
-                          <span className="teams-collections-page__access-badge teams-collections-page__access-badge--everyone">
+                          <span className={styles.accessBadgeEveryone}>
                             {t("settings.allMembers")}
                           </span>
                         )}
                       </div>
-                      <div className="teams-collections-page__table-cell teams-collections-page__table-cell--actions">
+                      <div className={styles.tableCellActions}>
                         {isAdmin && !collection.isPrivate && (
                           <button
-                            className="teams-collections-page__action-button"
+                            className={styles.actionButton}
                             onClick={() =>
                               openCollectionTeamsDialog(collection)
                             }
@@ -734,7 +725,7 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
                         )}
                         {isAdmin && (
                           <button
-                            className="teams-collections-page__action-button teams-collections-page__action-button--danger"
+                            className={styles.actionButtonDanger}
                             onClick={() =>
                               handleDeleteCollection(
                                 collection.id,
@@ -765,24 +756,18 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
 
       {/* Team Create/Edit Dialog */}
       {showTeamDialog && (
-        <div
-          className="teams-collections-page__dialog-overlay"
-          onClick={closeTeamDialog}
-        >
+        <div className={styles.dialogOverlay} onClick={closeTeamDialog}>
           <div
-            className="teams-collections-page__dialog teams-collections-page__dialog--wide"
+            className={styles.dialogWide}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="teams-collections-page__dialog-header">
+            <div className={styles.dialogHeader}>
               <h2>
                 {editingTeam
                   ? t("settings.editTeam")
                   : t("settings.createTeam")}
               </h2>
-              <button
-                className="teams-collections-page__dialog-close"
-                onClick={closeTeamDialog}
-              >
+              <button className={styles.dialogClose} onClick={closeTeamDialog}>
                 <svg
                   viewBox="0 0 24 24"
                   fill="none"
@@ -793,10 +778,10 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
                 </svg>
               </button>
             </div>
-            <div className="teams-collections-page__dialog-content teams-collections-page__dialog-content--two-column">
+            <div className={styles.dialogContentTwoColumn}>
               {/* Left Column: Name, Color, Collections */}
-              <div className="teams-collections-page__dialog-column">
-                <div className="teams-collections-page__form-group">
+              <div className={styles.dialogColumn}>
+                <div className={styles.formGroup}>
                   <label>{t("settings.teamNameLabel")}</label>
                   <input
                     type="text"
@@ -811,21 +796,21 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
                     onKeyUp={stopPropagation}
                     placeholder={t("settings.teamNamePlaceholder")}
                     autoFocus
-                    className="teams-collections-page__input"
+                    className={styles.input}
                   />
                 </div>
 
-                <div className="teams-collections-page__form-group">
+                <div className={styles.formGroup}>
                   <label>{t("settings.teamColorLabel")}</label>
-                  <div className="teams-collections-page__color-picker">
+                  <div className={styles.colorPicker}>
                     {TEAM_COLORS.map((color) => (
                       <button
                         key={color}
-                        className={`teams-collections-page__color-option ${
+                        className={
                           teamColor === color
-                            ? "teams-collections-page__color-option--selected"
-                            : ""
-                        }`}
+                            ? styles.colorOptionSelected
+                            : styles.colorOption
+                        }
                         style={{ backgroundColor: color }}
                         onClick={() => setTeamColor(color)}
                       />
@@ -833,16 +818,16 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
                   </div>
                 </div>
 
-                <div className="teams-collections-page__form-group teams-collections-page__form-group--grow">
+                <div className={styles.formGroupGrow}>
                   <label>{t("settings.teamCollectionsLabel")}</label>
-                  <p className="teams-collections-page__form-hint">
+                  <p className={styles.formHint}>
                     {t("settings.teamCollectionsDescription")}
                   </p>
                   {nonPrivateCollections.length === 0 ? (
-                    <div className="teams-collections-page__empty-list">
+                    <div className={styles.emptyList}>
                       <p>{t("settings.noCollectionsYet")}</p>
                       <button
-                        className="teams-collections-page__add-button"
+                        className={styles.addButton}
                         onClick={() => {
                           closeTeamDialog();
                           setShowCreateCollection(true);
@@ -860,19 +845,19 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
                       </button>
                     </div>
                   ) : (
-                    <div className="teams-collections-page__member-list">
+                    <div className={styles.memberList}>
                       {nonPrivateCollections.map((collection) => (
                         <div
                           key={collection.id}
-                          className="teams-collections-page__member-row"
+                          className={styles.memberRow}
                           onClick={() =>
                             toggleCollectionSelection(collection.id)
                           }
                         >
-                          <span className="teams-collections-page__collection-icon">
+                          <span className={styles.collectionIcon}>
                             {collection.icon || "📁"}
                           </span>
-                          <span className="teams-collections-page__member-name">
+                          <span className={styles.memberName}>
                             {collection.name}
                           </span>
                           <input
@@ -884,7 +869,7 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
                               toggleCollectionSelection(collection.id)
                             }
                             onClick={(e) => e.stopPropagation()}
-                            className="teams-collections-page__row-checkbox"
+                            className={styles.rowCheckbox}
                           />
                         </div>
                       ))}
@@ -894,24 +879,24 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
               </div>
 
               {/* Right Column: Members */}
-              <div className="teams-collections-page__dialog-column">
-                <div className="teams-collections-page__form-group teams-collections-page__form-group--grow">
+              <div className={styles.dialogColumn}>
+                <div className={styles.formGroupGrow}>
                   <label>{t("settings.teamMembersLabel")}</label>
-                  <p className="teams-collections-page__form-hint">
+                  <p className={styles.formHint}>
                     {t("settings.teamMembersDialogHint")}
                   </p>
 
-                  <div className="teams-collections-page__member-list">
+                  <div className={styles.memberList}>
                     {members.map((member) => {
                       const memberIsAdmin = isAdminMember(member);
                       return (
                         <div
                           key={member.id}
-                          className={`teams-collections-page__member-row ${
+                          className={
                             memberIsAdmin
-                              ? "teams-collections-page__member-row--disabled"
-                              : ""
-                          }`}
+                              ? styles.memberRowDisabled
+                              : styles.memberRow
+                          }
                           title={
                             memberIsAdmin
                               ? t("settings.adminAlwaysInTeam")
@@ -927,20 +912,20 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
                             <img
                               src={member.user.avatarUrl}
                               alt=""
-                              className="teams-collections-page__member-avatar"
+                              className={styles.memberAvatar}
                             />
                           ) : (
-                            <div className="teams-collections-page__member-avatar teams-collections-page__member-avatar--placeholder">
+                            <div className={styles.memberAvatarPlaceholder}>
                               {(member.user.name || member.user.email)
                                 .charAt(0)
                                 .toUpperCase()}
                             </div>
                           )}
-                          <span className="teams-collections-page__member-name">
+                          <span className={styles.memberName}>
                             {member.user.name || member.user.email}
                           </span>
                           {memberIsAdmin && (
-                            <span className="teams-collections-page__role-badge">
+                            <span className={styles.roleBadge}>
                               {t("settings.roleAdmin")}
                             </span>
                           )}
@@ -957,7 +942,7 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
                             }}
                             onClick={(e) => e.stopPropagation()}
                             disabled={memberIsAdmin}
-                            className="teams-collections-page__row-checkbox"
+                            className={styles.rowCheckbox}
                           />
                         </div>
                       );
@@ -967,15 +952,12 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
               </div>
             </div>
 
-            <div className="teams-collections-page__dialog-footer">
-              <button
-                className="teams-collections-page__button"
-                onClick={closeTeamDialog}
-              >
+            <div className={styles.dialogFooter}>
+              <button className={styles.button} onClick={closeTeamDialog}>
                 {t("settings.cancel")}
               </button>
               <button
-                className="teams-collections-page__button teams-collections-page__button--primary"
+                className={styles.buttonPrimary}
                 onClick={handleSaveTeam}
                 disabled={!teamName.trim()}
               >
@@ -989,21 +971,18 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
       {/* Collection Team Access Dialog */}
       {showCollectionTeamsDialog && editingCollection && (
         <div
-          className="teams-collections-page__dialog-overlay"
+          className={styles.dialogOverlay}
           onClick={closeCollectionTeamsDialog}
         >
-          <div
-            className="teams-collections-page__dialog"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="teams-collections-page__dialog-header">
+          <div className={styles.dialog} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.dialogHeader}>
               <h2>
                 {t("settings.collectionTitle", {
                   name: editingCollection.name,
                 })}
               </h2>
               <button
-                className="teams-collections-page__dialog-close"
+                className={styles.dialogClose}
                 onClick={closeCollectionTeamsDialog}
               >
                 <svg
@@ -1016,18 +995,18 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
                 </svg>
               </button>
             </div>
-            <div className="teams-collections-page__dialog-content">
-              <div className="teams-collections-page__form-group">
+            <div className={styles.dialogContent}>
+              <div className={styles.formGroup}>
                 <label>{t("settings.teams")}</label>
-                <p className="teams-collections-page__form-hint">
+                <p className={styles.formHint}>
                   {t("settings.collectionTeamsDescription")}
                 </p>
 
                 {teams.length === 0 ? (
-                  <div className="teams-collections-page__empty-list">
+                  <div className={styles.emptyList}>
                     <p>{t("settings.noTeamsYet")}</p>
                     <button
-                      className="teams-collections-page__add-button"
+                      className={styles.addButton}
                       onClick={() => {
                         closeCollectionTeamsDialog();
                         openCreateTeamDialog();
@@ -1045,23 +1024,18 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
                     </button>
                   </div>
                 ) : (
-                  <div className="teams-collections-page__member-list">
+                  <div className={styles.memberList}>
                     {teams.map((team) => {
                       const hasAccess = editingCollection.teamAccess?.some(
                         (ta) => ta.teamId === team.id,
                       );
                       return (
-                        <label
-                          key={team.id}
-                          className="teams-collections-page__member-row"
-                        >
+                        <label key={team.id} className={styles.memberRow}>
                           <div
-                            className="teams-collections-page__team-color"
+                            className={styles.teamColor}
                             style={{ backgroundColor: team.color }}
                           />
-                          <span className="teams-collections-page__member-name">
-                            {team.name}
-                          </span>
+                          <span className={styles.memberName}>{team.name}</span>
                           <input
                             type="checkbox"
                             checked={hasAccess}
@@ -1072,7 +1046,7 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
                                 hasAccess || false,
                               )
                             }
-                            className="teams-collections-page__row-checkbox"
+                            className={styles.rowCheckbox}
                           />
                         </label>
                       );
@@ -1082,9 +1056,9 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
               </div>
             </div>
 
-            <div className="teams-collections-page__dialog-footer">
+            <div className={styles.dialogFooter}>
               <button
-                className="teams-collections-page__button teams-collections-page__button--primary"
+                className={styles.buttonPrimary}
                 onClick={closeCollectionTeamsDialog}
               >
                 {t("settings.close")}
@@ -1097,17 +1071,14 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
       {/* Create Collection Dialog */}
       {showCreateCollection && (
         <div
-          className="teams-collections-page__dialog-overlay"
+          className={styles.dialogOverlay}
           onClick={() => setShowCreateCollection(false)}
         >
-          <div
-            className="teams-collections-page__dialog"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="teams-collections-page__dialog-header">
+          <div className={styles.dialog} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.dialogHeader}>
               <h2>{t("settings.createCollection")}</h2>
               <button
-                className="teams-collections-page__dialog-close"
+                className={styles.dialogClose}
                 onClick={() => setShowCreateCollection(false)}
               >
                 <svg
@@ -1120,16 +1091,16 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
                 </svg>
               </button>
             </div>
-            <div className="teams-collections-page__dialog-content">
-              <div className="teams-collections-page__form-row">
-                <div className="teams-collections-page__form-group teams-collections-page__form-group--icon">
+            <div className={styles.dialogContent}>
+              <div className={styles.formRow}>
+                <div className={styles.formGroupIcon}>
                   <label>{t("settings.collectionIcon")}</label>
                   <EmojiPicker
                     value={newCollectionIcon}
                     onSelect={setNewCollectionIcon}
                   />
                 </div>
-                <div className="teams-collections-page__form-group teams-collections-page__form-group--name">
+                <div className={styles.formGroupName}>
                   <label>{t("settings.collectionName")}</label>
                   <input
                     type="text"
@@ -1143,12 +1114,12 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
                     }}
                     onKeyUp={stopPropagation}
                     placeholder={t("settings.collectionNamePlaceholder")}
-                    className="teams-collections-page__input"
+                    className={styles.input}
                   />
                 </div>
               </div>
-              <div className="teams-collections-page__form-group">
-                <label className="teams-collections-page__checkbox-label">
+              <div className={styles.formGroup}>
+                <label className={styles.checkboxLabel}>
                   <input
                     type="checkbox"
                     checked={newCollectionPrivate}
@@ -1156,12 +1127,12 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
                   />
                   <span>{t("settings.privateCollection")}</span>
                 </label>
-                <p className="teams-collections-page__form-hint">
+                <p className={styles.formHint}>
                   {t("settings.privateCollectionHint")}
                 </p>
               </div>
               <button
-                className="teams-collections-page__button teams-collections-page__button--primary teams-collections-page__button--full"
+                className={styles.buttonPrimaryFull}
                 onClick={handleCreateCollection}
                 disabled={!newCollectionName.trim()}
               >

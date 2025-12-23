@@ -1,18 +1,18 @@
 import React, { useState, useRef } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 
-import { showSuccess, showError } from "../../utils/toast";
+import { showSuccess, showError } from "../../../utils/toast";
 
-import "./WorkspaceSettingsPage.scss";
+import styles from "./WorkspaceSettingsPage.module.scss";
 
-import type { Workspace } from "../../auth/workspaceApi";
+import type { Workspace } from "../../../auth/workspaceApi";
 
 // Stop keyboard events from propagating
 const stopPropagation = (e: React.KeyboardEvent) => {
   e.stopPropagation();
 };
 
-interface WorkspaceSettingsPageProps {
+export interface WorkspaceSettingsPageProps {
   workspace: Workspace | null;
   onUpdateWorkspace?: (data: { name?: string }) => Promise<void>;
   onUploadWorkspaceAvatar?: (file: File) => Promise<void>;
@@ -83,8 +83,8 @@ export const WorkspaceSettingsPage: React.FC<WorkspaceSettingsPageProps> = ({
 
   if (!workspace) {
     return (
-      <div className="workspace-settings-page">
-        <div className="workspace-settings-page__empty">
+      <div className={styles.page}>
+        <div className={styles.empty}>
           <p>{t("settings.noWorkspaceSelected")}</p>
         </div>
       </div>
@@ -92,31 +92,25 @@ export const WorkspaceSettingsPage: React.FC<WorkspaceSettingsPageProps> = ({
   }
 
   return (
-    <div className="workspace-settings-page">
-      <div className="workspace-settings-page__container">
-        <h1 className="workspace-settings-page__title">
-          {t("settings.workspaceSettings")}
-        </h1>
-        <p className="workspace-settings-page__subtitle">
+    <div className={styles.page}>
+      <div>
+        <h1 className={styles.title}>{t("settings.workspaceSettings")}</h1>
+        <p className={styles.subtitle}>
           {t("settings.workspaceSettingsDescription")}
         </p>
 
         {/* Separator after header */}
-        <div className="workspace-settings-page__separator" />
+        <div className={styles.separator} />
 
         {/* Error messages */}
-        {error && (
-          <div className="workspace-settings-page__error-inline">{error}</div>
-        )}
+        {error && <div className={styles.errorInline}>{error}</div>}
 
         {/* Workspace Avatar */}
-        <section className="workspace-settings-page__section">
-          <h2 className="workspace-settings-page__section-title">
-            {t("settings.workspaceIcon")}
-          </h2>
-          <div className="workspace-settings-page__avatar-section">
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>{t("settings.workspaceIcon")}</h2>
+          <div className={styles.avatarSection}>
             <div
-              className="workspace-settings-page__avatar"
+              className={styles.avatar}
               onClick={handleAvatarClick}
               role="button"
               tabIndex={0}
@@ -129,11 +123,11 @@ export const WorkspaceSettingsPage: React.FC<WorkspaceSettingsPageProps> = ({
               {workspace.avatarUrl ? (
                 <img src={workspace.avatarUrl} alt={workspace.name} />
               ) : (
-                <div className="workspace-settings-page__avatar-initials">
+                <div className={styles.avatarInitials}>
                   {workspace.name[0].toUpperCase()}
                 </div>
               )}
-              <div className="workspace-settings-page__avatar-overlay">
+              <div className={styles.avatarOverlay}>
                 <svg
                   viewBox="0 0 24 24"
                   fill="none"
@@ -152,10 +146,10 @@ export const WorkspaceSettingsPage: React.FC<WorkspaceSettingsPageProps> = ({
               onChange={handleAvatarChange}
               style={{ display: "none" }}
             />
-            <div className="workspace-settings-page__avatar-info">
+            <div className={styles.avatarInfo}>
               <p>{t("settings.workspaceIconDescription")}</p>
               <button
-                className="workspace-settings-page__button workspace-settings-page__button--secondary"
+                className={styles.buttonSecondary}
                 onClick={handleAvatarClick}
                 disabled={isSaving}
               >
@@ -166,12 +160,10 @@ export const WorkspaceSettingsPage: React.FC<WorkspaceSettingsPageProps> = ({
         </section>
 
         {/* Workspace Name */}
-        <section className="workspace-settings-page__section">
-          <h2 className="workspace-settings-page__section-title">
-            {t("settings.workspaceName")}
-          </h2>
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>{t("settings.workspaceName")}</h2>
           {isEditingName ? (
-            <div className="workspace-settings-page__edit-field">
+            <div className={styles.editField}>
               <input
                 type="text"
                 value={name}
@@ -188,18 +180,18 @@ export const WorkspaceSettingsPage: React.FC<WorkspaceSettingsPageProps> = ({
                 onKeyUp={stopPropagation}
                 placeholder={t("settings.workspaceNamePlaceholder")}
                 autoFocus
-                className="workspace-settings-page__input"
+                className={styles.input}
               />
-              <div className="workspace-settings-page__edit-actions">
+              <div className={styles.editActions}>
                 <button
-                  className="workspace-settings-page__button workspace-settings-page__button--primary"
+                  className={styles.buttonPrimary}
                   onClick={handleSaveName}
                   disabled={isSaving || !name.trim()}
                 >
                   {isSaving ? t("settings.saving") : t("settings.save")}
                 </button>
                 <button
-                  className="workspace-settings-page__button workspace-settings-page__button--secondary"
+                  className={styles.buttonSecondary}
                   onClick={() => {
                     setIsEditingName(false);
                     setName(workspace.name);
@@ -211,12 +203,10 @@ export const WorkspaceSettingsPage: React.FC<WorkspaceSettingsPageProps> = ({
               </div>
             </div>
           ) : (
-            <div className="workspace-settings-page__field">
-              <span className="workspace-settings-page__field-value">
-                {workspace.name}
-              </span>
+            <div className={styles.field}>
+              <span className={styles.fieldValue}>{workspace.name}</span>
               <button
-                className="workspace-settings-page__edit-button"
+                className={styles.editButton}
                 onClick={() => setIsEditingName(true)}
                 title={t("settings.edit")}
               >
@@ -235,32 +225,24 @@ export const WorkspaceSettingsPage: React.FC<WorkspaceSettingsPageProps> = ({
         </section>
 
         {/* Workspace URL */}
-        <section className="workspace-settings-page__section">
-          <h2 className="workspace-settings-page__section-title">
-            {t("settings.workspaceUrl")}
-          </h2>
-          <div className="workspace-settings-page__field workspace-settings-page__field--readonly">
-            <span className="workspace-settings-page__field-value workspace-settings-page__field-value--mono">
-              {workspace.slug}
-            </span>
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>{t("settings.workspaceUrl")}</h2>
+          <div className={styles.fieldReadonly}>
+            <span className={styles.fieldValueMono}>{workspace.slug}</span>
           </div>
-          <p className="workspace-settings-page__field-hint">
-            {t("settings.workspaceUrlHint")}
-          </p>
+          <p className={styles.fieldHint}>{t("settings.workspaceUrlHint")}</p>
         </section>
 
         {/* Danger Zone */}
-        <section className="workspace-settings-page__section workspace-settings-page__section--danger">
-          <h2 className="workspace-settings-page__section-title">
-            {t("settings.dangerZone")}
-          </h2>
-          <div className="workspace-settings-page__danger-item">
-            <div className="workspace-settings-page__danger-info">
+        <section className={styles.sectionDanger}>
+          <h2 className={styles.sectionTitle}>{t("settings.dangerZone")}</h2>
+          <div className={styles.dangerItem}>
+            <div className={styles.dangerInfo}>
               <h3>{t("settings.deleteWorkspace")}</h3>
               <p>{t("settings.deleteWorkspaceDescription")}</p>
             </div>
             <button
-              className="workspace-settings-page__button workspace-settings-page__button--danger-outline"
+              className={styles.buttonDangerOutline}
               onClick={() => {
                 // TODO: Implement workspace deletion
                 showError(

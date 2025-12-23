@@ -9,6 +9,28 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.70] - 2025-12-23
+
+### Changed
+
+- **CSS Modules Migration - Batch 2** - Migrated 5 Settings page components to CSS Modules with folder reorganization
+  - Migrated `PreferencesPage` (153 lines): theme selector with dark mode support
+  - Migrated `ProfilePage` (531 lines): avatar upload, name editing, role display
+  - Migrated `WorkspaceSettingsPage` (427 lines): workspace name/avatar editing, danger zone
+  - Migrated `MembersPage` (603 lines): member list, invite dialog, role management
+  - Migrated `TeamsCollectionsPage` (1,073 lines): teams/collections tables, team dialogs, color picker
+  - Each component now in dedicated folder with `index.ts`, `Component.tsx`, and `Component.module.scss`
+  - Updated `Settings/index.ts` to re-export from new folder structure
+  - Total: ~2,787 lines of SCSS migrated to CSS Modules
+
+### Removed
+
+- `Settings/PreferencesPage.tsx`, `Settings/PreferencesPage.scss` - Moved to folder structure
+- `Settings/ProfilePage.tsx`, `Settings/ProfilePage.scss` - Moved to folder structure
+- `Settings/WorkspaceSettingsPage.tsx`, `Settings/WorkspaceSettingsPage.scss` - Moved to folder structure
+- `Settings/MembersPage.tsx`, `Settings/MembersPage.scss` - Moved to folder structure
+- `Settings/TeamsCollectionsPage.tsx`, `Settings/TeamsCollectionsPage.scss` - Moved to folder structure
+
 ## [0.18.0-beta0.69] - 2025-12-23
 
 ### Fixed

@@ -1,17 +1,17 @@
 import React, { useState, useEffect, useRef } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 
-import { useAuth } from "../../auth";
+import { useAuth } from "../../../auth";
 import {
   getUserProfile,
   updateUserProfile,
   uploadAvatar,
   deleteAvatar,
   type UserProfile,
-} from "../../auth/workspaceApi";
-import { showSuccess } from "../../utils/toast";
+} from "../../../auth/workspaceApi";
+import { showSuccess } from "../../../utils/toast";
 
-import "./ProfilePage.scss";
+import styles from "./ProfilePage.module.scss";
 
 // Stop keyboard events from propagating to Excalidraw canvas
 const stopPropagation = (e: React.KeyboardEvent) => {
@@ -52,7 +52,7 @@ const logoutIcon = (
   </svg>
 );
 
-interface ProfilePageProps {}
+export interface ProfilePageProps {}
 
 export const ProfilePage: React.FC<ProfilePageProps> = () => {
   const { user, logout, refreshUser } = useAuth();
@@ -186,9 +186,9 @@ export const ProfilePage: React.FC<ProfilePageProps> = () => {
 
   if (isLoading) {
     return (
-      <div className="profile-page">
-        <div className="profile-page__loading">
-          <div className="profile-page__spinner" />
+      <div className={styles.page}>
+        <div className={styles.loading}>
+          <div className={styles.spinner} />
         </div>
       </div>
     );
@@ -196,8 +196,8 @@ export const ProfilePage: React.FC<ProfilePageProps> = () => {
 
   if (error && !profile) {
     return (
-      <div className="profile-page">
-        <div className="profile-page__error">
+      <div className={styles.page}>
+        <div className={styles.error}>
           <p>{error}</p>
           <button onClick={loadProfile}>{t("settings.retry")}</button>
         </div>
@@ -210,25 +210,25 @@ export const ProfilePage: React.FC<ProfilePageProps> = () => {
   }
 
   return (
-    <div className="profile-page">
-      <div className="profile-page__container">
-        <h1 className="profile-page__title">{t("settings.myProfile")}</h1>
+    <div className={styles.page}>
+      <div>
+        <h1 className={styles.title}>{t("settings.myProfile")}</h1>
 
         {/* Separator after title */}
-        <div className="profile-page__separator" />
+        <div className={styles.separator} />
 
         {/* Error messages */}
-        {error && <div className="profile-page__error-inline">{error}</div>}
+        {error && <div className={styles.errorInline}>{error}</div>}
 
         {/* Profile Picture Section */}
-        <section className="profile-page__row">
-          <div className="profile-page__row-label">
+        <section className={styles.row}>
+          <div className={styles.rowLabel}>
             <h2>{t("settings.profilePicture")}</h2>
             <p>{t("settings.uploadProfilePicture")}</p>
           </div>
-          <div className="profile-page__row-content profile-page__row-content--avatar">
+          <div className={styles.rowContentAvatar}>
             <div
-              className="profile-page__avatar"
+              className={styles.avatar}
               onClick={handleAvatarClick}
               role="button"
               tabIndex={0}
@@ -241,7 +241,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = () => {
               {profile.avatarUrl ? (
                 <img src={profile.avatarUrl} alt="Avatar" />
               ) : (
-                <div className="profile-page__avatar-initials">
+                <div className={styles.avatarInitials}>
                   {getInitials(profile.name, profile.email)}
                 </div>
               )}
@@ -253,9 +253,9 @@ export const ProfilePage: React.FC<ProfilePageProps> = () => {
               onChange={handleAvatarChange}
               style={{ display: "none" }}
             />
-            <div className="profile-page__avatar-links">
+            <div className={styles.avatarLinks}>
               <button
-                className="profile-page__link"
+                className={styles.link}
                 onClick={handleAvatarClick}
                 disabled={isSaving}
               >
@@ -263,9 +263,9 @@ export const ProfilePage: React.FC<ProfilePageProps> = () => {
               </button>
               {profile.avatarUrl && (
                 <>
-                  <span className="profile-page__link-separator">·</span>
+                  <span className={styles.linkSeparator}>·</span>
                   <button
-                    className="profile-page__link profile-page__link--danger"
+                    className={styles.linkDanger}
                     onClick={handleDeleteAvatar}
                     disabled={isSaving}
                   >
@@ -278,14 +278,14 @@ export const ProfilePage: React.FC<ProfilePageProps> = () => {
         </section>
 
         {/* Profile Name Section */}
-        <section className="profile-page__row">
-          <div className="profile-page__row-label">
+        <section className={styles.row}>
+          <div className={styles.rowLabel}>
             <h2>{t("settings.profileName")}</h2>
             <p>{t("settings.changeProfileName")}</p>
           </div>
-          <div className="profile-page__row-content">
+          <div className={styles.rowContent}>
             {isEditingName ? (
-              <div className="profile-page__edit-field">
+              <div className={styles.editField}>
                 <input
                   type="text"
                   value={name}
@@ -302,18 +302,18 @@ export const ProfilePage: React.FC<ProfilePageProps> = () => {
                   onKeyUp={stopPropagation}
                   placeholder={t("settings.namePlaceholder")}
                   autoFocus
-                  className="profile-page__input"
+                  className={styles.input}
                 />
-                <div className="profile-page__edit-actions">
+                <div className={styles.editActions}>
                   <button
-                    className="profile-page__button profile-page__button--primary"
+                    className={styles.buttonPrimary}
                     onClick={handleSaveName}
                     disabled={isSaving}
                   >
                     {isSaving ? t("settings.saving") : t("settings.save")}
                   </button>
                   <button
-                    className="profile-page__button profile-page__button--secondary"
+                    className={styles.buttonSecondary}
                     onClick={() => {
                       setIsEditingName(false);
                       setName(profile.name || "");
@@ -325,13 +325,13 @@ export const ProfilePage: React.FC<ProfilePageProps> = () => {
                 </div>
               </div>
             ) : (
-              <div className="profile-page__field-card">
-                <span className="profile-page__field-icon">{personIcon}</span>
-                <span className="profile-page__field-value">
+              <div className={styles.fieldCard}>
+                <span className={styles.fieldIcon}>{personIcon}</span>
+                <span className={styles.fieldValue}>
                   {profile.name || t("settings.notSet")}
                 </span>
                 <button
-                  className="profile-page__edit-button"
+                  className={styles.editButton}
                   onClick={() => setIsEditingName(true)}
                   title={t("settings.edit")}
                 >
@@ -343,34 +343,34 @@ export const ProfilePage: React.FC<ProfilePageProps> = () => {
         </section>
 
         {/* Email Section */}
-        <section className="profile-page__row">
-          <div className="profile-page__row-label">
+        <section className={styles.row}>
+          <div className={styles.rowLabel}>
             <h2>{t("settings.accountEmail")}</h2>
             <p>{t("settings.accountEmailDescription")}</p>
           </div>
-          <div className="profile-page__row-content">
-            <div className="profile-page__field-info">
-              <span className="profile-page__field-icon">{emailIcon}</span>
-              <span className="profile-page__field-value">{profile.email}</span>
+          <div className={styles.rowContent}>
+            <div className={styles.fieldInfo}>
+              <span className={styles.fieldIcon}>{emailIcon}</span>
+              <span className={styles.fieldValue}>{profile.email}</span>
             </div>
           </div>
         </section>
 
         {/* Role Section */}
-        <section className="profile-page__row">
-          <div className="profile-page__row-label">
+        <section className={styles.row}>
+          <div className={styles.rowLabel}>
             <h2>{t("settings.role")}</h2>
             <p>{t("settings.roleDescription")}</p>
           </div>
-          <div className="profile-page__row-content">
-            <div className="profile-page__field-info">
-              <span className="profile-page__field-icon">{shieldIcon}</span>
+          <div className={styles.rowContent}>
+            <div className={styles.fieldInfo}>
+              <span className={styles.fieldIcon}>{shieldIcon}</span>
               {profile.isSuperAdmin ? (
-                <span className="profile-page__role-badge profile-page__role-badge--admin">
+                <span className={styles.roleBadgeAdmin}>
                   {t("settings.roleSuperAdmin")}
                 </span>
               ) : (
-                <span className="profile-page__role-badge">
+                <span className={styles.roleBadge}>
                   {t("settings.roleUser")}
                 </span>
               )}
@@ -379,16 +379,13 @@ export const ProfilePage: React.FC<ProfilePageProps> = () => {
         </section>
 
         {/* Sign Out Section */}
-        <section className="profile-page__row">
-          <div className="profile-page__row-label">
+        <section className={styles.row}>
+          <div className={styles.rowLabel}>
             <h2>{t("settings.signOut")}</h2>
             <p>{t("settings.signOutDescription")}</p>
           </div>
-          <div className="profile-page__row-content">
-            <button
-              className="profile-page__button profile-page__button--primary profile-page__button--signout"
-              onClick={logout}
-            >
+          <div className={styles.rowContent}>
+            <button className={styles.buttonSignout} onClick={logout}>
               {logoutIcon}
               {t("settings.signOutButton")}
             </button>

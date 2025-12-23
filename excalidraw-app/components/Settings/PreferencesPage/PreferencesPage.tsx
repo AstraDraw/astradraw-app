@@ -4,7 +4,7 @@ import { THEME } from "@excalidraw/excalidraw";
 
 import type { Theme } from "@excalidraw/element/types";
 
-import "./PreferencesPage.scss";
+import styles from "./PreferencesPage.module.scss";
 
 // Stop keyboard events from propagating to Excalidraw canvas
 const stopPropagation = (e: React.KeyboardEvent) => {
@@ -40,7 +40,7 @@ const monitorIcon = (
   </svg>
 );
 
-interface PreferencesPageProps {
+export interface PreferencesPageProps {
   theme: Theme | "system";
   setTheme: (theme: Theme | "system") => void;
 }
@@ -50,25 +50,23 @@ export const PreferencesPage: React.FC<PreferencesPageProps> = ({
   setTheme,
 }) => {
   return (
-    <div className="preferences-page">
-      <div className="preferences-page__container">
-        <h1 className="preferences-page__title">
-          {t("settings.myPreferences")}
-        </h1>
+    <div className={styles.page}>
+      <div>
+        <h1 className={styles.title}>{t("settings.myPreferences")}</h1>
 
         {/* Separator after title */}
-        <div className="preferences-page__separator" />
+        <div className={styles.separator} />
 
         {/* Theme Section */}
-        <section className="preferences-page__row">
-          <div className="preferences-page__row-label">
+        <section className={styles.row}>
+          <div className={styles.rowLabel}>
             <h2>{t("labels.theme")}</h2>
-            <p className="preferences-page__shortcut-hint">⌥ + ⇧ + D</p>
+            <p className={styles.shortcutHint}>⌥ + ⇧ + D</p>
           </div>
-          <div className="preferences-page__row-content">
-            <div className="preferences-page__theme-selector">
+          <div className={styles.rowContent}>
+            <div className={styles.themeSelector}>
               <select
-                className="preferences-page__theme-dropdown"
+                className={styles.themeDropdown}
                 value={theme}
                 onChange={(e) => setTheme(e.target.value as Theme | "system")}
                 onKeyDown={stopPropagation}
@@ -78,7 +76,7 @@ export const PreferencesPage: React.FC<PreferencesPageProps> = ({
                 <option value={THEME.LIGHT}>{t("buttons.lightMode")}</option>
                 <option value="system">{t("buttons.systemMode")}</option>
               </select>
-              <span className="preferences-page__theme-icon">
+              <span className={styles.themeIcon}>
                 {theme === THEME.DARK
                   ? moonIcon
                   : theme === THEME.LIGHT

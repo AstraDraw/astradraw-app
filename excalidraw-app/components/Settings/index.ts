@@ -1,8 +1,13 @@
 export { ProfilePage } from "./ProfilePage";
+export type { ProfilePageProps } from "./ProfilePage";
 export { PreferencesPage } from "./PreferencesPage";
+export type { PreferencesPageProps } from "./PreferencesPage";
 export { WorkspaceSettingsPage } from "./WorkspaceSettingsPage";
+export type { WorkspaceSettingsPageProps } from "./WorkspaceSettingsPage";
 export { MembersPage } from "./MembersPage";
+export type { MembersPageProps } from "./MembersPage";
 export { TeamsCollectionsPage } from "./TeamsCollectionsPage";
+export type { TeamsCollectionsPageProps } from "./TeamsCollectionsPage";
 
 export {
   appModeAtom,

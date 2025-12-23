@@ -8,17 +8,17 @@ import {
   createInviteLink,
   type WorkspaceMember,
   type WorkspaceRole,
-} from "../../auth/workspaceApi";
-import { showSuccess } from "../../utils/toast";
+} from "../../../auth/workspaceApi";
+import { showSuccess } from "../../../utils/toast";
 
-import "./MembersPage.scss";
+import styles from "./MembersPage.module.scss";
 
 // Stop keyboard events from propagating
 const stopPropagation = (e: React.KeyboardEvent) => {
   e.stopPropagation();
 };
 
-interface MembersPageProps {
+export interface MembersPageProps {
   workspaceId: string | null;
   isAdmin: boolean;
 }
@@ -129,16 +129,27 @@ export const MembersPage: React.FC<MembersPageProps> = ({
     return email[0].toUpperCase();
   };
 
-  const getRoleBadgeClass = (role: WorkspaceRole): string => {
+  const getRoleBadgeStyle = (role: WorkspaceRole): string => {
     switch (role) {
       case "ADMIN":
-        return "members-page__role-badge--admin";
+        return styles.roleBadgeAdmin;
       case "MEMBER":
-        return "members-page__role-badge--member";
+        return styles.roleBadgeMember;
       case "VIEWER":
-        return "members-page__role-badge--viewer";
+        return styles.roleBadgeViewer;
       default:
-        return "";
+        return styles.roleBadge;
+    }
+  };
+
+  const getRoleSelectStyle = (role: WorkspaceRole): string => {
+    switch (role) {
+      case "MEMBER":
+        return styles.roleSelectMember;
+      case "VIEWER":
+        return styles.roleSelectViewer;
+      default:
+        return styles.roleSelect;
     }
   };
 
@@ -155,8 +166,8 @@ export const MembersPage: React.FC<MembersPageProps> = ({
 
   if (!workspaceId) {
     return (
-      <div className="members-page">
-        <div className="members-page__empty">
+      <div className={styles.page}>
+        <div className={styles.empty}>
           <p>{t("settings.noWorkspaceSelected")}</p>
         </div>
       </div>
@@ -164,18 +175,18 @@ export const MembersPage: React.FC<MembersPageProps> = ({
   }
 
   return (
-    <div className="members-page">
-      <div className="members-page__container">
-        <div className="members-page__header">
-          <div className="members-page__header-text">
-            <h1 className="members-page__title">{t("settings.members")}</h1>
-            <p className="members-page__subtitle">
+    <div className={styles.page}>
+      <div>
+        <div className={styles.header}>
+          <div className={styles.headerText}>
+            <h1 className={styles.title}>{t("settings.members")}</h1>
+            <p className={styles.subtitle}>
               {t("settings.membersDescription", { count: members.length })}
             </p>
           </div>
           {isAdmin && (
             <button
-              className="members-page__invite-button"
+              className={styles.inviteButton}
               onClick={() => setShowInviteDialog(true)}
             >
               <svg
@@ -195,13 +206,13 @@ export const MembersPage: React.FC<MembersPageProps> = ({
         </div>
 
         {/* Separator after header */}
-        <div className="members-page__separator" />
+        <div className={styles.separator} />
 
         {/* Error messages */}
-        {error && <div className="members-page__error-inline">{error}</div>}
+        {error && <div className={styles.errorInline}>{error}</div>}
 
         {/* Search */}
-        <div className="members-page__search">
+        <div className={styles.search}>
           <svg
             viewBox="0 0 24 24"
             fill="none"
@@ -223,11 +234,11 @@ export const MembersPage: React.FC<MembersPageProps> = ({
 
         {/* Members list */}
         {isLoading ? (
-          <div className="members-page__loading">
-            <div className="members-page__spinner" />
+          <div className={styles.loading}>
+            <div className={styles.spinner} />
           </div>
         ) : filteredMembers.length === 0 ? (
-          <div className="members-page__empty-list">
+          <div className={styles.emptyList}>
             {searchQuery ? (
               <p>{t("settings.noMembersFound")}</p>
             ) : (
@@ -235,32 +246,32 @@ export const MembersPage: React.FC<MembersPageProps> = ({
             )}
           </div>
         ) : (
-          <div className="members-page__list">
+          <div className={styles.list}>
             {filteredMembers.map((member) => (
-              <div key={member.id} className="members-page__member">
-                <div className="members-page__member-avatar">
+              <div key={member.id} className={styles.member}>
+                <div className={styles.memberAvatar}>
                   {member.user.avatarUrl ? (
                     <img
                       src={member.user.avatarUrl}
                       alt={member.user.name || member.user.email}
                     />
                   ) : (
-                    <div className="members-page__member-initials">
+                    <div className={styles.memberInitials}>
                       {getInitials(member.user.name, member.user.email)}
                     </div>
                   )}
                 </div>
-                <div className="members-page__member-info">
-                  <span className="members-page__member-name">
+                <div className={styles.memberInfo}>
+                  <span className={styles.memberName}>
                     {member.user.name || member.user.email}
                   </span>
                   {member.user.name && (
-                    <span className="members-page__member-email">
+                    <span className={styles.memberEmail}>
                       {member.user.email}
                     </span>
                   )}
                 </div>
-                <div className="members-page__member-role">
+                <div className={styles.memberRole}>
                   {isAdmin && member.role !== "ADMIN" ? (
                     <select
                       value={member.role}
@@ -270,19 +281,13 @@ export const MembersPage: React.FC<MembersPageProps> = ({
                           e.target.value as WorkspaceRole,
                         )
                       }
-                      className={`members-page__role-select ${getRoleBadgeClass(
-                        member.role,
-                      )}`}
+                      className={getRoleSelectStyle(member.role)}
                     >
                       <option value="MEMBER">{t("settings.roleMember")}</option>
                       <option value="VIEWER">{t("settings.roleViewer")}</option>
                     </select>
                   ) : (
-                    <span
-                      className={`members-page__role-badge ${getRoleBadgeClass(
-                        member.role,
-                      )}`}
-                    >
+                    <span className={getRoleBadgeStyle(member.role)}>
                       {member.role === "ADMIN"
                         ? t("settings.roleAdmin")
                         : member.role === "MEMBER"
@@ -293,7 +298,7 @@ export const MembersPage: React.FC<MembersPageProps> = ({
                 </div>
                 {isAdmin && member.role !== "ADMIN" && (
                   <button
-                    className="members-page__member-remove"
+                    className={styles.memberRemove}
                     onClick={() =>
                       handleRemoveMember(
                         member.id,
@@ -321,20 +326,17 @@ export const MembersPage: React.FC<MembersPageProps> = ({
       {/* Invite Dialog */}
       {showInviteDialog && (
         <div
-          className="members-page__dialog-overlay"
+          className={styles.dialogOverlay}
           onClick={() => {
             setShowInviteDialog(false);
             setInviteLink(null);
           }}
         >
-          <div
-            className="members-page__dialog"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="members-page__dialog-header">
+          <div className={styles.dialog} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.dialogHeader}>
               <h2>{t("settings.inviteMember")}</h2>
               <button
-                className="members-page__dialog-close"
+                className={styles.dialogClose}
                 onClick={() => {
                   setShowInviteDialog(false);
                   setInviteLink(null);
@@ -351,25 +353,25 @@ export const MembersPage: React.FC<MembersPageProps> = ({
               </button>
             </div>
 
-            <div className="members-page__dialog-content">
+            <div className={styles.dialogContent}>
               {!inviteLink ? (
                 <>
                   <p>{t("settings.inviteDescription")}</p>
-                  <div className="members-page__form-group">
+                  <div className={styles.formGroup}>
                     <label>{t("settings.inviteRole")}</label>
                     <select
                       value={inviteRole}
                       onChange={(e) =>
                         setInviteRole(e.target.value as WorkspaceRole)
                       }
-                      className="members-page__select"
+                      className={styles.select}
                     >
                       <option value="MEMBER">{t("settings.roleMember")}</option>
                       <option value="VIEWER">{t("settings.roleViewer")}</option>
                     </select>
                   </div>
                   <button
-                    className="members-page__button members-page__button--primary"
+                    className={styles.buttonPrimary}
                     onClick={handleCreateInviteLink}
                   >
                     {t("settings.generateLink")}
@@ -378,7 +380,7 @@ export const MembersPage: React.FC<MembersPageProps> = ({
               ) : (
                 <>
                   <p>{t("settings.inviteLinkReady")}</p>
-                  <div className="members-page__invite-link">
+                  <div className={styles.inviteLink}>
                     <input
                       type="text"
                       value={inviteLink}
@@ -387,7 +389,7 @@ export const MembersPage: React.FC<MembersPageProps> = ({
                       onKeyUp={stopPropagation}
                     />
                     <button
-                      className="members-page__copy-button"
+                      className={styles.copyButton}
                       onClick={handleCopyInviteLink}
                     >
                       <svg
@@ -408,7 +410,7 @@ export const MembersPage: React.FC<MembersPageProps> = ({
                       </svg>
                     </button>
                   </div>
-                  <p className="members-page__invite-hint">
+                  <p className={styles.inviteHint}>
                     {t("settings.inviteLinkExpires")}
                   </p>
                 </>
