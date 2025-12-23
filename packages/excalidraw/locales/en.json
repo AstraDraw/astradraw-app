@@ -1152,5 +1152,15 @@
     "accessNone": "No access",
     "accessView": "View",
     "accessEdit": "Edit"
+  },
+  "errorBoundary": {
+    "genericTitle": "Something went wrong",
+    "genericMessage": "An unexpected error occurred. Please try again.",
+    "sidebarMessage": "Failed to load sidebar. Please try again.",
+    "contentTitle": "Unable to load content",
+    "contentMessage": "Something went wrong while loading this view. You can try again or go back to the home page.",
+    "showDetails": "Show error details",
+    "retry": "Try again",
+    "goHome": "Go to home"
   }
 }

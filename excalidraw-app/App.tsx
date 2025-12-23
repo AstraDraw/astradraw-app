@@ -173,6 +173,11 @@ import {
 import { parseUrl, buildSceneUrl, type RouteType } from "./router";
 
 import { WorkspaceMainContent } from "./components/Workspace";
+import {
+  ErrorBoundary,
+  SidebarErrorFallback,
+  ContentErrorFallback,
+} from "./components/ErrorBoundary";
 
 import {
   createScene,
@@ -2051,22 +2056,29 @@ const ExcalidrawWrapper = () => {
 
       {/* Workspace Sidebar (Left) - shared between both modes */}
       {!isLegacyMode && (
-        <WorkspaceSidebar
-          onNewScene={handleNewScene}
-          currentSceneId={currentSceneId}
-          workspace={currentWorkspace}
-          onWorkspaceChange={(workspace, privateColId) => {
-            setCurrentWorkspace(workspace);
-            setCurrentWorkspaceSlug(workspace.slug);
-            setPrivateCollectionId(privateColId);
-            // Note: Don't reload collections here - WorkspaceSidebar already loads them
-            // and calling listCollections here causes an infinite loop
+        <ErrorBoundary
+          fallback={(props) => <SidebarErrorFallback {...props} />}
+          onError={(error) => {
+            console.error("[WorkspaceSidebar] Error:", error);
           }}
-          onCurrentSceneTitleChange={(newTitle) => {
-            setCurrentSceneTitle(newTitle);
-            setCurrentSceneTitleAtom(newTitle);
-          }}
-        />
+        >
+          <WorkspaceSidebar
+            onNewScene={handleNewScene}
+            currentSceneId={currentSceneId}
+            workspace={currentWorkspace}
+            onWorkspaceChange={(workspace, privateColId) => {
+              setCurrentWorkspace(workspace);
+              setCurrentWorkspaceSlug(workspace.slug);
+              setPrivateCollectionId(privateColId);
+              // Note: Don't reload collections here - WorkspaceSidebar already loads them
+              // and calling listCollections here causes an infinite loop
+            }}
+            onCurrentSceneTitleChange={(newTitle) => {
+              setCurrentSceneTitle(newTitle);
+              setCurrentSceneTitleAtom(newTitle);
+            }}
+          />
+        </ErrorBoundary>
       )}
 
       {/* Quick Search Modal - works in both canvas and dashboard modes */}
@@ -2082,16 +2094,28 @@ const ExcalidrawWrapper = () => {
           style={{ display: appMode === "dashboard" ? "block" : "none" }}
           aria-hidden={appMode !== "dashboard"}
         >
-          <WorkspaceMainContent
-            workspace={currentWorkspace}
-            collections={collections}
-            isAdmin={isWorkspaceAdmin}
-            onNewScene={handleNewScene}
-            onUpdateWorkspace={handleUpdateWorkspace}
-            onUploadWorkspaceAvatar={handleUploadWorkspaceAvatar}
-            theme={appTheme}
-            setTheme={setAppTheme}
-          />
+          <ErrorBoundary
+            fallback={(props) => (
+              <ContentErrorFallback
+                {...props}
+                onGoHome={() => navigateToDashboard()}
+              />
+            )}
+            onError={(error) => {
+              console.error("[WorkspaceMainContent] Error:", error);
+            }}
+          >
+            <WorkspaceMainContent
+              workspace={currentWorkspace}
+              collections={collections}
+              isAdmin={isWorkspaceAdmin}
+              onNewScene={handleNewScene}
+              onUpdateWorkspace={handleUpdateWorkspace}
+              onUploadWorkspaceAvatar={handleUploadWorkspaceAvatar}
+              theme={appTheme}
+              setTheme={setAppTheme}
+            />
+          </ErrorBoundary>
         </div>
       )}
 

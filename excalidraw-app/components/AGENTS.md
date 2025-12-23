@@ -5,7 +5,9 @@ Custom React components for AstraDraw workspace features.
 ## Key Patterns
 
 ### Input Fields
+
 Always stop keyboard event propagation:
+
 ```typescript
 <input
   onKeyDown={(e) => e.stopPropagation()}
@@ -14,7 +16,9 @@ Always stop keyboard event propagation:
 ```
 
 ### Dark Mode
+
 Use BOTH selectors:
+
 ```scss
 .excalidraw.theme--dark,
 .excalidraw-app.theme--dark {
@@ -23,7 +27,9 @@ Use BOTH selectors:
 ```
 
 ### Font Family
+
 Define `--ui-font` locally for components outside `.excalidraw`:
+
 ```scss
 .my-component {
   --ui-font: Assistant, system-ui, BlinkMacSystemFont, -apple-system, Segoe UI,

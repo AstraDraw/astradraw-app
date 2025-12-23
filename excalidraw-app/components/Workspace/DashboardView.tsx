@@ -11,8 +11,9 @@ import {
 import { useScenesCache } from "../../hooks/useScenesCache";
 import { useSceneActions } from "../../hooks/useSceneActions";
 
-import { SceneCardGrid } from "./SceneCardGrid";
 import { SceneCardSkeletonGrid } from "../Skeletons";
+
+import { SceneCardGrid } from "./SceneCardGrid";
 
 import "./DashboardView.scss";
 
@@ -98,7 +99,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <header className="dashboard-view__header">
           <div className="dashboard-view__title-row">
             <span className="dashboard-view__icon">{dashboardIcon}</span>
-            <h1 className="dashboard-view__title">{t("workspace.dashboard")}</h1>
+            <h1 className="dashboard-view__title">
+              {t("workspace.dashboard")}
+            </h1>
           </div>
         </header>
 

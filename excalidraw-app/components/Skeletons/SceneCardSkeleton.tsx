@@ -55,5 +55,3 @@ export const SceneCardSkeletonGrid: React.FC<SceneCardSkeletonGridProps> = ({
 };
 
 export default SceneCardSkeleton;
-
-

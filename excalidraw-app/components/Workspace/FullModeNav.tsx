@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 
+import { CollectionItemSkeletonList } from "../Skeletons";
+
 import type { Collection } from "../../auth/workspaceApi";
 import type { DashboardView } from "../Settings/settingsState";
-import { CollectionItemSkeletonList } from "../Skeletons";
 
 // Icons
 const dashboardIcon = (
@@ -293,101 +294,103 @@ export const FullModeNav: React.FC<FullModeNavProps> = ({
 
               {/* Other collections */}
               {otherCollections.map((collection) => (
-            <div
-              key={collection.id}
-              className={`full-mode-nav__collection-row ${
-                activeCollectionId === collection.id &&
-                currentView === "collection"
-                  ? "full-mode-nav__collection-row--active"
-                  : ""
-              }`}
-            >
-              <button
-                className="full-mode-nav__collection-item"
-                onClick={() => onCollectionClick(collection.id, false)}
-              >
-                <span className="full-mode-nav__collection-icon">
-                  {collection.icon || folderIcon}
-                </span>
-                <span className="full-mode-nav__collection-name">
-                  {collection.name}
-                </span>
-              </button>
-              {collection.canWrite && (
                 <div
-                  className="full-mode-nav__collection-actions"
-                  ref={collectionMenuOpen === collection.id ? menuRef : null}
+                  key={collection.id}
+                  className={`full-mode-nav__collection-row ${
+                    activeCollectionId === collection.id &&
+                    currentView === "collection"
+                      ? "full-mode-nav__collection-row--active"
+                      : ""
+                  }`}
                 >
                   <button
-                    className="full-mode-nav__collection-more"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setCollectionMenuOpen(
-                        collectionMenuOpen === collection.id
-                          ? null
-                          : collection.id,
-                      );
-                    }}
+                    className="full-mode-nav__collection-item"
+                    onClick={() => onCollectionClick(collection.id, false)}
                   >
-                    {moreIcon}
+                    <span className="full-mode-nav__collection-icon">
+                      {collection.icon || folderIcon}
+                    </span>
+                    <span className="full-mode-nav__collection-name">
+                      {collection.name}
+                    </span>
                   </button>
-                  {collectionMenuOpen === collection.id && (
-                    <div className="full-mode-nav__collection-menu">
+                  {collection.canWrite && (
+                    <div
+                      className="full-mode-nav__collection-actions"
+                      ref={
+                        collectionMenuOpen === collection.id ? menuRef : null
+                      }
+                    >
                       <button
-                        onClick={() => {
-                          onNewScene(collection.id);
-                          setCollectionMenuOpen(null);
+                        className="full-mode-nav__collection-more"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCollectionMenuOpen(
+                            collectionMenuOpen === collection.id
+                              ? null
+                              : collection.id,
+                          );
                         }}
                       >
-                        {t("workspace.createScene")}
+                        {moreIcon}
                       </button>
-                      {onCopyCollection && (
-                        <button
-                          onClick={() => {
-                            onCopyCollection(collection);
-                            setCollectionMenuOpen(null);
-                          }}
-                        >
-                          {t("workspace.copyToWorkspace")}
-                        </button>
-                      )}
-                      {onMoveCollection && (
-                        <button
-                          onClick={() => {
-                            onMoveCollection(collection);
-                            setCollectionMenuOpen(null);
-                          }}
-                        >
-                          {t("workspace.moveToWorkspace")}
-                        </button>
-                      )}
-                      <button
-                        onClick={() => {
-                          if (onEditCollection) {
-                            onEditCollection(collection);
-                          }
-                          setCollectionMenuOpen(null);
-                        }}
-                      >
-                        {t("workspace.edit")}
-                      </button>
-                      {collection.isOwner && onDeleteCollection && (
-                        <button
-                          className="full-mode-nav__menu-item--danger"
-                          onClick={() => {
-                            onDeleteCollection(collection.id);
-                            setCollectionMenuOpen(null);
-                          }}
-                        >
-                          {t("workspace.delete")}
-                        </button>
+                      {collectionMenuOpen === collection.id && (
+                        <div className="full-mode-nav__collection-menu">
+                          <button
+                            onClick={() => {
+                              onNewScene(collection.id);
+                              setCollectionMenuOpen(null);
+                            }}
+                          >
+                            {t("workspace.createScene")}
+                          </button>
+                          {onCopyCollection && (
+                            <button
+                              onClick={() => {
+                                onCopyCollection(collection);
+                                setCollectionMenuOpen(null);
+                              }}
+                            >
+                              {t("workspace.copyToWorkspace")}
+                            </button>
+                          )}
+                          {onMoveCollection && (
+                            <button
+                              onClick={() => {
+                                onMoveCollection(collection);
+                                setCollectionMenuOpen(null);
+                              }}
+                            >
+                              {t("workspace.moveToWorkspace")}
+                            </button>
+                          )}
+                          <button
+                            onClick={() => {
+                              if (onEditCollection) {
+                                onEditCollection(collection);
+                              }
+                              setCollectionMenuOpen(null);
+                            }}
+                          >
+                            {t("workspace.edit")}
+                          </button>
+                          {collection.isOwner && onDeleteCollection && (
+                            <button
+                              className="full-mode-nav__menu-item--danger"
+                              onClick={() => {
+                                onDeleteCollection(collection.id);
+                                setCollectionMenuOpen(null);
+                              }}
+                            >
+                              {t("workspace.delete")}
+                            </button>
+                          )}
+                        </div>
                       )}
                     </div>
                   )}
                 </div>
-              )}
-            </div>
-          ))}
+              ))}
             </>
           )}
         </div>

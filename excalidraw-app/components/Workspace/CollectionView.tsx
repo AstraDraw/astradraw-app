@@ -15,8 +15,9 @@ import {
 import { useScenesCache } from "../../hooks/useScenesCache";
 import { useSceneActions } from "../../hooks/useSceneActions";
 
-import { SceneCardGrid } from "./SceneCardGrid";
 import { SceneCardSkeletonGrid } from "../Skeletons";
+
+import { SceneCardGrid } from "./SceneCardGrid";
 
 import "./CollectionView.scss";
 

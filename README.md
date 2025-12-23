@@ -66,7 +66,7 @@ yarn test:typecheck && yarn test:other && yarn test:code
 ## Environment Variables
 
 | Variable | Description | Example |
-|----------|-------------|---------|
+| --- | --- | --- |
 | `VITE_APP_WS_SERVER_URL` | WebSocket server for collaboration | `wss://draw.example.com` |
 | `VITE_APP_BACKEND_V2_GET_URL` | Scene GET endpoint | `https://draw.example.com/api/v2/scenes/` |
 | `VITE_APP_BACKEND_V2_POST_URL` | Scene POST endpoint | `https://draw.example.com/api/v2/scenes/` |
@@ -78,7 +78,7 @@ yarn test:typecheck && yarn test:other && yarn test:code
 This is the frontend component of the AstraDraw suite:
 
 | Repository | Purpose |
-|------------|---------|
+| --- | --- |
 | **[astradraw](https://github.com/astrateam-net/astradraw)** | Main repo - deployment, docs, orchestration |
 | **astradraw-app** (this repo) | Frontend application |
 | **[astradraw-api](https://github.com/astrateam-net/astradraw-api)** | Backend API (auth, workspace, storage) |
@@ -89,7 +89,7 @@ This is the frontend component of the AstraDraw suite:
 Full documentation is in the main [astradraw](https://github.com/astrateam-net/astradraw) repository:
 
 | Topic | Link |
-|-------|------|
+| --- | --- |
 | Getting Started | [docs/getting-started/](https://github.com/astrateam-net/astradraw/tree/main/docs/getting-started) |
 | Architecture | [docs/architecture/](https://github.com/astrateam-net/astradraw/tree/main/docs/architecture) |
 | Features | [docs/features/](https://github.com/astrateam-net/astradraw/tree/main/docs/features) |

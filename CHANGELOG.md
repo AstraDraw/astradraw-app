@@ -9,6 +9,17 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.60] - 2025-12-23
+
+### Added
+
+- **Error Boundaries** - Granular error handling for key components
+  - Reusable `ErrorBoundary` component with reset capability
+  - Context-specific fallbacks: `SidebarErrorFallback`, `ContentErrorFallback`, `GenericErrorFallback`
+  - Component errors no longer crash the entire app
+  - Dark mode support and i18n (English + Russian)
+  - Wrapped `WorkspaceSidebar` and `WorkspaceMainContent` with error boundaries
+
 ## [0.18.0-beta0.59] - 2025-12-23
 
 ### Added

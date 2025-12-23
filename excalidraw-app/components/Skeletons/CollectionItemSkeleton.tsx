@@ -36,7 +36,10 @@ export const CollectionItemSkeletonList: React.FC<
   CollectionItemSkeletonListProps
 > = ({ count = 4 }) => {
   return (
-    <div className="skeleton-container" style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+    <div
+      className="skeleton-container"
+      style={{ display: "flex", flexDirection: "column", gap: "2px" }}
+    >
       {Array.from({ length: count }).map((_, index) => (
         <CollectionItemSkeleton key={index} />
       ))}
@@ -45,5 +48,3 @@ export const CollectionItemSkeletonList: React.FC<
 };
 
 export default CollectionItemSkeleton;
-
-

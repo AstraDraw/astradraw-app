@@ -80,7 +80,7 @@ yarn fix               # Auto-fix formatting and linting
 ## Key Files
 
 | File | Purpose |
-|------|---------|
+| --- | --- |
 | `excalidraw-app/App.tsx` | Main app entry point |
 | `excalidraw-app/components/Settings/settingsState.ts` | Jotai state atoms |
 | `excalidraw-app/router.ts` | URL routing logic |

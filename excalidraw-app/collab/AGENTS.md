@@ -4,10 +4,10 @@ Real-time collaboration system for AstraDraw.
 
 ## Two Modes
 
-| Mode | URL | Auth |
-|------|-----|------|
+| Mode      | URL                                          | Auth     |
+| --------- | -------------------------------------------- | -------- |
 | Workspace | `/workspace/{slug}/scene/{id}#key={roomKey}` | Required |
-| Legacy | `/#room={roomId},{roomKey}` | No |
+| Legacy    | `/#room={roomId},{roomKey}`                  | No       |
 
 **Important:** Never mix these modes.
 
@@ -20,12 +20,14 @@ Real-time collaboration system for AstraDraw.
 ## Auto-Collaboration
 
 Scenes in shared collections auto-join collaboration:
+
 - Pass `isAutoCollab: true` to prevent scene reset
 - Room credentials stored in database
 
 ## Permission Check
 
 Always check `access.canCollaborate` before joining:
+
 ```typescript
 if (access.canCollaborate && scene.roomId) {
   await collabAPI.startCollaboration({
