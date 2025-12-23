@@ -12,8 +12,8 @@
     --logo-icon--normal: 2.5rem;
     --logo-text--normal: 1.8rem;
 
-    --logo-icon--large: 56px;
-    --logo-text--large: 42px;
+    --logo-icon--large: 72px;
+    --logo-text--large: 54px;
 
     display: flex;
     align-items: center;
@@ -25,13 +25,13 @@
 
     .AstradrawLogo-icon {
       width: auto;
-      color: var(--color-logo-icon, #5c33cf);
+      // Icon uses gradient fill, no color override needed
     }
 
     .AstradrawLogo-text {
       margin-left: 0.5rem;
       width: auto;
-      color: var(--color-logo-text, #5c33cf);
+      color: var(--color-logo-text, #3d3d99);
     }
 
     &.is-mobile {

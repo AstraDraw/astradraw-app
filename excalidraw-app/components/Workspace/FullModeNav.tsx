@@ -325,58 +325,58 @@ export const FullModeNav: React.FC<FullModeNavProps> = ({
                     </button>
                     {collectionMenuOpen === collection.id && (
                       <div className="full-mode-nav__collection-menu">
-                      <button
-                        onClick={() => {
-                          onNewScene(collection.id);
-                          setCollectionMenuOpen(null);
-                        }}
-                      >
-                        {t("workspace.createScene")}
-                      </button>
-                      {onCopyCollection && (
                         <button
                           onClick={() => {
-                            onCopyCollection(collection);
+                            onNewScene(collection.id);
                             setCollectionMenuOpen(null);
                           }}
                         >
-                          {t("workspace.copyToWorkspace")}
+                          {t("workspace.createScene")}
                         </button>
-                      )}
-                      {onMoveCollection && (
+                        {onCopyCollection && (
+                          <button
+                            onClick={() => {
+                              onCopyCollection(collection);
+                              setCollectionMenuOpen(null);
+                            }}
+                          >
+                            {t("workspace.copyToWorkspace")}
+                          </button>
+                        )}
+                        {onMoveCollection && (
+                          <button
+                            onClick={() => {
+                              onMoveCollection(collection);
+                              setCollectionMenuOpen(null);
+                            }}
+                          >
+                            {t("workspace.moveToWorkspace")}
+                          </button>
+                        )}
                         <button
                           onClick={() => {
-                            onMoveCollection(collection);
+                            if (onEditCollection) {
+                              onEditCollection(collection);
+                            }
                             setCollectionMenuOpen(null);
                           }}
                         >
-                          {t("workspace.moveToWorkspace")}
+                          {t("workspace.edit")}
                         </button>
-                      )}
-                      <button
-                        onClick={() => {
-                          if (onEditCollection) {
-                            onEditCollection(collection);
-                          }
-                          setCollectionMenuOpen(null);
-                        }}
-                      >
-                        {t("workspace.edit")}
-                      </button>
-                      {collection.isOwner && onDeleteCollection && (
-                        <button
-                          className="full-mode-nav__menu-item--danger"
-                          onClick={() => {
-                            onDeleteCollection(collection.id);
-                            setCollectionMenuOpen(null);
-                          }}
-                        >
-                          {t("workspace.delete")}
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
+                        {collection.isOwner && onDeleteCollection && (
+                          <button
+                            className="full-mode-nav__menu-item--danger"
+                            onClick={() => {
+                              onDeleteCollection(collection.id);
+                              setCollectionMenuOpen(null);
+                            }}
+                          >
+                            {t("workspace.delete")}
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 )}
               </button>
             </div>

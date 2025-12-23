@@ -6,6 +6,7 @@ import React, { useState } from "react";
 import { useAuth } from "../auth";
 
 import { AstradrawLogo } from "./AstradrawLogo";
+import { WelcomeScreenBackground } from "./WelcomeScreenBackground";
 import { LoginDialog } from "./Workspace/LoginDialog";
 
 export const AppWelcomeScreen: React.FC<{
@@ -29,6 +30,7 @@ export const AppWelcomeScreen: React.FC<{
 
   return (
     <>
+      <WelcomeScreenBackground />
       <WelcomeScreen>
         <WelcomeScreen.Hints.MenuHint>
           {t("welcomeScreen.app.menuHint")}

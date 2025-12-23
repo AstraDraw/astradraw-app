@@ -402,7 +402,6 @@ export const ProfilePage: React.FC<ProfilePageProps> = () => {
             </button>
           </div>
         </section>
-
       </div>
     </div>
   );

@@ -1,3 +1,19 @@
+/**
+ * Theme Management Hook for AstraDraw
+ *
+ * This hook manages the application theme (light/dark mode) with the following features:
+ * - Persists user preference in localStorage
+ * - Supports "system" mode that follows OS preference
+ * - Keyboard shortcut: Alt+Shift+D to toggle theme
+ *
+ * DEFAULT THEME: Dark mode
+ * AstraDraw defaults to dark mode to showcase the animated galaxy background
+ * on the welcome screen. Users can switch to light mode via preferences.
+ *
+ * Theme Priority:
+ * 1. User's saved preference in localStorage (if exists)
+ * 2. Default: THEME.DARK (changed from upstream Excalidraw's THEME.LIGHT)
+ */
 import { THEME } from "@excalidraw/excalidraw";
 import { EVENT, CODES, KEYS } from "@excalidraw/common";
 import { useEffect, useLayoutEffect, useState } from "react";
@@ -10,15 +26,17 @@ const getDarkThemeMediaQuery = (): MediaQueryList | undefined =>
   window.matchMedia?.("(prefers-color-scheme: dark)");
 
 export const useHandleAppTheme = () => {
+  // Initialize theme from localStorage, defaulting to DARK mode for AstraDraw
+  // This showcases the animated galaxy background on the welcome screen
   const [appTheme, setAppTheme] = useState<Theme | "system">(() => {
     return (
       (localStorage.getItem(STORAGE_KEYS.LOCAL_STORAGE_THEME) as
         | Theme
         | "system"
-        | null) || THEME.LIGHT
+        | null) || THEME.DARK // AstraDraw default: dark mode
     );
   });
-  const [editorTheme, setEditorTheme] = useState<Theme>(THEME.LIGHT);
+  const [editorTheme, setEditorTheme] = useState<Theme>(THEME.DARK); // AstraDraw default
 
   useEffect(() => {
     const mediaQuery = getDarkThemeMediaQuery();

@@ -70,9 +70,7 @@ export const PreferencesPage: React.FC<PreferencesPageProps> = ({
               <select
                 className="preferences-page__theme-dropdown"
                 value={theme}
-                onChange={(e) =>
-                  setTheme(e.target.value as Theme | "system")
-                }
+                onChange={(e) => setTheme(e.target.value as Theme | "system")}
                 onKeyDown={stopPropagation}
                 onKeyUp={stopPropagation}
               >
@@ -84,8 +82,8 @@ export const PreferencesPage: React.FC<PreferencesPageProps> = ({
                 {theme === THEME.DARK
                   ? moonIcon
                   : theme === THEME.LIGHT
-                    ? sunIcon
-                    : monitorIcon}
+                  ? sunIcon
+                  : monitorIcon}
               </span>
             </div>
           </div>

@@ -9,6 +9,50 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.59] - 2025-12-23
+
+### Added
+
+- **Animated Galaxy Background** ✨🌌
+  - Welcome screen now features an immersive animated space background
+  - Slow-moving nebula clouds with purple→blue brand gradient
+  - Twinkling star field with multiple sizes and subtle colored stars
+  - Seamless infinite drift animation using CSS pseudo-elements
+  - Dark mode only (light mode has clean white background)
+  - Disabled on mobile for performance
+  - Toggle via `$enable-galaxy-background` SCSS variable
+
+### Changed
+
+- **New Logo Design** - Updated AstraDraw logo with new icon and text styling
+  - New triangle/sparkle icon with purple→blue gradient
+  - "AstraDraw" text using Alexandria Google Font
+  - "Astra" in bold (700), "Draw" in light (300), 5% letter spacing
+  - Increased logo size on welcome screen
+
+- **Updated Slogan** - "Space for journeys through galaxies of ideas ✨"
+  - New slogan text in both English and Russian
+  - Alexandria font (Thin/100 weight) instead of Excalifont
+  - Slightly larger and better contrast
+
+- **Dark Mode Default** - App now defaults to dark mode for new users
+  - Showcases the animated galaxy background on first visit
+  - User preference still saved in localStorage
+  - Existing users keep their saved preference
+
+### Fixed
+
+- **Sidebar border visibility** - Fixed thin line visible on left edge when sidebar is closed
+  - Border is now transparent when closed, visible only when open
+
+### Technical
+
+- Added Alexandria font (weights 100, 300, 400, 700) to index.html
+- Galaxy background uses CSS pseudo-elements (::before, ::after) for layers
+- Nebula uses 200% size with transform animation to prevent edge visibility
+- Stars use repeating background-image with background-position animation
+- Added comprehensive code comments and documentation
+
 ## [0.18.0-beta0.58] - 2025-12-22
 
 ### Changed

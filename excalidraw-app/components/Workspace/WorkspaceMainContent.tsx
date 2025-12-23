@@ -1,5 +1,7 @@
 import React, { useMemo } from "react";
 
+import type { Theme } from "@excalidraw/element/types";
+
 import { useAtomValue } from "../../app-jotai";
 
 import {
@@ -19,7 +21,6 @@ import { CollectionView } from "./CollectionView";
 import "./WorkspaceMainContent.scss";
 
 import type { Workspace, Collection } from "../../auth/workspaceApi";
-import type { Theme } from "@excalidraw/element/types";
 
 interface WorkspaceMainContentProps {
   workspace: Workspace | null;

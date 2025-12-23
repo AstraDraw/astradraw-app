@@ -187,9 +187,6 @@ export const CollectionView: React.FC<CollectionViewProps> = ({
   }, [navigateToCanvas, onNewScene, collection]);
 
   // Get collection display info
-  const collectionIcon = collection?.isPrivate
-    ? lockIcon
-    : collection?.icon || folderIcon;
   const collectionName = collection?.isPrivate
     ? t("workspace.private")
     : collection?.name || t("workspace.untitled");

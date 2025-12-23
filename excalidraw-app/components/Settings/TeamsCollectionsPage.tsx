@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
+
 import { useAtomValue } from "../../app-jotai";
 
 import {
@@ -21,6 +22,7 @@ import {
   type CollectionTeamAccess,
 } from "../../auth/workspaceApi";
 import { EmojiPicker } from "../EmojiPicker";
+
 import { collectionsRefreshAtom } from "./settingsState";
 
 import "./TeamsCollectionsPage.scss";

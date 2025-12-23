@@ -176,7 +176,7 @@ body.excalidraw-presentation-mode {
 
   // Dashboard container visibility - driven by aria-hidden attribute
   // This respects the CSS Hide/Show pattern in CRITICAL_CSS_HIDE_SHOW_FIX.md
-  
+
   // Dashboard hidden (canvas mode)
   &__dashboard[aria-hidden="true"] {
     display: none !important;
