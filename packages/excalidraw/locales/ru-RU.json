@@ -445,7 +445,10 @@
     "movePageUpDown": "Сдвинуть страницу вверх/вниз",
     "movePageLeftRight": "Сдвинуть страницу вправо/влево",
     "cropStart": "Обрезать изображение",
-    "cropFinish": "Закончить обрезку изображения"
+    "cropFinish": "Закончить обрезку изображения",
+    "toggleLeftSidebar": "Переключить левую панель",
+    "toggleRightSidebar": "Переключить правую панель",
+    "quickSearch": "Быстрый поиск"
   },
   "clearCanvasDialog": {
     "title": "Очистить холст"

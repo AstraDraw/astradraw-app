@@ -3,7 +3,8 @@ import { useCallback, useEffect, useRef } from "react";
 import type { ExcalidrawFrameLikeElement } from "@excalidraw/element/types";
 import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 
-import { atom, useAtom } from "../../app-jotai";
+import { atom, useAtom, useSetAtom } from "../../app-jotai";
+import { closeWorkspaceSidebarAtom } from "../Settings/settingsState";
 
 // Atoms for presentation state
 export const presentationModeAtom = atom(false);
@@ -44,6 +45,7 @@ export const usePresentationMode = ({
   const [originalFrameRendering, setOriginalFrameRendering] = useAtom(
     originalFrameRenderingAtom,
   );
+  const closeWorkspaceSidebar = useSetAtom(closeWorkspaceSidebarAtom);
   const isFullscreenRef = useRef(false);
 
   // Get frames sorted alphabetically by name
@@ -189,7 +191,10 @@ export const usePresentationMode = ({
     // Add presentation mode class to body for CSS hiding of UI elements
     document.body.classList.add("excalidraw-presentation-mode");
 
-    // Close sidebar before starting presentation
+    // Close workspace sidebar (left) before starting presentation
+    closeWorkspaceSidebar();
+
+    // Close default sidebar (right) before starting presentation
     excalidrawAPI.toggleSidebar({ name: "default", force: false });
 
     // Enable view mode, hide UI, and hide frame borders/names
@@ -234,6 +239,7 @@ export const usePresentationMode = ({
     setIsLaserActive,
     setOriginalTheme,
     setOriginalFrameRendering,
+    closeWorkspaceSidebar,
   ]);
 
   // End presentation

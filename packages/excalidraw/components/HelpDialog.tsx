@@ -323,6 +323,19 @@ export const HelpDialog = ({ onClose }: { onClose?: () => void }) => {
                     ]
               }
             />
+            <Shortcut
+              label={t("helpDialog.toggleLeftSidebar")}
+              shortcuts={[getShortcutKey("CtrlOrCmd+["), "`"]}
+              isOr={true}
+            />
+            <Shortcut
+              label={t("helpDialog.toggleRightSidebar")}
+              shortcuts={[getShortcutKey("CtrlOrCmd+]")]}
+            />
+            <Shortcut
+              label={t("helpDialog.quickSearch")}
+              shortcuts={[getShortcutKey("CtrlOrCmd+P")]}
+            />
           </ShortcutIsland>
           <ShortcutIsland
             className="HelpDialog__island--editor"

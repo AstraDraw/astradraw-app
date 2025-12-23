@@ -71,10 +71,11 @@ export const AppFooter = React.memo(
       <>
         {/* Presentation and Talktrack toggle buttons - positioned after undo/redo in footer left */}
         <FooterLeftExtra>
-          <Tooltip label={t("presentation.title")}>
+          <Tooltip label={`${t("presentation.title")} (⌘])`}>
             <button
               className="app-footer__sidebar-button"
               onClick={handleTogglePresentationSidebar}
+              onPointerDown={(e) => e.stopPropagation()}
               type="button"
               aria-label={t("presentation.title")}
             >
@@ -84,10 +85,11 @@ export const AppFooter = React.memo(
             </button>
           </Tooltip>
 
-          <Tooltip label={t("talktrack.title")}>
+          <Tooltip label={`${t("talktrack.title")} (⌘])`}>
             <button
               className="app-footer__sidebar-button"
               onClick={handleToggleTalktrackSidebar}
+              onPointerDown={(e) => e.stopPropagation()}
               type="button"
               aria-label={t("talktrack.title")}
             >

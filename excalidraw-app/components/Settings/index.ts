@@ -29,7 +29,18 @@ export {
   isAutoCollabSceneAtom,
   quickSearchOpenAtom,
   searchQueryAtom,
+  workspaceSidebarOpenAtom,
+  toggleWorkspaceSidebarAtom,
+  openWorkspaceSidebarAtom,
+  closeWorkspaceSidebarAtom,
+  // Scenes cache atoms
+  scenesCacheAtom,
+  getScenesCacheAtom,
+  setScenesCacheAtom,
+  invalidateScenesCacheAtom,
+  clearScenesCacheAtom,
   type AppMode,
   type SidebarMode,
   type DashboardView,
+  type ScenesCacheEntry,
 } from "./settingsState";

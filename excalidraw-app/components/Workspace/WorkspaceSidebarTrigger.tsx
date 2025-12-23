@@ -2,7 +2,12 @@ import React, { useEffect, useCallback } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 import { useTunnels } from "@excalidraw/excalidraw";
 
+import { useAtomValue, useSetAtom } from "../../app-jotai";
 import { useAuth } from "../../auth";
+import {
+  workspaceSidebarOpenAtom,
+  toggleWorkspaceSidebarAtom,
+} from "../Settings/settingsState";
 
 import "./WorkspaceSidebarTrigger.scss";
 
@@ -16,36 +21,34 @@ const sidebarIcon = (
   </svg>
 );
 
-interface WorkspaceSidebarTriggerProps {
-  isOpen: boolean;
-  onToggle: () => void;
-}
-
-export const WorkspaceSidebarTrigger: React.FC<
-  WorkspaceSidebarTriggerProps
-> = ({ isOpen, onToggle }) => {
+export const WorkspaceSidebarTrigger: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const { WorkspaceTriggerTunnel } = useTunnels();
 
-  // Handle backtick keyboard shortcut
+  // Sidebar state from Jotai atoms
+  const isOpen = useAtomValue(workspaceSidebarOpenAtom);
+  const toggleSidebar = useSetAtom(toggleWorkspaceSidebarAtom);
+
+  // Handle backtick keyboard shortcut (Cmd+[ is handled in App.tsx with capture phase)
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      // Backtick key to toggle sidebar
+      // Don't trigger if user is typing in an input
+      const target = e.target as HTMLElement;
+      if (
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.isContentEditable
+      ) {
+        return;
+      }
+
+      // Backtick key to toggle sidebar (no modifiers)
       if (e.key === "`" && !e.metaKey && !e.ctrlKey && !e.altKey) {
-        // Don't trigger if user is typing in an input
-        const target = e.target as HTMLElement;
-        if (
-          target.tagName === "INPUT" ||
-          target.tagName === "TEXTAREA" ||
-          target.isContentEditable
-        ) {
-          return;
-        }
         e.preventDefault();
-        onToggle();
+        toggleSidebar();
       }
     },
-    [onToggle],
+    [toggleSidebar],
   );
 
   useEffect(() => {
@@ -65,11 +68,13 @@ export const WorkspaceSidebarTrigger: React.FC<
             isAuthenticated
               ? "workspace-sidebar-trigger__button--authenticated"
               : ""
+          } ${
+            !isOpen ? "workspace-sidebar-trigger__button--closed" : ""
           }`}
-          onClick={onToggle}
+          onClick={toggleSidebar}
           aria-label={t("workspace.title")}
           aria-pressed={isOpen}
-          title={`${t("workspace.title")} (\`)`}
+          title={`${t("workspace.title")} (\` or ⌘[)`}
         >
           {sidebarIcon}
         </button>

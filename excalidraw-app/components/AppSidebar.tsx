@@ -19,13 +19,11 @@ import "./AppSidebar.scss";
 interface AppSidebarProps {
   excalidrawAPI: ExcalidrawImperativeAPI | null;
   sceneId: string | null;
-  onCloseWorkspaceSidebar?: () => void;
 }
 
 export const AppSidebar: React.FC<AppSidebarProps> = ({
   excalidrawAPI,
   sceneId,
-  onCloseWorkspaceSidebar,
 }) => {
   const { theme, openSidebar } = useUIAppState();
   const [isRecordingDialogOpen, setIsRecordingDialogOpen] = useState(false);
@@ -107,7 +105,6 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
         onCloseRecordingDialog={handleCloseRecordingDialog}
         sceneId={sceneId}
         onRecordingSaved={handleRecordingSaved}
-        onCloseWorkspaceSidebar={onCloseWorkspaceSidebar}
       />
     </>
   );

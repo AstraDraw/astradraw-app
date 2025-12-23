@@ -1,9 +1,8 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 
 import { useAtomValue, useSetAtom } from "../../app-jotai";
 import {
-  listWorkspaceScenes,
   deleteScene as deleteSceneApi,
   updateScene as updateSceneApi,
   duplicateScene as duplicateSceneApi,
@@ -15,7 +14,9 @@ import {
   navigateToCanvasAtom,
   navigateToSceneAtom,
   currentWorkspaceSlugAtom,
+  triggerScenesRefreshAtom,
 } from "../Settings/settingsState";
+import { useScenesCache } from "../../hooks/useScenesCache";
 
 import { SceneCardGrid } from "./SceneCardGrid";
 
@@ -70,39 +71,17 @@ export const CollectionView: React.FC<CollectionViewProps> = ({
   const navigateToCanvas = useSetAtom(navigateToCanvasAtom);
   const navigateToScene = useSetAtom(navigateToSceneAtom);
   const workspaceSlug = useAtomValue(currentWorkspaceSlugAtom);
+  const triggerScenesRefresh = useSetAtom(triggerScenesRefreshAtom);
 
-  const [scenes, setScenes] = useState<WorkspaceScene[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [sortBy, setSortBy] = useState<"created" | "modified">("created");
   const [showSortMenu, setShowSortMenu] = useState(false);
 
-  // Load scenes for this collection
-  // Use IDs in dependency array to prevent infinite loops from object reference changes
-  const workspaceId = workspace?.id;
-  const collectionId = collection?.id;
-
-  useEffect(() => {
-    const loadScenes = async () => {
-      if (!workspaceId || !collectionId) {
-        setScenes([]);
-        setIsLoading(false);
-        return;
-      }
-
-      setIsLoading(true);
-      try {
-        const data = await listWorkspaceScenes(workspaceId, collectionId);
-        setScenes(data);
-      } catch (err) {
-        // eslint-disable-next-line no-console
-        console.error("Failed to load collection scenes:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadScenes();
-  }, [workspaceId, collectionId]);
+  // Use shared scenes cache for this collection
+  const { scenes, isLoading, updateScenes } = useScenesCache({
+    workspaceId: workspace?.id,
+    collectionId: collection?.id,
+    enabled: !!workspace?.id && !!collection?.id,
+  });
 
   // Sort scenes
   const sortedScenes = React.useMemo(() => {
@@ -121,45 +100,54 @@ export const CollectionView: React.FC<CollectionViewProps> = ({
     return sorted;
   }, [scenes, sortBy]);
 
-  // Handlers
-  const handleDeleteScene = useCallback(async (sceneId: string) => {
-    if (!confirm(t("workspace.confirmDeleteScene"))) {
-      return;
-    }
+  // Handlers - update shared cache so all components stay in sync
+  const handleDeleteScene = useCallback(
+    async (sceneId: string) => {
+      if (!confirm(t("workspace.confirmDeleteScene"))) {
+        return;
+      }
 
-    try {
-      await deleteSceneApi(sceneId);
-      setScenes((prev) => prev.filter((s) => s.id !== sceneId));
-    } catch (err) {
-      console.error("Failed to delete scene:", err);
-      alert("Failed to delete scene");
-    }
-  }, []);
+      try {
+        await deleteSceneApi(sceneId);
+        updateScenes((prev) => prev.filter((s) => s.id !== sceneId));
+        triggerScenesRefresh(); // Notify other components
+      } catch (err) {
+        console.error("Failed to delete scene:", err);
+        alert("Failed to delete scene");
+      }
+    },
+    [updateScenes, triggerScenesRefresh],
+  );
 
   const handleRenameScene = useCallback(
     async (sceneId: string, newTitle: string) => {
       try {
         const updatedScene = await updateSceneApi(sceneId, { title: newTitle });
-        setScenes((prev) =>
+        updateScenes((prev) =>
           prev.map((s) => (s.id === sceneId ? updatedScene : s)),
         );
+        triggerScenesRefresh(); // Notify other components
       } catch (err) {
         console.error("Failed to rename scene:", err);
         alert("Failed to rename scene");
       }
     },
-    [],
+    [updateScenes, triggerScenesRefresh],
   );
 
-  const handleDuplicateScene = useCallback(async (sceneId: string) => {
-    try {
-      const newScene = await duplicateSceneApi(sceneId);
-      setScenes((prev) => [newScene, ...prev]);
-    } catch (err) {
-      console.error("Failed to duplicate scene:", err);
-      alert("Failed to duplicate scene");
-    }
-  }, []);
+  const handleDuplicateScene = useCallback(
+    async (sceneId: string) => {
+      try {
+        const newScene = await duplicateSceneApi(sceneId);
+        updateScenes((prev) => [newScene, ...prev]);
+        triggerScenesRefresh(); // Notify other components
+      } catch (err) {
+        console.error("Failed to duplicate scene:", err);
+        alert("Failed to duplicate scene");
+      }
+    },
+    [updateScenes, triggerScenesRefresh],
+  );
 
   // Navigate to scene via URL - this triggers the popstate handler which loads the scene
   const handleOpenScene = useCallback(

@@ -44,6 +44,8 @@ import {
   scenesRefreshAtom,
   currentWorkspaceSlugAtom,
   searchQueryAtom,
+  workspaceSidebarOpenAtom,
+  closeWorkspaceSidebarAtom,
 } from "../Settings/settingsState";
 
 import { EmojiPicker } from "../EmojiPicker";
@@ -92,8 +94,6 @@ const bellIcon = (
 );
 
 interface WorkspaceSidebarProps {
-  isOpen: boolean;
-  onClose: () => void;
   onNewScene: (collectionId?: string) => void;
   currentSceneId?: string | null;
   onWorkspaceChange?: (
@@ -106,14 +106,15 @@ interface WorkspaceSidebarProps {
 }
 
 export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
-  isOpen,
-  onClose,
   onNewScene,
   currentSceneId,
   onWorkspaceChange,
   onCurrentSceneTitleChange,
   workspace: externalWorkspace,
 }) => {
+  // Sidebar open state from Jotai atom
+  const isOpen = useAtomValue(workspaceSidebarOpenAtom);
+  const closeSidebar = useSetAtom(closeWorkspaceSidebarAtom);
   const {
     user,
     isLoading: authLoading,
@@ -160,6 +161,11 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
     useState<Collection | null>(null);
   const [scenes, setScenes] = useState<WorkspaceScene[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const prevScenesRefreshRef = useRef<number>(scenesRefresh);
+
+  // In-memory cache for scenes by collection
+  // Key: "workspaceId:collectionId" or "workspaceId:all"
+  const scenesCacheRef = useRef<Map<string, WorkspaceScene[]>>(new Map());
   const [showLoginDialog, setShowLoginDialog] = useState(false);
   const [showCreateCollection, setShowCreateCollection] = useState(false);
   const [newCollectionName, setNewCollectionName] = useState("");
@@ -238,27 +244,77 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
     }
   }, [currentWorkspace]);
 
-  // Load scenes for active collection
-  const loadScenes = useCallback(async () => {
-    if (!isAuthenticated || !currentWorkspace) {
-      return;
-    }
+  // Load scenes for active collection with caching
+  // Strategy: Show cached data immediately, refresh in background
+  const loadScenes = useCallback(
+    async (forceRefresh = false) => {
+      if (!isAuthenticated || !currentWorkspace) {
+        return;
+      }
 
-    setIsLoading(true);
+      const collectionKey = `${currentWorkspace.id}:${activeCollectionId || "all"}`;
+      const cachedScenes = scenesCacheRef.current.get(collectionKey);
 
-    try {
-      const collectionIdToUse = activeCollectionId || undefined;
-      const data = await listWorkspaceScenes(
-        currentWorkspace.id,
-        collectionIdToUse,
-      );
-      setScenes(data);
-    } catch (err) {
-      console.error("Failed to load scenes:", err);
-    } finally {
-      setIsLoading(false);
+      // If we have cached data, show it immediately (no spinner)
+      if (cachedScenes && !forceRefresh) {
+        setScenes(cachedScenes);
+        // Still fetch in background to get fresh data (stale-while-revalidate)
+        // but don't show spinner
+        try {
+          const collectionIdToUse = activeCollectionId || undefined;
+          const freshData = await listWorkspaceScenes(
+            currentWorkspace.id,
+            collectionIdToUse,
+          );
+          // Update cache and state with fresh data
+          scenesCacheRef.current.set(collectionKey, freshData);
+          setScenes(freshData);
+        } catch (err) {
+          console.error("Failed to refresh scenes:", err);
+          // Keep showing cached data on error
+        }
+        return;
+      }
+
+      // No cache or force refresh - show spinner
+      setIsLoading(true);
+
+      try {
+        const collectionIdToUse = activeCollectionId || undefined;
+        const data = await listWorkspaceScenes(
+          currentWorkspace.id,
+          collectionIdToUse,
+        );
+        // Update cache and state
+        scenesCacheRef.current.set(collectionKey, data);
+        setScenes(data);
+      } catch (err) {
+        console.error("Failed to load scenes:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [isAuthenticated, currentWorkspace, activeCollectionId],
+  );
+
+  // Invalidate cache for a specific collection (call after create/delete/move)
+  const invalidateScenesCache = useCallback((collectionId?: string) => {
+    if (!currentWorkspace) return;
+    
+    if (collectionId) {
+      // Invalidate specific collection
+      scenesCacheRef.current.delete(`${currentWorkspace.id}:${collectionId}`);
+    } else {
+      // Invalidate all collections for this workspace
+      const keysToDelete: string[] = [];
+      scenesCacheRef.current.forEach((_, key) => {
+        if (key.startsWith(`${currentWorkspace.id}:`)) {
+          keysToDelete.push(key);
+        }
+      });
+      keysToDelete.forEach(key => scenesCacheRef.current.delete(key));
     }
-  }, [isAuthenticated, currentWorkspace, activeCollectionId]);
+  }, [currentWorkspace]);
 
   // Initial load
   useEffect(() => {
@@ -331,11 +387,17 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
 
   // Load scenes when active collection changes (only in board mode)
   // Also reload when scenesRefresh changes (triggered by other components)
+  // Note: We use activeCollectionId directly instead of loadScenes in deps
+  // to avoid unnecessary re-fetches when the callback reference changes
   useEffect(() => {
     if (isOpen && isAuthenticated && sidebarMode === "board") {
-      loadScenes();
+      // Force refresh if scenesRefresh changed (scene was created/deleted elsewhere)
+      const forceRefresh = prevScenesRefreshRef.current !== scenesRefresh;
+      prevScenesRefreshRef.current = scenesRefresh;
+      loadScenes(forceRefresh);
     }
-  }, [isOpen, isAuthenticated, sidebarMode, loadScenes, scenesRefresh]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, isAuthenticated, sidebarMode, activeCollectionId, currentWorkspace?.id, scenesRefresh]);
 
   // Close menus when clicking outside
   useEffect(() => {
@@ -374,6 +436,22 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen]);
 
+  // Helper to update both state and cache
+  const updateScenesWithCache = useCallback(
+    (updater: (prev: WorkspaceScene[]) => WorkspaceScene[]) => {
+      setScenes((prev) => {
+        const newScenes = updater(prev);
+        // Also update cache
+        if (currentWorkspace) {
+          const collectionKey = `${currentWorkspace.id}:${activeCollectionId || "all"}`;
+          scenesCacheRef.current.set(collectionKey, newScenes);
+        }
+        return newScenes;
+      });
+    },
+    [currentWorkspace, activeCollectionId],
+  );
+
   // Handlers
   const handleDeleteScene = useCallback(
     async (sceneId: string) => {
@@ -383,7 +461,7 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
 
       try {
         await deleteSceneApi(sceneId);
-        setScenes((prev) => prev.filter((s) => s.id !== sceneId));
+        updateScenesWithCache((prev) => prev.filter((s) => s.id !== sceneId));
         // Trigger refresh for other components (e.g., DashboardView, CollectionView)
         triggerScenesRefresh();
       } catch (err) {
@@ -391,14 +469,14 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
         alert("Failed to delete scene");
       }
     },
-    [triggerScenesRefresh],
+    [updateScenesWithCache, triggerScenesRefresh],
   );
 
   const handleRenameScene = useCallback(
     async (sceneId: string, newTitle: string) => {
       try {
         const updatedScene = await updateSceneApi(sceneId, { title: newTitle });
-        setScenes((prev) =>
+        updateScenesWithCache((prev) =>
           prev.map((s) => (s.id === sceneId ? updatedScene : s)),
         );
         // Update the current scene title in the top-right indicator if this is the active scene
@@ -412,14 +490,14 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
         alert("Failed to rename scene");
       }
     },
-    [triggerScenesRefresh, currentSceneId, onCurrentSceneTitleChange],
+    [updateScenesWithCache, triggerScenesRefresh, currentSceneId, onCurrentSceneTitleChange],
   );
 
   const handleDuplicateScene = useCallback(
     async (sceneId: string) => {
       try {
         const newScene = await duplicateSceneApi(sceneId);
-        setScenes((prev) => [newScene, ...prev]);
+        updateScenesWithCache((prev) => [newScene, ...prev]);
         // Trigger refresh for other components
         triggerScenesRefresh();
       } catch (err) {
@@ -427,7 +505,7 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
         alert("Failed to duplicate scene");
       }
     },
-    [triggerScenesRefresh],
+    [updateScenesWithCache, triggerScenesRefresh],
   );
 
   const handleCreateCollection = useCallback(async () => {
@@ -544,9 +622,11 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
   );
 
   const handleCopyMoveSuccess = useCallback(() => {
+    // Invalidate all caches since scene moved between collections
+    invalidateScenesCache();
     loadCollections();
-    loadScenes();
-  }, [loadCollections, loadScenes]);
+    loadScenes(true); // Force refresh after copy/move
+  }, [invalidateScenesCache, loadCollections, loadScenes]);
 
   // Generate slug from workspace name
   const generateSlug = useCallback((name: string): string => {
@@ -773,7 +853,7 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
           className="workspace-sidebar__close"
           onClick={() => {
             navigateToCanvas();
-            onClose();
+            closeSidebar();
           }}
           aria-label="Close"
         >

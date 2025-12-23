@@ -1,9 +1,8 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 
 import { useAtomValue, useSetAtom } from "../../app-jotai";
 import {
-  listWorkspaceScenes,
   deleteScene as deleteSceneApi,
   updateScene as updateSceneApi,
   duplicateScene as duplicateSceneApi,
@@ -14,7 +13,9 @@ import {
   navigateToCanvasAtom,
   navigateToSceneAtom,
   currentWorkspaceSlugAtom,
+  triggerScenesRefreshAtom,
 } from "../Settings/settingsState";
+import { useScenesCache } from "../../hooks/useScenesCache";
 
 import { SceneCardGrid } from "./SceneCardGrid";
 
@@ -48,93 +49,79 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const navigateToCanvas = useSetAtom(navigateToCanvasAtom);
   const navigateToScene = useSetAtom(navigateToSceneAtom);
   const workspaceSlug = useAtomValue(currentWorkspaceSlugAtom);
+  const triggerScenesRefresh = useSetAtom(triggerScenesRefreshAtom);
 
-  const [recentlyModified, setRecentlyModified] = useState<WorkspaceScene[]>(
-    [],
-  );
-  const [recentlyVisited, setRecentlyVisited] = useState<WorkspaceScene[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // Use shared scenes cache - fetch all scenes for workspace (no collection filter)
+  const { scenes: allScenes, isLoading, updateScenes } = useScenesCache({
+    workspaceId: workspace?.id,
+    collectionId: null, // null = all scenes
+    enabled: !!workspace?.id,
+  });
 
-  // Load scenes
-  // Use workspace ID in dependency array to prevent infinite loops from object reference changes
-  const workspaceId = workspace?.id;
+  // Derive recently modified and visited from cached scenes
+  const { recentlyModified, recentlyVisited } = useMemo(() => {
+    // Sort by updatedAt for recently modified
+    const sortedByModified = [...allScenes].sort(
+      (a, b) =>
+        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+    );
 
-  useEffect(() => {
-    const loadScenes = async () => {
-      if (!workspaceId) {
-        setRecentlyModified([]);
-        setRecentlyVisited([]);
-        setIsLoading(false);
+    return {
+      recentlyModified: sortedByModified.slice(0, 8),
+      // For recently visited, we'd need a separate API endpoint
+      // For now, use the same data but could be different in future
+      recentlyVisited: sortedByModified.slice(0, 6),
+    };
+  }, [allScenes]);
+
+  // Handlers - update shared cache so all components stay in sync
+  const handleDeleteScene = useCallback(
+    async (sceneId: string) => {
+      if (!confirm(t("workspace.confirmDeleteScene"))) {
         return;
       }
 
-      setIsLoading(true);
       try {
-        // Get all scenes for the workspace (no collection filter)
-        const allScenes = await listWorkspaceScenes(workspaceId);
-
-        // Sort by updatedAt for recently modified
-        const sortedByModified = [...allScenes].sort(
-          (a, b) =>
-            new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
-        );
-        setRecentlyModified(sortedByModified.slice(0, 8));
-
-        // For recently visited, we'd need a separate API endpoint
-        // For now, use the same data but could be different in future
-        setRecentlyVisited(sortedByModified.slice(0, 6));
+        await deleteSceneApi(sceneId);
+        updateScenes((prev) => prev.filter((s) => s.id !== sceneId));
+        triggerScenesRefresh(); // Notify other components
       } catch (err) {
-        // eslint-disable-next-line no-console
-        console.error("Failed to load dashboard scenes:", err);
-      } finally {
-        setIsLoading(false);
+        console.error("Failed to delete scene:", err);
+        alert("Failed to delete scene");
       }
-    };
-
-    loadScenes();
-  }, [workspaceId]);
-
-  // Handlers
-  const handleDeleteScene = useCallback(async (sceneId: string) => {
-    if (!confirm(t("workspace.confirmDeleteScene"))) {
-      return;
-    }
-
-    try {
-      await deleteSceneApi(sceneId);
-      setRecentlyModified((prev) => prev.filter((s) => s.id !== sceneId));
-      setRecentlyVisited((prev) => prev.filter((s) => s.id !== sceneId));
-    } catch (err) {
-      console.error("Failed to delete scene:", err);
-      alert("Failed to delete scene");
-    }
-  }, []);
+    },
+    [updateScenes, triggerScenesRefresh],
+  );
 
   const handleRenameScene = useCallback(
     async (sceneId: string, newTitle: string) => {
       try {
         const updatedScene = await updateSceneApi(sceneId, { title: newTitle });
-        const updateList = (prev: WorkspaceScene[]) =>
-          prev.map((s) => (s.id === sceneId ? updatedScene : s));
-        setRecentlyModified(updateList);
-        setRecentlyVisited(updateList);
+        updateScenes((prev) =>
+          prev.map((s) => (s.id === sceneId ? updatedScene : s)),
+        );
+        triggerScenesRefresh(); // Notify other components
       } catch (err) {
         console.error("Failed to rename scene:", err);
         alert("Failed to rename scene");
       }
     },
-    [],
+    [updateScenes, triggerScenesRefresh],
   );
 
-  const handleDuplicateScene = useCallback(async (sceneId: string) => {
-    try {
-      const newScene = await duplicateSceneApi(sceneId);
-      setRecentlyModified((prev) => [newScene, ...prev.slice(0, 7)]);
-    } catch (err) {
-      console.error("Failed to duplicate scene:", err);
-      alert("Failed to duplicate scene");
-    }
-  }, []);
+  const handleDuplicateScene = useCallback(
+    async (sceneId: string) => {
+      try {
+        const newScene = await duplicateSceneApi(sceneId);
+        updateScenes((prev) => [newScene, ...prev]);
+        triggerScenesRefresh(); // Notify other components
+      } catch (err) {
+        console.error("Failed to duplicate scene:", err);
+        alert("Failed to duplicate scene");
+      }
+    },
+    [updateScenes, triggerScenesRefresh],
+  );
 
   // Navigate to scene via URL - this triggers the popstate handler which loads the scene
   const handleOpenScene = useCallback(

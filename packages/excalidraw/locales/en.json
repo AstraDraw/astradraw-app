@@ -445,7 +445,10 @@
     "movePageUpDown": "Move page up/down",
     "movePageLeftRight": "Move page left/right",
     "cropStart": "Crop image",
-    "cropFinish": "Finish image cropping"
+    "cropFinish": "Finish image cropping",
+    "toggleLeftSidebar": "Toggle left sidebar",
+    "toggleRightSidebar": "Toggle right sidebar",
+    "quickSearch": "Quick search"
   },
   "clearCanvasDialog": {
     "title": "Clear canvas"

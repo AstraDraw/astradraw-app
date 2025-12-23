@@ -12,9 +12,11 @@ import { isDevEnv } from "@excalidraw/common";
 
 import type { Theme } from "@excalidraw/element/types";
 
+import { useSetAtom } from "../app-jotai";
 import { LanguageList } from "../app-language/LanguageList";
 import { ASTRADRAW_GITHUB_URL } from "../app_constants";
 import { useAuth } from "../auth";
+import { openWorkspaceSidebarAtom } from "./Settings/settingsState";
 
 import { saveDebugState } from "./DebugCanvas";
 
@@ -33,11 +35,11 @@ export const AppMainMenu: React.FC<{
   theme: Theme | "system";
   setTheme: (theme: Theme | "system") => void;
   refresh: () => void;
-  onWorkspaceOpen?: () => void;
   onSaveToWorkspace?: () => void;
 }> = React.memo((props) => {
   const { user, isAuthenticated, oidcConfigured, localAuthEnabled, logout } =
     useAuth();
+  const openWorkspaceSidebar = useSetAtom(openWorkspaceSidebarAtom);
 
   // Show workspace features if OIDC or local auth is available
   const authAvailable = oidcConfigured || localAuthEnabled;
@@ -46,7 +48,7 @@ export const AppMainMenu: React.FC<{
     <MainMenu>
       {/* Workspace button at the top */}
       {authAvailable && (
-        <MainMenu.Item icon={folderIcon} onClick={props.onWorkspaceOpen}>
+        <MainMenu.Item icon={folderIcon} onClick={openWorkspaceSidebar}>
           {t("workspace.title")}
         </MainMenu.Item>
       )}
@@ -92,7 +94,7 @@ export const AppMainMenu: React.FC<{
             onClick={() => {
               // Always open workspace sidebar which shows the login dialog
               // The dialog allows choosing between local auth and SSO
-              props.onWorkspaceOpen?.();
+              openWorkspaceSidebar();
             }}
             className="highlighted"
           >

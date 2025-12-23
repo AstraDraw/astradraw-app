@@ -4,7 +4,9 @@ import { t } from "@excalidraw/excalidraw/i18n";
 
 import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 
+import { useSetAtom } from "../../app-jotai";
 import { createTalktrack } from "../../auth/workspaceApi";
+import { closeWorkspaceSidebarAtom } from "../Settings/settingsState";
 
 import {
   getTalktrackRecorder,
@@ -22,7 +24,6 @@ interface TalktrackManagerProps {
   onCloseRecordingDialog: () => void;
   sceneId: string | null;
   onRecordingSaved?: () => void;
-  onCloseWorkspaceSidebar?: () => void;
 }
 
 export const TalktrackManager: React.FC<TalktrackManagerProps> = ({
@@ -31,8 +32,9 @@ export const TalktrackManager: React.FC<TalktrackManagerProps> = ({
   onCloseRecordingDialog,
   sceneId,
   onRecordingSaved,
-  onCloseWorkspaceSidebar,
 }) => {
+  // Use Jotai atom directly to close workspace sidebar
+  const closeWorkspaceSidebar = useSetAtom(closeWorkspaceSidebarAtom);
   const [recordingState, setRecordingState] = useState<RecordingState>({
     status: "idle",
     duration: 0,
@@ -84,7 +86,7 @@ export const TalktrackManager: React.FC<TalktrackManagerProps> = ({
 
       // Close the workspace sidebar before recording to ensure full canvas width
       // This prevents black bars on the sides of the recording
-      onCloseWorkspaceSidebar?.();
+      closeWorkspaceSidebar();
 
       // Small delay to allow sidebar animation to complete and canvas to resize
       await new Promise((resolve) => setTimeout(resolve, 300));
@@ -133,7 +135,7 @@ export const TalktrackManager: React.FC<TalktrackManagerProps> = ({
         });
       }
     },
-    [excalidrawAPI, onCloseRecordingDialog, onCloseWorkspaceSidebar, sceneId],
+    [excalidrawAPI, onCloseRecordingDialog, closeWorkspaceSidebar, sceneId],
   );
 
   // Stop recording and upload

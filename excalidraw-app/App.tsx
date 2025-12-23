@@ -163,6 +163,10 @@ import {
   isPrivateCollectionAtom,
   isAutoCollabSceneAtom,
   quickSearchOpenAtom,
+  workspaceSidebarOpenAtom,
+  openWorkspaceSidebarAtom,
+  closeWorkspaceSidebarAtom,
+  toggleWorkspaceSidebarAtom,
 } from "./components/Settings";
 
 import { parseUrl, buildSceneUrl, type RouteType } from "./router";
@@ -407,8 +411,6 @@ const initializeScene = async (opts: {
   return { scene: null, isExternalScene: false };
 };
 
-const WORKSPACE_SIDEBAR_PREF_KEY = "astradraw_workspace_sidebar_open";
-
 const ExcalidrawWrapper = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const isCollabDisabled = isRunningInIframe();
@@ -443,14 +445,11 @@ const ExcalidrawWrapper = () => {
   const { isAuthenticated } = useAuth();
   const wasAuthenticated = useRef(false);
 
-  // Workspace state - initialize from localStorage
-  const [workspaceSidebarOpen, setWorkspaceSidebarOpen] = useState(() => {
-    try {
-      return localStorage.getItem(WORKSPACE_SIDEBAR_PREF_KEY) === "true";
-    } catch {
-      return false;
-    }
-  });
+  // Workspace sidebar state - from Jotai atom (persisted to localStorage)
+  const workspaceSidebarOpen = useAtomValue(workspaceSidebarOpenAtom);
+  const openWorkspaceSidebar = useSetAtom(openWorkspaceSidebarAtom);
+  const closeWorkspaceSidebar = useSetAtom(closeWorkspaceSidebarAtom);
+  const toggleWorkspaceSidebar = useSetAtom(toggleWorkspaceSidebarAtom);
   const [currentSceneId, setCurrentSceneId] = useState<string | null>(null);
   const [currentSceneTitle, setCurrentSceneTitle] =
     useState<string>("Untitled");
@@ -511,12 +510,12 @@ const ExcalidrawWrapper = () => {
   useEffect(() => {
     if (isAuthenticated && !wasAuthenticated.current) {
       // User just logged in, open sidebar
-      setWorkspaceSidebarOpen(true);
+      openWorkspaceSidebar();
       // Reset the flag when user logs in
       hasSetDefaultActiveCollectionRef.current = false;
     }
     wasAuthenticated.current = isAuthenticated;
-  }, [isAuthenticated]);
+  }, [isAuthenticated, openWorkspaceSidebar]);
 
   // Load current workspace and find private collection when authenticated
   useEffect(() => {
@@ -588,23 +587,12 @@ const ExcalidrawWrapper = () => {
     }
   }, [collectionsRefresh, currentWorkspace, isAuthenticated]);
 
-  // Save sidebar preference to localStorage
-  useEffect(() => {
-    try {
-      localStorage.setItem(
-        WORKSPACE_SIDEBAR_PREF_KEY,
-        String(workspaceSidebarOpen),
-      );
-    } catch {
-      // Ignore localStorage errors
-    }
-  }, [workspaceSidebarOpen]);
-
+  // Close sidebar in legacy mode
   useEffect(() => {
     if (isLegacyMode) {
-      setWorkspaceSidebarOpen(false);
+      closeWorkspaceSidebar();
     }
-  }, [isLegacyMode]);
+  }, [isLegacyMode, closeWorkspaceSidebar]);
 
   // Block Excalidraw keyboard shortcuts when in dashboard mode
   // This prevents canvas shortcuts from firing when user is typing in dashboard
@@ -621,11 +609,12 @@ const ExcalidrawWrapper = () => {
 
   // Auto-open sidebar when switching to dashboard mode
   // Dashboard mode requires the sidebar to be visible for navigation
+  // Note: Navigation atoms (navigateToDashboard, navigateToCollection) now auto-open sidebar
   useEffect(() => {
     if (appMode === "dashboard" && !isLegacyMode) {
-      setWorkspaceSidebarOpen(true);
+      openWorkspaceSidebar();
     }
-  }, [appMode, isLegacyMode]);
+  }, [appMode, isLegacyMode, openWorkspaceSidebar]);
 
   // initial state
   // ---------------------------------------------------------------------------
@@ -1507,7 +1496,7 @@ const ExcalidrawWrapper = () => {
         }
 
         // Keep sidebar open to show the new scene in the list
-        setWorkspaceSidebarOpen(true);
+        openWorkspaceSidebar();
 
         // Update URL to reflect the new scene
         const workspaceSlug = currentWorkspace?.slug || currentWorkspaceSlug;
@@ -1921,6 +1910,68 @@ const ExcalidrawWrapper = () => {
     };
   }, [isAuthenticated, setQuickSearchOpen]);
 
+  // Keyboard shortcut handler for Cmd+[ (Toggle Left Sidebar) and Cmd+] (Toggle Right Sidebar)
+  // Only available for authenticated users
+  useEffect(() => {
+    if (!isAuthenticated) {
+      return;
+    }
+
+    const handleSidebarHotkeys = (e: KeyboardEvent) => {
+      // Don't trigger if user is typing in an input
+      const target = e.target as HTMLElement;
+      if (
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.isContentEditable
+      ) {
+        return;
+      }
+
+      // Cmd+[ (Mac) or Ctrl+[ (Windows/Linux) to toggle LEFT sidebar
+      if ((e.metaKey || e.ctrlKey) && e.key === "[" && !e.altKey) {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleWorkspaceSidebar();
+        return;
+      }
+
+      // Cmd+] (Mac) or Ctrl+] (Windows/Linux) to toggle RIGHT sidebar
+      if ((e.metaKey || e.ctrlKey) && e.key === "]" && !e.altKey) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (!excalidrawAPI) {
+          return;
+        }
+
+        const appState = excalidrawAPI.getAppState();
+        const sidebarIsOpen = appState.openSidebar?.name === "default";
+
+        if (sidebarIsOpen) {
+          // Sidebar is open - close it
+          excalidrawAPI.updateScene({
+            appState: { openSidebar: null },
+          });
+        } else {
+          // Sidebar is closed - open to library tab
+          excalidrawAPI.updateScene({
+            appState: { openSidebar: { name: "default", tab: "library" } },
+          });
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleSidebarHotkeys, {
+      capture: true,
+    });
+    return () => {
+      window.removeEventListener("keydown", handleSidebarHotkeys, {
+        capture: true,
+      });
+    };
+  }, [isAuthenticated, excalidrawAPI, toggleWorkspaceSidebar]);
+
   // Handle invite link success - navigate to the joined workspace's dashboard
   const handleInviteSuccess = useCallback(
     (workspace: Workspace) => {
@@ -1928,8 +1979,8 @@ const ExcalidrawWrapper = () => {
       setCurrentWorkspaceSlug(workspace.slug);
       setPendingInviteCode(null);
       // Navigate to dashboard to show the new workspace
+      // Note: navigateToDashboard now auto-opens sidebar
       navigateToDashboard();
-      setWorkspaceSidebarOpen(true);
     },
     [navigateToDashboard],
   );
@@ -1988,8 +2039,6 @@ const ExcalidrawWrapper = () => {
       {/* Workspace Sidebar (Left) - shared between both modes */}
       {!isLegacyMode && (
         <WorkspaceSidebar
-          isOpen={workspaceSidebarOpen}
-          onClose={() => setWorkspaceSidebarOpen(false)}
           onNewScene={handleNewScene}
           currentSceneId={currentSceneId}
           workspace={currentWorkspace}
@@ -2152,12 +2201,7 @@ const ExcalidrawWrapper = () => {
           }}
         >
           {/* Workspace Sidebar Toggle Button - rendered via tunnel before hamburger menu */}
-          {!isLegacyMode && (
-            <WorkspaceSidebarTrigger
-              isOpen={workspaceSidebarOpen}
-              onToggle={() => setWorkspaceSidebarOpen(!workspaceSidebarOpen)}
-            />
-          )}
+          {!isLegacyMode && <WorkspaceSidebarTrigger />}
           <AppMainMenu
             onCollabDialogOpen={onCollabDialogOpen}
             isCollaborating={isCollaborating}
@@ -2166,13 +2210,11 @@ const ExcalidrawWrapper = () => {
             theme={appTheme}
             setTheme={(theme) => setAppTheme(theme)}
             refresh={() => forceRefresh((prev) => !prev)}
-            onWorkspaceOpen={() => setWorkspaceSidebarOpen(true)}
             onSaveToWorkspace={handleSaveToWorkspace}
           />
           <AppWelcomeScreen
             onCollabDialogOpen={onCollabDialogOpen}
             isCollabEnabled={!isCollabDisabled}
-            onSignIn={() => setWorkspaceSidebarOpen(true)}
           />
           <OverwriteConfirmDialog>
             <OverwriteConfirmDialog.Actions.ExportToImage />
@@ -2238,7 +2280,6 @@ const ExcalidrawWrapper = () => {
             <AppSidebar
               excalidrawAPI={excalidrawAPI}
               sceneId={currentSceneId}
-              onCloseWorkspaceSidebar={() => setWorkspaceSidebarOpen(false)}
             />
           )}
 

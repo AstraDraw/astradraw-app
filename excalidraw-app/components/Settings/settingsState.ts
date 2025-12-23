@@ -96,13 +96,62 @@ export const sidebarModeAtom = atom<SidebarMode>((get) => {
 });
 
 /**
+ * localStorage key for workspace sidebar preference
+ */
+const WORKSPACE_SIDEBAR_PREF_KEY = "astradraw_workspace_sidebar_open";
+
+/**
+ * Workspace sidebar open state
+ * Initialized from localStorage, persists across sessions
+ */
+export const workspaceSidebarOpenAtom = atom<boolean>(
+  typeof window !== "undefined"
+    ? localStorage.getItem(WORKSPACE_SIDEBAR_PREF_KEY) === "true"
+    : false,
+);
+
+/**
+ * Action atom to toggle workspace sidebar
+ */
+export const toggleWorkspaceSidebarAtom = atom(null, (get, set) => {
+  const newValue = !get(workspaceSidebarOpenAtom);
+  set(workspaceSidebarOpenAtom, newValue);
+  // Persist to localStorage
+  if (typeof window !== "undefined") {
+    localStorage.setItem(WORKSPACE_SIDEBAR_PREF_KEY, String(newValue));
+  }
+});
+
+/**
+ * Action atom to open workspace sidebar
+ */
+export const openWorkspaceSidebarAtom = atom(null, (get, set) => {
+  set(workspaceSidebarOpenAtom, true);
+  if (typeof window !== "undefined") {
+    localStorage.setItem(WORKSPACE_SIDEBAR_PREF_KEY, "true");
+  }
+});
+
+/**
+ * Action atom to close workspace sidebar
+ */
+export const closeWorkspaceSidebarAtom = atom(null, (get, set) => {
+  set(workspaceSidebarOpenAtom, false);
+  if (typeof window !== "undefined") {
+    localStorage.setItem(WORKSPACE_SIDEBAR_PREF_KEY, "false");
+  }
+});
+
+/**
  * Atom for navigating to dashboard home
  * Updates URL to /workspace/{slug}/dashboard
+ * Auto-opens sidebar when navigating to dashboard
  */
 export const navigateToDashboardAtom = atom(null, (get, set) => {
   const workspaceSlug = get(currentWorkspaceSlugAtom);
   set(appModeAtom, "dashboard");
   set(dashboardViewAtom, "home");
+  set(workspaceSidebarOpenAtom, true);
 
   // Update URL if we have a workspace
   if (workspaceSlug) {
@@ -113,6 +162,7 @@ export const navigateToDashboardAtom = atom(null, (get, set) => {
 /**
  * Atom for navigating to a specific collection view
  * Updates URL to /workspace/{slug}/collection/{id} or /workspace/{slug}/private
+ * Auto-opens sidebar when navigating to collection
  */
 export const navigateToCollectionAtom = atom(
   null,
@@ -131,6 +181,7 @@ export const navigateToCollectionAtom = atom(
     set(isPrivateCollectionAtom, isPrivate || false);
     set(appModeAtom, "dashboard");
     set(dashboardViewAtom, "collection");
+    set(workspaceSidebarOpenAtom, true);
 
     // Update URL if we have a workspace
     if (workspaceSlug) {
@@ -280,3 +331,75 @@ export const quickSearchOpenAtom = atom<boolean>(false);
  * When not empty, WorkspaceMainContent shows SearchResultsView instead of normal content
  */
 export const searchQueryAtom = atom<string>("");
+
+/**
+ * Scenes cache - shared across all components (sidebar, dashboard, collection view)
+ * Key format: "workspaceId:collectionId" or "workspaceId:all" for all scenes
+ * Value: Array of WorkspaceScene objects
+ *
+ * This enables instant navigation between collections without re-fetching
+ */
+export type ScenesCacheEntry = {
+  scenes: unknown[]; // WorkspaceScene[] - using unknown to avoid circular imports
+  timestamp: number;
+};
+
+export const scenesCacheAtom = atom<Map<string, ScenesCacheEntry>>(new Map());
+
+/**
+ * Get scenes from cache
+ */
+export const getScenesCacheAtom = atom((get) => {
+  const cache = get(scenesCacheAtom);
+  return (key: string) => cache.get(key);
+});
+
+/**
+ * Set scenes in cache
+ */
+export const setScenesCacheAtom = atom(
+  null,
+  (get, set, params: { key: string; scenes: unknown[] }) => {
+    const cache = new Map(get(scenesCacheAtom));
+    cache.set(params.key, {
+      scenes: params.scenes,
+      timestamp: Date.now(),
+    });
+    set(scenesCacheAtom, cache);
+  },
+);
+
+/**
+ * Invalidate scenes cache for a workspace
+ * If collectionId is provided, only invalidate that collection
+ * Otherwise, invalidate all collections for the workspace
+ */
+export const invalidateScenesCacheAtom = atom(
+  null,
+  (get, set, params: { workspaceId: string; collectionId?: string }) => {
+    const cache = new Map(get(scenesCacheAtom));
+
+    if (params.collectionId) {
+      // Invalidate specific collection
+      cache.delete(`${params.workspaceId}:${params.collectionId}`);
+    } else {
+      // Invalidate all collections for this workspace
+      const keysToDelete: string[] = [];
+      cache.forEach((_, key) => {
+        if (key.startsWith(`${params.workspaceId}:`)) {
+          keysToDelete.push(key);
+        }
+      });
+      keysToDelete.forEach((key) => cache.delete(key));
+    }
+
+    set(scenesCacheAtom, cache);
+  },
+);
+
+/**
+ * Clear entire scenes cache (e.g., on logout or workspace switch)
+ */
+export const clearScenesCacheAtom = atom(null, (get, set) => {
+  set(scenesCacheAtom, new Map());
+});
