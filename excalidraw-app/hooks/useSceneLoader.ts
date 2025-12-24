@@ -34,6 +34,8 @@ export interface UseSceneLoaderOptions {
   onError: (message: string) => void;
   /** Callback to initialize autosave with loaded data */
   initializeAutoSave?: (dataJson: string) => void;
+  /** Callback to set active collection ID when scene is loaded */
+  setActiveCollectionId?: (collectionId: string | null) => void;
 }
 
 export interface UseSceneLoaderReturn {
@@ -85,6 +87,7 @@ export function useSceneLoader({
   navigateToCanvas,
   onError,
   initializeAutoSave,
+  setActiveCollectionId,
 }: UseSceneLoaderOptions): UseSceneLoaderReturn {
   // Scene state
   const [currentSceneId, setCurrentSceneId] = useState<string | null>(null);
@@ -138,95 +141,146 @@ export function useSceneLoader({
       } = options;
 
       // Leave current collaboration room before switching scenes
+      // IMPORTANT: Capture elements BEFORE stopping collaboration, as scene may be cleared
+      // Don't await - let save happen in background to avoid blocking UI
+      // The elements are captured synchronously, so they won't be lost
       if (!isInitialLoad && collabAPI?.isCollaborating()) {
-        collabAPI.stopCollaboration(false); // false = don't keep remote state
+        const elementsToSave = excalidrawAPI.getSceneElementsIncludingDeleted();
+        // Fire and forget - save happens in background
+        collabAPI.stopCollaboration(false, elementsToSave).catch((err) => {
+          console.error("[useSceneLoader] Error stopping collaboration:", err);
+        });
       }
 
       try {
         const loaded = await loadWorkspaceScene(workspaceSlug, sceneId);
+        console.log("[useSceneLoader] Scene loaded:", {
+          sceneId: loaded.scene.id,
+          title: loaded.scene.title,
+          collectionId: loaded.scene.collectionId,
+        });
+
         setCurrentWorkspaceSlug(workspaceSlug);
         setCurrentSceneId(loaded.scene.id);
         setCurrentSceneTitle(loaded.scene.title || "Untitled");
         setCurrentSceneAccess(loaded.access);
 
-        let restored: RestoredDataState | null = null;
-        if (loaded.data) {
-          const blob = decodeBase64ToBlob(loaded.data);
-          const sceneData = await loadFromBlob(blob, null, null);
-          restored = sceneData;
+        // Set the active collection from the scene's collection
+        // This ensures the sidebar shows the correct collection when navigating to a scene URL
+        if (setActiveCollectionId) {
+          console.log("[useSceneLoader] Setting activeCollectionId to:", loaded.scene.collectionId);
+          setActiveCollectionId(loaded.scene.collectionId);
+        } else {
+          console.log("[useSceneLoader] WARNING: setActiveCollectionId is not provided!");
         }
 
-        if (restored) {
-          const sceneWithCollaborators = {
-            ...restored,
-            appState: {
-              ...restored.appState,
-              collaborators: new Map(),
-            },
-          };
-
-          excalidrawAPI.updateScene({
-            elements: sceneWithCollaborators.elements || [],
-            appState: sceneWithCollaborators.appState,
-            captureUpdate: CaptureUpdateAction.IMMEDIATELY,
-          });
-
-          // Load files separately
-          if (sceneWithCollaborators.files) {
-            excalidrawAPI.addFiles(Object.values(sceneWithCollaborators.files));
-          }
-
-          // Initialize autosave with loaded data to prevent false "unsaved" status
-          if (initializeAutoSave) {
-            const loadedSceneData = JSON.stringify({
-              type: "excalidraw",
-              version: 2,
-              source: window.location.href,
-              elements: sceneWithCollaborators.elements || [],
-              appState: {
-                viewBackgroundColor:
-                  sceneWithCollaborators.appState?.viewBackgroundColor,
-                gridSize: sceneWithCollaborators.appState?.gridSize,
-              },
-              files: sceneWithCollaborators.files || {},
-            });
-            initializeAutoSave(loadedSceneData);
-          }
-
-          if (isInitialLoad && initialStatePromise) {
-            initialStatePromise.resolve({
-              elements: sceneWithCollaborators.elements || [],
-              appState: sceneWithCollaborators.appState,
-              files: sceneWithCollaborators.files || {},
-            });
-          }
-        } else if (isInitialLoad && initialStatePromise) {
-          initialStatePromise.resolve(null);
-        }
-
-        // Auto-join collaboration for scenes in shared collections
-        if (
+        // Check if this is a collaboration scene (shared collection)
+        const isCollabScene =
           collabAPI &&
           !isCollabDisabled &&
           loaded.access.canCollaborate &&
           loaded.roomId &&
-          loaded.roomKey
-        ) {
-          // Use room key from hash if provided (for shared links)
-          const roomKey = roomKeyFromHash || loaded.roomKey;
+          loaded.roomKey;
 
-          await collabAPI.startCollaboration({
-            roomId: loaded.roomId,
+        // For collaboration scenes, data should be loaded from room storage (httpStorage),
+        // NOT from backend API (scene.data). Room storage is the source of truth.
+        // For non-collab scenes, load from backend API as usual.
+        if (isCollabScene) {
+          // Use room key from hash if provided (for shared links)
+          const roomKey = roomKeyFromHash || loaded.roomKey!;
+
+          // Start collaboration - this will load data from room storage
+          // and return the scene data
+          const sceneData = await collabAPI.startCollaboration({
+            roomId: loaded.roomId!,
             roomKey,
             isAutoCollab: true,
           });
+
+          // IMPORTANT: Apply the loaded scene data to the canvas!
+          // startCollaboration returns elements from room storage, but doesn't update the canvas
+          if (sceneData?.elements) {
+            excalidrawAPI.updateScene({
+              elements: sceneData.elements,
+              captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+            });
+            // Scroll to content if requested
+            if (sceneData.scrollToContent) {
+              excalidrawAPI.scrollToContent();
+            }
+          }
 
           // Set scene ID for thumbnail generation during collaboration saves
           collabAPI.setSceneId(sceneId);
 
           // Mark this scene as auto-collab (collaboration can't be stopped)
           setIsAutoCollabScene(true);
+
+          // If startCollaboration returned scene data, resolve the initial promise
+          if (isInitialLoad && initialStatePromise) {
+            if (sceneData) {
+              initialStatePromise.resolve(sceneData);
+            } else {
+              initialStatePromise.resolve(null);
+            }
+          }
         } else {
+          // Non-collaboration scene - load from backend API (scene.data)
+          let restored: RestoredDataState | null = null;
+          if (loaded.data) {
+            const blob = decodeBase64ToBlob(loaded.data);
+            const sceneData = await loadFromBlob(blob, null, null);
+            restored = sceneData;
+          }
+
+          if (restored) {
+            const sceneWithCollaborators = {
+              ...restored,
+              appState: {
+                ...restored.appState,
+                collaborators: new Map(),
+              },
+            };
+
+            excalidrawAPI.updateScene({
+              elements: sceneWithCollaborators.elements || [],
+              appState: sceneWithCollaborators.appState,
+              captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+            });
+
+            // Load files separately
+            if (sceneWithCollaborators.files) {
+              excalidrawAPI.addFiles(Object.values(sceneWithCollaborators.files));
+            }
+
+            // Initialize autosave with loaded data to prevent false "unsaved" status
+            if (initializeAutoSave) {
+              const loadedSceneData = JSON.stringify({
+                type: "excalidraw",
+                version: 2,
+                source: window.location.href,
+                elements: sceneWithCollaborators.elements || [],
+                appState: {
+                  viewBackgroundColor:
+                    sceneWithCollaborators.appState?.viewBackgroundColor,
+                  gridSize: sceneWithCollaborators.appState?.gridSize,
+                },
+                files: sceneWithCollaborators.files || {},
+              });
+              initializeAutoSave(loadedSceneData);
+            }
+
+            if (isInitialLoad && initialStatePromise) {
+              initialStatePromise.resolve({
+                elements: sceneWithCollaborators.elements || [],
+                appState: sceneWithCollaborators.appState,
+                files: sceneWithCollaborators.files || {},
+              });
+            }
+          } else if (isInitialLoad && initialStatePromise) {
+            initialStatePromise.resolve(null);
+          }
+
           // Not an auto-collab scene - clear any previous scene ID
           if (collabAPI) {
             collabAPI.setSceneId(null);
@@ -254,6 +308,7 @@ export function useSceneLoader({
       navigateToCanvas,
       onError,
       initializeAutoSave,
+      setActiveCollectionId,
     ],
   );
 

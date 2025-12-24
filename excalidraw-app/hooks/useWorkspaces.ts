@@ -1,7 +1,7 @@
 import { useCallback, useRef, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { useAtom, useSetAtom } from "../app-jotai";
+import { useAtom, useSetAtom, useAtomValue } from "../app-jotai";
 import {
   currentWorkspaceSlugAtom,
   workspacesAtom,
@@ -81,13 +81,27 @@ export function useWorkspaces({
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
+  // Get current workspace slug from atom (may be set from URL before workspaces load)
+  const currentWorkspaceSlugFromAtom = useAtomValue(currentWorkspaceSlugAtom);
+
   // Sync React Query data to Jotai atom (for components that read from atom)
   useEffect(() => {
     if (fetchedWorkspaces.length > 0) {
       setWorkspaces(fetchedWorkspaces as WorkspaceData[]);
 
-      // Auto-select first workspace if none selected
+      // Auto-select workspace based on URL slug or default to first
       if (!currentWorkspace) {
+        // Check if we have a workspace slug from URL (set before workspaces loaded)
+        if (currentWorkspaceSlugFromAtom) {
+          const workspaceFromUrl = fetchedWorkspaces.find(
+            (w) => w.slug === currentWorkspaceSlugFromAtom
+          );
+          if (workspaceFromUrl) {
+            setCurrentWorkspaceAtom(workspaceFromUrl as WorkspaceData);
+            return;
+          }
+        }
+        // Fallback to first workspace
         setCurrentWorkspaceAtom(fetchedWorkspaces[0] as WorkspaceData);
         setCurrentWorkspaceSlug(fetchedWorkspaces[0].slug);
       }
@@ -95,6 +109,7 @@ export function useWorkspaces({
   }, [
     fetchedWorkspaces,
     currentWorkspace,
+    currentWorkspaceSlugFromAtom,
     setWorkspaces,
     setCurrentWorkspaceAtom,
     setCurrentWorkspaceSlug,

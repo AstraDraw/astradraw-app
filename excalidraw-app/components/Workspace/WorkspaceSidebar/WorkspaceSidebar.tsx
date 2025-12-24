@@ -24,7 +24,6 @@ import {
   navigateToSceneAtom,
   sidebarModeAtom,
   dashboardViewAtom,
-  currentWorkspaceSlugAtom,
   searchQueryAtom,
   workspaceSidebarOpenAtom,
   closeWorkspaceSidebarAtom,
@@ -96,7 +95,6 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
   const navigateToMembers = useSetAtom(navigateToMembersAtom);
   const navigateToTeamsCollections = useSetAtom(navigateToTeamsCollectionsAtom);
   const navigateToScene = useSetAtom(navigateToSceneAtom);
-  const currentWorkspaceSlug = useAtomValue(currentWorkspaceSlugAtom);
   const [searchQuery, setSearchQuery] = useAtom(searchQueryAtom);
 
   const authAvailable = oidcConfigured || localAuthEnabled;
@@ -325,15 +323,15 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
 
   const handleSceneClick = useCallback(
     (scene: { id: string; title: string }) => {
-      if (currentWorkspaceSlug) {
+      if (currentWorkspace?.slug) {
         navigateToScene({
           sceneId: scene.id,
           title: scene.title,
-          workspaceSlug: currentWorkspaceSlug,
+          workspaceSlug: currentWorkspace.slug,
         });
       }
     },
-    [currentWorkspaceSlug, navigateToScene],
+    [currentWorkspace?.slug, currentWorkspace?.name, navigateToScene],
   );
 
   return (
@@ -420,7 +418,7 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
       {isAuthenticated && user && (
         <SidebarFooter
           user={user}
-          workspaceSlug={currentWorkspaceSlug || undefined}
+          workspaceSlug={currentWorkspace?.slug || undefined}
           appMode={sidebarMode === "full" ? "dashboard" : "canvas"}
           onProfileClick={() => navigateToProfile()}
         />

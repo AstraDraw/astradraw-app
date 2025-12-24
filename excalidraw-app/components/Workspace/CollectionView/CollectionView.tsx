@@ -9,7 +9,6 @@ import {
 import {
   navigateToCanvasAtom,
   navigateToSceneAtom,
-  currentWorkspaceSlugAtom,
   currentWorkspaceAtom,
 } from "../../Settings/settingsState";
 import { useScenesCache } from "../../../hooks/useScenesCache";
@@ -69,7 +68,8 @@ export const CollectionView: React.FC<CollectionViewProps> = ({
   const workspace = useAtomValue(currentWorkspaceAtom);
   const navigateToCanvas = useSetAtom(navigateToCanvasAtom);
   const navigateToScene = useSetAtom(navigateToSceneAtom);
-  const workspaceSlug = useAtomValue(currentWorkspaceSlugAtom);
+  // Use workspace.slug directly instead of separate atom to ensure consistency
+  const workspaceSlug = workspace?.slug;
 
   const [sortBy, setSortBy] = useState<"created" | "modified">("created");
   const [showSortMenu, setShowSortMenu] = useState(false);

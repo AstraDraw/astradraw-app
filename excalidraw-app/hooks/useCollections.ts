@@ -20,6 +20,7 @@ import {
   deleteCollection as deleteCollectionApi,
   type Collection,
 } from "../auth/workspaceApi";
+import { parseUrl } from "../router";
 
 /**
  * Fields needed for collection list views (sidebar, nav, etc.)
@@ -114,14 +115,32 @@ export function useCollections({
   }, [fetchedCollections, setCollections]);
 
   // Set default active collection to Private when collections are loaded
+  // Skip if we're on a scene URL - let scene loading handle the collection selection
   useEffect(() => {
+    console.log("[useCollections] Default collection effect:", {
+      collectionsLength: collections.length,
+      activeCollectionId,
+      hasSetDefault: hasSetDefaultCollectionRef.current,
+    });
+
     if (
       collections.length > 0 &&
       !activeCollectionId &&
       !hasSetDefaultCollectionRef.current
     ) {
+      // Don't set default collection if we're loading a scene from URL
+      // The scene loader will set the correct collection from the scene data
+      const route = parseUrl();
+      console.log("[useCollections] Parsed route:", route.type);
+
+      if (route.type === "scene") {
+        console.log("[useCollections] Skipping default - scene URL detected");
+        return;
+      }
+
       const privateCol = collections.find((c) => c.isPrivate);
       if (privateCol) {
+        console.log("[useCollections] Setting default to Private:", privateCol.id);
         hasSetDefaultCollectionRef.current = true;
         setActiveCollectionId(privateCol.id);
       }

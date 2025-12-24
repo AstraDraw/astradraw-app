@@ -197,6 +197,7 @@ import {
   updateSceneData,
   updateWorkspace,
   uploadWorkspaceAvatar,
+  startCollaboration,
 } from "./auth/workspaceApi";
 import { loadWorkspaceScene } from "./data/workspaceSceneLoader";
 
@@ -553,6 +554,7 @@ const ExcalidrawWrapper = () => {
     navigateToCanvas,
     onError: setErrorMessage,
     initializeAutoSave: undefined, // Will be connected after autoSave hook
+    setActiveCollectionId,
   });
 
   // Autosave hook
@@ -562,6 +564,7 @@ const ExcalidrawWrapper = () => {
     handleSaveRetry,
     markUnsaved,
     initializeWithLoadedData,
+    saveImmediately,
   } = useAutoSave({
     currentSceneId,
     excalidrawAPI,
@@ -908,89 +911,117 @@ const ExcalidrawWrapper = () => {
 
       try {
         const loaded = await loadWorkspaceScene(workspaceSlug, sceneId);
+
         setCurrentWorkspaceSlug(workspaceSlug);
         setCurrentSceneId(loaded.scene.id);
         setCurrentSceneTitle(loaded.scene.title || "Untitled");
 
-        let restored: RestoredDataState | null = null;
-        if (loaded.data) {
-          const blob = decodeBase64ToBlob(loaded.data);
-          const sceneData = await loadFromBlob(blob, null, null);
-          restored = sceneData;
+        // Set the active collection from the scene's collection
+        // This ensures the sidebar shows the correct collection on page refresh
+        if (loaded.scene.collectionId) {
+          setActiveCollectionId(loaded.scene.collectionId);
         }
 
-        if (restored) {
-          const sceneWithCollaborators = {
-            ...restored,
-            appState: {
-              ...restored.appState,
-              collaborators: new Map(),
-            },
-          };
-
-          excalidrawAPI.updateScene({
-            elements: sceneWithCollaborators.elements || [],
-            appState: sceneWithCollaborators.appState,
-            captureUpdate: CaptureUpdateAction.IMMEDIATELY,
-          });
-
-          if (sceneWithCollaborators.files) {
-            excalidrawAPI.addFiles(Object.values(sceneWithCollaborators.files));
-          }
-
-          // Initialize autosave with loaded data
-          const loadedSceneData = JSON.stringify({
-            type: "excalidraw",
-            version: 2,
-            source: window.location.href,
-            elements: sceneWithCollaborators.elements || [],
-            appState: {
-              viewBackgroundColor:
-                sceneWithCollaborators.appState?.viewBackgroundColor,
-              gridSize: sceneWithCollaborators.appState?.gridSize,
-            },
-            files: sceneWithCollaborators.files || {},
-          });
-          initializeWithLoadedData(loadedSceneData);
-
-          loadImages(
-            {
-              scene: sceneWithCollaborators as any,
-              isExternalScene: false,
-            } as any,
-            isInitialLoad,
-          );
-
-          if (isInitialLoad) {
-            initialStatePromiseRef.current.promise.resolve({
-              elements: sceneWithCollaborators.elements || [],
-              appState: sceneWithCollaborators.appState,
-              files: sceneWithCollaborators.files || {},
-            });
-          }
-        } else if (isInitialLoad) {
-          initialStatePromiseRef.current.promise.resolve(null);
-        }
-
-        // Auto-join collaboration
-        if (
+        // Check if this is a collaboration scene
+        const isCollabScene =
           collabAPI &&
           !isCollabDisabled &&
           loaded.access.canCollaborate &&
           loaded.roomId &&
-          loaded.roomKey
-        ) {
-          const roomKey = roomKeyFromHash || loaded.roomKey;
+          loaded.roomKey;
 
-          await collabAPI.startCollaboration({
-            roomId: loaded.roomId,
+        if (isCollabScene) {
+          // For collaboration scenes, data should be loaded from room storage
+          // NOT from backend API. Room storage is the source of truth.
+          const roomKey = roomKeyFromHash || loaded.roomKey!;
+
+          const sceneData = await collabAPI.startCollaboration({
+            roomId: loaded.roomId!,
             roomKey,
             isAutoCollab: true,
           });
 
+          // Apply loaded scene data to canvas
+          if (sceneData?.elements) {
+            excalidrawAPI.updateScene({
+              elements: sceneData.elements,
+              captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+            });
+            if (sceneData.scrollToContent) {
+              excalidrawAPI.scrollToContent();
+            }
+          }
+
           collabAPI.setSceneId(sceneId);
           setIsAutoCollabScene(true);
+
+          if (isInitialLoad) {
+            initialStatePromiseRef.current.promise.resolve(
+              sceneData || { elements: [], appState: {}, files: {} }
+            );
+          }
         } else {
+          // Non-collaboration scene - load from backend API (scene.data)
+          let restored: RestoredDataState | null = null;
+          if (loaded.data) {
+            const blob = decodeBase64ToBlob(loaded.data);
+            const sceneData = await loadFromBlob(blob, null, null);
+            restored = sceneData;
+          }
+
+          if (restored) {
+            const sceneWithCollaborators = {
+              ...restored,
+              appState: {
+                ...restored.appState,
+                collaborators: new Map(),
+              },
+            };
+
+            excalidrawAPI.updateScene({
+              elements: sceneWithCollaborators.elements || [],
+              appState: sceneWithCollaborators.appState,
+              captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+            });
+
+            if (sceneWithCollaborators.files) {
+              excalidrawAPI.addFiles(Object.values(sceneWithCollaborators.files));
+            }
+
+            // Initialize autosave with loaded data
+            const loadedSceneData = JSON.stringify({
+              type: "excalidraw",
+              version: 2,
+              source: window.location.href,
+              elements: sceneWithCollaborators.elements || [],
+              appState: {
+                viewBackgroundColor:
+                  sceneWithCollaborators.appState?.viewBackgroundColor,
+                gridSize: sceneWithCollaborators.appState?.gridSize,
+              },
+              files: sceneWithCollaborators.files || {},
+            });
+            initializeWithLoadedData(loadedSceneData);
+
+            loadImages(
+              {
+                scene: sceneWithCollaborators as any,
+                isExternalScene: false,
+              } as any,
+              isInitialLoad,
+            );
+
+            if (isInitialLoad) {
+              initialStatePromiseRef.current.promise.resolve({
+                elements: sceneWithCollaborators.elements || [],
+                appState: sceneWithCollaborators.appState,
+                files: sceneWithCollaborators.files || {},
+              });
+            }
+          } else if (isInitialLoad) {
+            initialStatePromiseRef.current.promise.resolve(null);
+          }
+
           if (collabAPI) {
             collabAPI.setSceneId(null);
           }
@@ -1367,11 +1398,18 @@ const ExcalidrawWrapper = () => {
   // Workspace handlers
   // =========================================================================
 
+  const [isCreatingScene, setIsCreatingScene] = useState(false);
+
   const handleNewScene = useCallback(
     async (collectionId?: string) => {
       if (!excalidrawAPI) {
         return;
       }
+
+      if (isCreatingScene) {
+        return;
+      }
+      setIsCreatingScene(true);
 
       try {
         const title = `${t(
@@ -1396,13 +1434,15 @@ const ExcalidrawWrapper = () => {
 
         openWorkspaceSidebar();
 
+        // Switch to canvas mode directly (don't use navigateToCanvas which would
+        // dispatch a popstate event and try to reload the scene we just created)
+        setAppMode("canvas");
+
         const workspaceSlug = currentWorkspace?.slug || currentWorkspaceSlug;
         if (workspaceSlug) {
           const newUrl = buildSceneUrl(workspaceSlug, scene.id);
           window.history.pushState({ sceneId: scene.id }, "", newUrl);
         }
-
-        navigateToCanvas();
 
         const emptySceneData = {
           type: "excalidraw",
@@ -1421,27 +1461,63 @@ const ExcalidrawWrapper = () => {
 
         invalidateScenesCache();
 
+        // Initialize collaboration for scenes in shared workspaces
+        // The scene already has roomId/roomKey created by backend, we just need to join
+        if (
+          collabAPI &&
+          currentWorkspace?.type === "SHARED" &&
+          scene.roomId
+        ) {
+          try {
+            // Stop existing collaboration session first (if any)
+            // This is necessary because startCollaboration() returns early if socket exists
+            if (collabAPI.isCollaborating()) {
+              // Pass empty elements since we're switching to a new empty scene
+              await collabAPI.stopCollaboration(false, []);
+            }
+            
+            // Get room credentials from backend
+            const { roomId, roomKey } = await startCollaboration(scene.id);
+            
+            await collabAPI.startCollaboration({
+              roomId,
+              roomKey,
+              isAutoCollab: true,
+            });
+            collabAPI.setSceneId(scene.id);
+            setIsAutoCollabScene(true);
+          } catch (collabError) {
+            console.error("Failed to start collaboration for new scene:", collabError);
+            // Scene is still created, just without collaboration
+          }
+        }
+
         excalidrawAPI.setToast({
           message: t("workspace.newSceneCreated") || "New scene created",
         });
+        setIsCreatingScene(false);
       } catch (error) {
         console.error("Failed to create new scene:", error);
         excalidrawAPI.resetScene();
         setCurrentSceneId(null);
         setCurrentSceneTitle("Untitled");
         navigateToCanvas();
+        setIsCreatingScene(false);
       }
     },
     [
       excalidrawAPI,
+      collabAPI,
       privateCollectionId,
       navigateToCanvas,
       setActiveCollectionId,
       invalidateScenesCache,
       currentWorkspace?.slug,
+      currentWorkspace?.type,
       currentWorkspaceSlug,
       setCurrentSceneId,
       setCurrentSceneTitle,
+      setIsAutoCollabScene,
       openWorkspaceSidebar,
     ],
   );

@@ -11,6 +11,7 @@ export interface LoadedScene {
     id: string;
     title: string;
     roomId: string | null;
+    collectionId: string | null;
   };
   data: string | null; // Base64 encoded
   access: SceneAccess;
