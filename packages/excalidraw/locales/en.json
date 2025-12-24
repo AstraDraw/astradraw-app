@@ -240,7 +240,13 @@
     "submit": "Submit",
     "confirm": "Confirm",
     "embeddableInteractionButton": "Click to interact",
-    "comments": "Comments"
+    "comments": "Comments",
+    "startPresentation": "Start presentation",
+    "nextSlide": "Next slide",
+    "prevSlide": "Previous slide",
+    "exitPresentation": "Exit presentation",
+    "toggleLaser": "Toggle laser pointer",
+    "goToSlide": "Go to slide"
   },
   "alerts": {
     "clearReset": "This will clear the whole canvas. Are you sure?",

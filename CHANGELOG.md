@@ -9,6 +9,29 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.80] - 2025-12-24
+
+### Added
+
+- **Fork Architecture Refactoring - Phase 2: Presentation Mode Actions**
+  - Created `packages/excalidraw/actions/actionPresentation.ts` with 7 presentation actions
+  - Added `PresentationModeState` interface to `packages/excalidraw/types.ts`
+  - Added `presentationMode` to `AppState` with storage config (transient, not persisted)
+  - Keyboard shortcuts now handled by action system:
+    - `Alt+Shift+P`: Start presentation
+    - `ArrowRight/ArrowDown/Space`: Next slide
+    - `ArrowLeft/ArrowUp`: Previous slide
+    - `Escape`: Exit presentation
+    - `L`: Toggle laser pointer
+    - `T`: Toggle theme (light/dark)
+  - Added action labels to `en.json` and `ru-RU.json` locale files
+
+### Changed
+
+- Refactored `usePresentationMode.ts` to use action system instead of window event listeners
+- Removed legacy keyboard handling from presentation hook (now handled by core action system)
+- `PresentationMode.tsx` now reads state from hook instead of legacy Jotai atom
+
 ## [0.18.0-beta0.79] - 2025-12-24
 
 ### Changed

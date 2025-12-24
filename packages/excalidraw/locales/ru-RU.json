@@ -240,7 +240,13 @@
     "submit": "Отправить",
     "confirm": "Подтвердить",
     "embeddableInteractionButton": "Нажмите для взаимодействия",
-    "comments": "Комментарии"
+    "comments": "Комментарии",
+    "startPresentation": "Начать презентацию",
+    "nextSlide": "Следующий слайд",
+    "prevSlide": "Предыдущий слайд",
+    "exitPresentation": "Выйти из презентации",
+    "toggleLaser": "Переключить лазерную указку",
+    "goToSlide": "Перейти к слайду"
   },
   "alerts": {
     "clearReset": "Это очистит весь холст. Вы уверены?",

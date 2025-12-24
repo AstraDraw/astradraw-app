@@ -533,6 +533,33 @@ export interface AppState {
   resetCustomPen: ResetCustomPenState | null;
   /** Array of custom pen presets */
   customPens: PenStyle[];
+
+  // Presentation Mode State
+  /** Presentation mode state - null when not in presentation mode */
+  presentationMode: PresentationModeState | null;
+}
+
+/**
+ * State for presentation mode (slideshow of frames)
+ */
+export interface PresentationModeState {
+  /** Whether presentation mode is currently active */
+  active: boolean;
+  /** Index of the current slide (0-based) */
+  currentSlide: number;
+  /** Frame IDs in presentation order */
+  slides: string[];
+  /** Original theme before entering presentation (to restore on exit) */
+  originalTheme?: Theme;
+  /** Original frame rendering settings before entering presentation */
+  originalFrameRendering?: {
+    enabled: boolean;
+    name: boolean;
+    outline: boolean;
+    clip: boolean;
+  };
+  /** Whether laser pointer tool is active during presentation */
+  isLaserActive?: boolean;
 }
 
 export type SearchMatch = {

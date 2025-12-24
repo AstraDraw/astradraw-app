@@ -2,13 +2,8 @@ import { createPortal } from "react-dom";
 
 import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 
-import { useAtomValue } from "../../app-jotai";
-
 import { PresentationControls } from "./PresentationControls";
-import {
-  presentationModeAtom,
-  usePresentationMode,
-} from "./usePresentationMode";
+import { usePresentationMode } from "./usePresentationMode";
 
 interface PresentationModeProps {
   excalidrawAPI: ExcalidrawImperativeAPI | null;
@@ -17,9 +12,8 @@ interface PresentationModeProps {
 export const PresentationMode: React.FC<PresentationModeProps> = ({
   excalidrawAPI,
 }) => {
-  const isPresentationMode = useAtomValue(presentationModeAtom);
-
   const {
+    isPresentationMode,
     currentSlide,
     totalSlides,
     isLaserActive,

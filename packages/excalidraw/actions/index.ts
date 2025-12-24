@@ -89,3 +89,14 @@ export { actionToggleLinearEditor } from "./actionLinearEditor";
 export { actionToggleSearchMenu } from "./actionToggleSearchMenu";
 
 export { actionToggleCropEditor } from "./actionCropEditor";
+
+// Presentation mode actions
+export {
+  actionStartPresentation,
+  actionNextSlide,
+  actionPrevSlide,
+  actionExitPresentation,
+  actionTogglePresentationLaser,
+  actionTogglePresentationTheme,
+  actionGoToSlide,
+} from "./actionPresentation";

@@ -40,13 +40,13 @@
   white-space: pre-wrap !important;
   box-sizing: border-box !important;
   outline: none !important;
-  
+
   // Prevent browser from adding extra space in empty state
   &:empty::after {
-    content: '\200B'; // Zero-width space to prevent empty contenteditable height issues
+    content: "\200B"; // Zero-width space to prevent empty contenteditable height issues
     display: inline;
   }
-  
+
   &:empty:focus {
     text-align: left !important;
   }
