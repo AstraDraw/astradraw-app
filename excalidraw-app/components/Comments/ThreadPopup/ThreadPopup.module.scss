@@ -49,13 +49,14 @@ $comments-max-height: 230px;
 .resolvedBanner {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: $spacing-xs;
-  padding: $spacing-sm $spacing-md;
-  background: var(--color-success-bg, #e6f4ea);
+  padding: $spacing-md;
+  background: #fff; // White background
   color: var(--color-success, #1e8e3e);
   font-size: 13px;
   font-weight: 500;
-  border-top: 1px solid var(--color-success-border, #ceead6);
+  border-top: 1px solid var(--color-border, #e5e5e5);
 }
 
 .checkIcon {
@@ -75,8 +76,8 @@ $comments-max-height: 230px;
   }
 
   .resolvedBanner {
-    background: var(--color-success-bg-dark, #1e3a2f);
+    background: #232329; // Dark background
     color: var(--color-success-light, #81c995);
-    border-top-color: var(--color-success-border-dark, #2d4a3e);
+    border-top-color: var(--color-border-dark, #4a4a4f);
   }
 }

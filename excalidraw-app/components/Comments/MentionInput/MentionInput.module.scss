@@ -8,11 +8,15 @@
 .container {
   position: relative;
   width: 100%;
+  max-width: 100%;
   background: transparent; // Ensure no background
+  box-sizing: border-box;
 }
 
 .textarea {
-  width: 100%;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 100% !important;
   min-height: 32px; // Same height as toolbar initially (single line)
   max-height: 120px; // Can expand up to this
   padding: 6px 8px; // Vertical padding to match toolbar
@@ -20,11 +24,16 @@
   font-size: 14px;
   font-family: $ui-font;
   line-height: 1.4;
-  resize: none;
+  resize: none !important;
   background: transparent !important;
   background-color: transparent !important;
   color: var(--color-text-primary, #333);
   overflow-y: auto;
+  overflow-x: hidden !important;
+  word-wrap: break-word !important;
+  word-break: break-word !important;
+  white-space: pre-wrap !important;
+  box-sizing: border-box !important;
 
   &::placeholder {
     color: var(--color-text-tertiary, #999);

@@ -115,8 +115,8 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
     let result = [...threads];
 
     // Filter by resolved status
-    if (filters.resolved !== undefined) {
-      result = result.filter((t) => t.resolved === filters.resolved);
+    if (filters.resolved) {
+      result = result.filter((t) => t.resolved === true);
     }
 
     // Filter by search query
@@ -202,7 +202,7 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
     );
   }
 
-  const hasFilters = !!(filters.search || filters.resolved !== undefined);
+  const hasFilters = !!(filters.search || filters.resolved);
   const hasThreads = filteredThreads.length > 0;
 
   return (

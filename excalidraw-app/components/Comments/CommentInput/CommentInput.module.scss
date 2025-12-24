@@ -15,10 +15,11 @@
 
 // The outer box containing both textarea and toolbar
 .inputBox {
+  position: relative;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   background: #f5f5f9; // Gray background for both sections
-  overflow: hidden;
+  overflow: visible; // Allow emoji picker to overflow
   transition: border-color 0.15s ease;
 
   &:focus-within {
@@ -30,6 +31,10 @@
 .inputRow {
   border-bottom: 1px solid #e0e0e0; // Single line divider
   background: transparent; // No background - inherits from inputBox
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 // Toolbar section - bottom part

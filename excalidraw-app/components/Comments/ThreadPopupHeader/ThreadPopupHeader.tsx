@@ -109,6 +109,13 @@ export function ThreadPopupHeader({
 
       {/* Right side: Actions */}
       <div className={styles.rightActions}>
+        {/* Link copied feedback message */}
+        {linkCopied && (
+          <span className={styles.linkCopiedText}>
+            {t("comments.linkCopied")}
+          </span>
+        )}
+
         <Tooltip
           label={thread.resolved ? t("comments.reopen") : t("comments.resolve")}
         >

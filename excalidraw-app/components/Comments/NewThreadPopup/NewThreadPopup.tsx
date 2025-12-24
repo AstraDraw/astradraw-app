@@ -138,27 +138,17 @@ export function NewThreadPopup({
     appState,
   );
 
+  // Subtract offsetLeft/offsetTop to position relative to canvas container
+  // This fixes popup position when left workspace sidebar is open
   return (
     <div
       ref={popupRef}
       className={styles.popup}
       style={{
-        left: viewportPos.x + 20,
-        top: viewportPos.y - 16,
+        left: viewportPos.x - appState.offsetLeft + 20,
+        top: viewportPos.y - appState.offsetTop - 16,
       }}
     >
-      <div className={styles.header}>
-        <span className={styles.title}>{t("comments.newComment")}</span>
-        <button
-          type="button"
-          className={styles.closeButton}
-          onClick={cancelCreation}
-          title={t("buttons.close")}
-        >
-          <CloseIcon />
-        </button>
-      </div>
-
       <div className={styles.body}>
         <CommentInput
           onSubmit={handleSubmit}
@@ -168,27 +158,5 @@ export function NewThreadPopup({
         />
       </div>
     </div>
-  );
-}
-
-// -----------------------------------------------------------------------------
-// Icons
-// -----------------------------------------------------------------------------
-
-function CloseIcon() {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <line x1="18" y1="6" x2="6" y2="18" />
-      <line x1="6" y1="6" x2="18" y2="18" />
-    </svg>
   );
 }

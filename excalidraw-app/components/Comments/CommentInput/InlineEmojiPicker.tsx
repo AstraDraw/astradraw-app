@@ -1,61 +1,146 @@
 /**
- * InlineEmojiPicker - Simple emoji picker popup for comment input
+ * InlineEmojiPicker - Full-featured emoji picker popup for comment input
  *
- * Shows a grid of popular emojis that can be inserted into comment text.
+ * Shows search, categories, and scrollable emoji grid (reuses EmojiPicker component logic)
+ * Uses React Portal to render outside the parent container hierarchy
  */
 
-import { useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
+import clsx from "clsx";
+import { t } from "@excalidraw/excalidraw/i18n";
+
+import {
+  fetchEmojiData,
+  searchEmojis,
+  getPopularEmojis,
+  EMOJI_GROUPS,
+  type TwemojiItem,
+  type TwemojiGroup,
+  type EmojiGroupSlug,
+} from "../../Stickers/twemojiApi";
 
 import styles from "./InlineEmojiPicker.module.scss";
-
-// Popular emojis for quick access
-const POPULAR_EMOJIS = [
-  "👍",
-  "👎",
-  "❤️",
-  "😀",
-  "😂",
-  "🎉",
-  "🔥",
-  "👀",
-  "✅",
-  "❌",
-  "⭐",
-  "💡",
-  "🚀",
-  "💪",
-  "🙏",
-  "👏",
-  "🤔",
-  "😊",
-  "😍",
-  "🥳",
-  "😎",
-  "🤝",
-  "💯",
-  "✨",
-];
 
 export interface InlineEmojiPickerProps {
   /** Called when an emoji is selected */
   onSelect: (emoji: string) => void;
   /** Called when picker should close */
   onClose: () => void;
+  /** Reference element for positioning */
+  anchorRef: React.RefObject<HTMLElement | null>;
 }
 
 export function InlineEmojiPicker({
   onSelect,
   onClose,
+  anchorRef,
 }: InlineEmojiPickerProps) {
-  const pickerRef = useRef<HTMLDivElement>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedGroup, setSelectedGroup] =
+    useState<EmojiGroupSlug>("smileys_emotion");
+  const [emojiGroups, setEmojiGroups] = useState<TwemojiGroup[]>([]);
+  const [searchResults, setSearchResults] = useState<TwemojiItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [popularEmojis] = useState<TwemojiItem[]>(getPopularEmojis());
+  const [position, setPosition] = useState({ top: 0, left: 0 });
 
-  // Handle click outside to close
+  const pickerRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Calculate position based on anchor element
+  useEffect(() => {
+    if (!anchorRef.current) {
+      return;
+    }
+
+    const updatePosition = () => {
+      const anchorRect = anchorRef.current!.getBoundingClientRect();
+      const pickerHeight = 360;
+      const pickerWidth = 400;
+
+      // Position above the anchor, aligned to left
+      let top = anchorRect.top - pickerHeight - 4;
+      let left = anchorRect.left;
+
+      // If picker goes above viewport, position below instead
+      if (top < 10) {
+        top = anchorRect.bottom + 4;
+      }
+
+      // If picker goes off right edge, align to right
+      if (left + pickerWidth > window.innerWidth - 10) {
+        left = window.innerWidth - pickerWidth - 10;
+      }
+
+      // If picker goes off left edge
+      if (left < 10) {
+        left = 10;
+      }
+
+      setPosition({ top, left });
+    };
+
+    updatePosition();
+
+    // Update position on scroll/resize
+    window.addEventListener("scroll", updatePosition, true);
+    window.addEventListener("resize", updatePosition);
+
+    return () => {
+      window.removeEventListener("scroll", updatePosition, true);
+      window.removeEventListener("resize", updatePosition);
+    };
+  }, [anchorRef]);
+
+  // Load emoji data on mount
+  useEffect(() => {
+    const loadEmojis = async () => {
+      setLoading(true);
+      try {
+        const data = await fetchEmojiData();
+        setEmojiGroups(data);
+      } catch (err) {
+        console.error("Failed to load emoji data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadEmojis();
+  }, []);
+
+  // Handle search with debounce
+  useEffect(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    searchTimeoutRef.current = setTimeout(async () => {
+      try {
+        const results = await searchEmojis(searchQuery);
+        setSearchResults(results.slice(0, 50)); // Limit results
+      } catch (err) {
+        console.error("Failed to search emojis:", err);
+      }
+    }, 200);
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [searchQuery]);
+
+  // Close picker when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (
-        pickerRef.current &&
-        !pickerRef.current.contains(e.target as Node)
-      ) {
+      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) {
         onClose();
       }
     };
@@ -85,28 +170,134 @@ export function InlineEmojiPicker({
     return () => document.removeEventListener("keydown", handleKeyDown, true);
   }, [onClose]);
 
-  const handleEmojiClick = useCallback(
+  // Focus search input when picker opens
+  useEffect(() => {
+    if (searchInputRef.current) {
+      setTimeout(() => searchInputRef.current?.focus(), 100);
+    }
+  }, []);
+
+  const handleEmojiSelect = useCallback(
     (emoji: string) => {
       onSelect(emoji);
     },
     [onSelect],
   );
 
-  return (
-    <div ref={pickerRef} className={styles.picker}>
-      <div className={styles.grid}>
-        {POPULAR_EMOJIS.map((emoji) => (
+  // Get emojis for the selected group
+  const currentGroupEmojis =
+    emojiGroups.find((g) => g.slug === selectedGroup)?.emojis || [];
+
+  // Determine what to display in the grid
+  const displayEmojis = searchQuery.trim() ? searchResults : currentGroupEmojis;
+
+  const pickerContent = (
+    <div
+      ref={pickerRef}
+      className={styles.picker}
+      style={{
+        position: "fixed",
+        top: `${position.top}px`,
+        left: `${position.left}px`,
+      }}
+    >
+      {/* Category tabs */}
+      <div className={styles.categories}>
+        {EMOJI_GROUPS.map((group) => (
           <button
-            key={emoji}
+            key={group.slug}
             type="button"
-            className={styles.emoji}
-            onClick={() => handleEmojiClick(emoji)}
+            className={clsx(styles.category, {
+              [styles.categoryActive]:
+                selectedGroup === group.slug && !searchQuery,
+            })}
+            onClick={() => {
+              setSelectedGroup(group.slug);
+              setSearchQuery("");
+            }}
+            title={group.name}
           >
-            {emoji}
+            {group.icon}
           </button>
         ))}
       </div>
+
+      {/* Search input */}
+      <div className={styles.search}>
+        <input
+          ref={searchInputRef}
+          type="text"
+          className={styles.searchInput}
+          placeholder={t("emojiPicker.search")}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          onKeyDown={(e) => e.stopPropagation()}
+          onKeyUp={(e) => e.stopPropagation()}
+        />
+      </div>
+
+      {/* Emoji grid */}
+      <div className={styles.content}>
+        {loading ? (
+          <div className={styles.loading}>
+            <div className={styles.spinner} />
+          </div>
+        ) : (
+          <>
+            {/* Frequently used (only when not searching) */}
+            {!searchQuery && (
+              <div className={styles.section}>
+                <h4 className={styles.sectionTitle}>
+                  {t("emojiPicker.frequentlyUsed")}
+                </h4>
+                <div className={styles.grid}>
+                  {popularEmojis.map((item) => (
+                    <button
+                      key={item.slug}
+                      type="button"
+                      className={styles.emoji}
+                      onClick={() => handleEmojiSelect(item.emoji)}
+                      title={item.name}
+                    >
+                      {item.emoji}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Main emoji grid */}
+            <div className={styles.section}>
+              {!searchQuery && (
+                <h4 className={styles.sectionTitle}>
+                  {EMOJI_GROUPS.find((g) => g.slug === selectedGroup)?.name ||
+                    ""}
+                </h4>
+              )}
+              {searchQuery && searchResults.length === 0 ? (
+                <div className={styles.empty}>{t("emojiPicker.noResults")}</div>
+              ) : (
+                <div className={styles.grid}>
+                  {displayEmojis.map((item) => (
+                    <button
+                      key={item.slug}
+                      type="button"
+                      className={styles.emoji}
+                      onClick={() => handleEmojiSelect(item.emoji)}
+                      title={item.name}
+                    >
+                      {item.emoji}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
-}
 
+  // Render picker in a portal at document body level
+  return createPortal(pickerContent, document.body);
+}

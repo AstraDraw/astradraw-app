@@ -39,10 +39,15 @@ export function ThreadMarker({
 }: ThreadMarkerProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const [dragPosition, setDragPosition] = useState<{ x: number; y: number } | null>(null);
+  const [dragPosition, setDragPosition] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
 
   // Track drag start position to detect actual drags vs clicks
-  const dragStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
+  const dragStartRef = useRef<{ x: number; y: number; time: number } | null>(
+    null,
+  );
   const DRAG_THRESHOLD = 5; // pixels
   const CLICK_THRESHOLD = 200; // ms
 

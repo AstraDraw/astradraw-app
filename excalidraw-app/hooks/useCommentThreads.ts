@@ -249,8 +249,15 @@ export function useCommentMutations(
   // Update Thread Position (for drag-to-move)
   // -------------------------------------------------------------------------
   const updatePositionMutation = useMutation({
-    mutationFn: ({ threadId, x, y }: { threadId: string; x: number; y: number }) =>
-      updateThread(threadId, { x, y }),
+    mutationFn: ({
+      threadId,
+      x,
+      y,
+    }: {
+      threadId: string;
+      x: number;
+      y: number;
+    }) => updateThread(threadId, { x, y }),
     onMutate: async ({ threadId, x, y }) => {
       // Cancel any outgoing refetches
       await queryClient.cancelQueries({ queryKey });

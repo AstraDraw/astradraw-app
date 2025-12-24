@@ -119,6 +119,12 @@
       margin-top: auto;
       margin-bottom: auto;
     }
+
+    .footer-left-extra {
+      display: flex;
+      gap: 0.375rem;
+      margin-left: 0.5rem;
+    }
   }
 
   .disable-view-mode {

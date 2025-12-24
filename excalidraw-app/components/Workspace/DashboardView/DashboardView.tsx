@@ -118,23 +118,25 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNewScene }) => {
       {/* Header */}
       <header className={styles.header}>
         <div className={styles.titleRow}>
-          <span className={styles.icon}>{dashboardIcon}</span>
-          <h1 className={styles.title}>{t("workspace.dashboard")}</h1>
+          <div className={styles.titleGroup}>
+            <span className={styles.icon}>{dashboardIcon}</span>
+            <h1 className={styles.title}>{t("workspace.dashboard")}</h1>
+          </div>
+          <button
+            className={styles.startButton}
+            onClick={() => {
+              navigateToCanvas();
+              onNewScene();
+            }}
+          >
+            {plusIcon}
+            <span>{t("workspace.startDrawing")}</span>
+          </button>
         </div>
         <p className={styles.tip}>
           <strong>{t("workspace.tip")}</strong> {t("workspace.changeHomePage")}{" "}
           <a href="#preferences">{t("workspace.preferences")}</a>
         </p>
-        <button
-          className={styles.startButton}
-          onClick={() => {
-            navigateToCanvas();
-            onNewScene();
-          }}
-        >
-          {plusIcon}
-          <span>{t("workspace.startDrawing")}</span>
-        </button>
       </header>
 
       {/* Separator after header */}

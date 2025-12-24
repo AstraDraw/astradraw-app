@@ -141,7 +141,15 @@ export const MentionInput = forwardRef<MentionInputHandle, MentionInputProps>(
     // Auto-resize textarea based on content
     const autoResize = useCallback(() => {
       const textarea = textareaRef.current;
-      if (!textarea) return;
+      if (!textarea) {
+        return;
+      }
+
+      // Lock width to prevent horizontal expansion
+      const currentWidth = textarea.parentElement?.offsetWidth;
+      if (currentWidth) {
+        textarea.style.width = `${currentWidth}px`;
+      }
 
       // Reset height to auto to get the correct scrollHeight
       textarea.style.height = "auto";
@@ -197,8 +205,30 @@ export const MentionInput = forwardRef<MentionInputHandle, MentionInputProps>(
     // Handle keyboard navigation
     const handleKeyDown = useCallback(
       (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        // Allow text editing shortcuts to work (Ctrl+A, Ctrl+C, etc.)
+        // Stop propagation but don't prevent default for these
+        const isTextEditingShortcut =
+          (e.metaKey || e.ctrlKey) &&
+          (e.key === "a" || // Select all
+            e.key === "A" ||
+            e.key === "c" || // Copy
+            e.key === "C" ||
+            e.key === "x" || // Cut
+            e.key === "X" ||
+            e.key === "v" || // Paste
+            e.key === "V" ||
+            e.key === "z" || // Undo
+            e.key === "Z" ||
+            e.key === "y" || // Redo
+            e.key === "Y");
+
         // Always stop propagation to prevent canvas shortcuts
         e.stopPropagation();
+
+        // But allow default behavior for text editing shortcuts
+        if (isTextEditingShortcut) {
+          return; // Let browser handle it
+        }
 
         if (showDropdown && filteredMembers.length > 0) {
           switch (e.key) {
@@ -256,6 +286,8 @@ export const MentionInput = forwardRef<MentionInputHandle, MentionInputProps>(
     );
 
     // Handle @ button click
+    // TODO: Add @ button to UI to trigger mentions
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const handleAtButtonClick = useCallback(() => {
       const textarea = textareaRef.current;
       if (!textarea) {

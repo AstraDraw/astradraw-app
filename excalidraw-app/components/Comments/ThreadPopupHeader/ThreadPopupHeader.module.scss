@@ -27,6 +27,33 @@
 
 .rightActions {
   gap: 4px; // gap-1
+  position: relative;
+}
+
+// Link copied feedback text
+.linkCopiedText {
+  margin-right: 8px;
+  padding: 4px 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-success, #16a34a);
+  animation: fadeInOut 2s ease-in-out;
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  10%,
+  90% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
 }
 
 // Navigation buttons - h-6 w-6, p-1, rounded
@@ -180,6 +207,10 @@
   .header {
     border-bottom-color: var(--color-border-dark, #4a4a4f);
     background: #232329; // Dark header
+  }
+
+  .linkCopiedText {
+    color: var(--color-success-light, #4ade80);
   }
 
   .navButton,

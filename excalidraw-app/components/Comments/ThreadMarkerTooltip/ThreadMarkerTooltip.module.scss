@@ -6,10 +6,10 @@
 
 .tooltip {
   position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  margin-top: 8px;
+  top: 50%;
+  left: 100%;
+  transform: translateY(-50%);
+  margin-left: 8px;
   padding: $spacing-sm $spacing-md;
   background: var(--island-bg-color, #fff);
   border-radius: $radius-md;
@@ -28,11 +28,11 @@
 @keyframes tooltipFadeIn {
   from {
     opacity: 0;
-    transform: translateX(-50%) translateY(-4px);
+    transform: translateY(-50%) translateX(-4px);
   }
   to {
     opacity: 1;
-    transform: translateX(-50%) translateY(0);
+    transform: translateY(-50%) translateX(0);
   }
 }
 
@@ -40,7 +40,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: $spacing-sm;
+  gap: $spacing-md;
   margin-bottom: $spacing-xs;
 }
 
@@ -50,20 +50,33 @@
   color: var(--text-primary-color, #1b1b1f);
   @include truncate;
   flex: 1;
+  min-width: 0;
 }
 
-.replyCount {
+.time {
   font-size: 11px;
   color: var(--text-secondary-color, #6b6b6f);
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .preview {
-  margin: 0;
+  margin: 0 0 $spacing-xs 0;
   font-size: 12px;
   line-height: 1.4;
   color: var(--text-secondary-color, #6b6b6f);
   @include line-clamp(2);
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.commentCount {
+  font-size: 11px;
+  color: var(--text-secondary-color, #6b6b6f);
+  font-weight: 500;
 }
 
 // Dark mode
@@ -77,8 +90,9 @@
     color: var(--text-primary-color, #e1e1e1);
   }
 
-  .replyCount,
-  .preview {
+  .time,
+  .preview,
+  .commentCount {
     color: var(--text-secondary-color, #9b9b9f);
   }
 }

@@ -1,6 +1,8 @@
 import React, { useState, useCallback, useRef, useEffect } from "react";
 
 import { t } from "@excalidraw/excalidraw/i18n";
+import { TextField } from "@excalidraw/excalidraw/components/TextField";
+import { searchIcon } from "@excalidraw/excalidraw/components/icons";
 
 import styles from "./CommentsSidebarHeader.module.scss";
 
@@ -18,22 +20,6 @@ export interface CommentsSidebarHeaderProps {
 // ============================================================================
 // Icons
 // ============================================================================
-
-const SearchIcon: React.FC = () => (
-  <svg
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <circle cx="11" cy="11" r="8" />
-    <path d="m21 21-4.3-4.3" />
-  </svg>
-);
 
 const FilterIcon: React.FC = () => (
   <svg
@@ -74,10 +60,10 @@ const ClearIcon: React.FC = () => (
   </svg>
 );
 
-const CheckIcon: React.FC = () => (
+const SortIcon: React.FC = () => (
   <svg
-    width="14"
-    height="14"
+    width="16"
+    height="16"
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
@@ -85,7 +71,7 @@ const CheckIcon: React.FC = () => (
     strokeLinecap="round"
     strokeLinejoin="round"
   >
-    <polyline points="20 6 9 17 4 12" />
+    <path d="M12 5v14M5 12l7-7 7 7" />
   </svg>
 );
 
@@ -101,6 +87,7 @@ export const CommentsSidebarHeader: React.FC<CommentsSidebarHeaderProps> = ({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Sync local search with filters when filters change externally
   useEffect(() => {
@@ -109,8 +96,7 @@ export const CommentsSidebarHeader: React.FC<CommentsSidebarHeaderProps> = ({
 
   // Debounced search update
   const handleSearchChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value;
+    (value: string) => {
       setLocalSearch(value);
 
       // Clear previous debounce
@@ -130,6 +116,7 @@ export const CommentsSidebarHeader: React.FC<CommentsSidebarHeaderProps> = ({
   const handleClearSearch = useCallback(() => {
     setLocalSearch("");
     onFiltersChange({ ...filters, search: "" });
+    searchInputRef.current?.focus();
   }, [filters, onFiltersChange]);
 
   // Toggle sort
@@ -142,16 +129,7 @@ export const CommentsSidebarHeader: React.FC<CommentsSidebarHeaderProps> = ({
 
   // Toggle show resolved
   const handleShowResolvedToggle = useCallback(() => {
-    // Cycle through: undefined (all) -> false (unresolved only) -> true (resolved only) -> undefined
-    let newResolved: boolean | undefined;
-    if (filters.resolved === undefined) {
-      newResolved = false; // Show unresolved only
-    } else if (filters.resolved === false) {
-      newResolved = true; // Show resolved only
-    } else {
-      newResolved = undefined; // Show all
-    }
-    onFiltersChange({ ...filters, resolved: newResolved });
+    onFiltersChange({ ...filters, resolved: !filters.resolved });
   }, [filters, onFiltersChange]);
 
   // Close dropdown when clicking outside
@@ -182,24 +160,21 @@ export const CommentsSidebarHeader: React.FC<CommentsSidebarHeaderProps> = ({
     };
   }, []);
 
-  const hasActiveFilters =
-    filters.resolved !== undefined || filters.sort !== "date";
+  const hasActiveFilters = filters.resolved || filters.sort !== "date";
 
   return (
     <div className={styles.header}>
-      {/* Search Input */}
-      <div className={styles.searchContainer}>
-        <span className={styles.searchIcon}>
-          <SearchIcon />
-        </span>
-        <input
-          type="text"
-          className={styles.searchInput}
-          placeholder={t("comments.searchPlaceholder")}
+      {/* Search Input using TextField component */}
+      <div className={styles.searchWrapper}>
+        <TextField
+          ref={searchInputRef}
           value={localSearch}
+          placeholder={t("comments.searchPlaceholder")}
+          icon={searchIcon}
           onChange={handleSearchChange}
           onKeyDown={(e) => e.stopPropagation()}
-          onKeyUp={(e) => e.stopPropagation()}
+          fullWidth
+          type="search"
         />
         {localSearch && (
           <button
@@ -235,24 +210,24 @@ export const CommentsSidebarHeader: React.FC<CommentsSidebarHeaderProps> = ({
               </div>
               <button
                 type="button"
-                className={`${styles.dropdownItem} ${
-                  filters.sort === "date" ? styles.dropdownItemActive : ""
+                className={`${styles.sortItem} ${
+                  filters.sort === "date" ? styles.sortItemActive : ""
                 }`}
                 onClick={() => handleSortChange("date")}
               >
-                {filters.sort === "date" && <CheckIcon />}
+                <SortIcon />
                 <span>{t("comments.sortByDate")}</span>
               </button>
               <button
                 type="button"
-                className={`${styles.dropdownItem} ${
-                  filters.sort === "unread" ? styles.dropdownItemActive : ""
+                className={`${styles.sortItem} ${
+                  filters.sort === "unread" ? styles.sortItemActive : ""
                 }`}
                 onClick={() => handleSortChange("unread")}
                 disabled
                 title="Coming soon"
               >
-                {filters.sort === "unread" && <CheckIcon />}
+                <SortIcon />
                 <span>{t("comments.sortByUnread")}</span>
               </button>
             </div>
@@ -262,19 +237,17 @@ export const CommentsSidebarHeader: React.FC<CommentsSidebarHeaderProps> = ({
             <div className={styles.dropdownSection}>
               <button
                 type="button"
-                className={styles.dropdownItem}
+                className={styles.toggleItem}
                 onClick={handleShowResolvedToggle}
               >
-                <span className={styles.resolvedIndicator}>
-                  {filters.resolved === undefined && "○"}
-                  {filters.resolved === false && "◐"}
-                  {filters.resolved === true && "●"}
-                </span>
-                <span>
-                  {filters.resolved === undefined && t("comments.showAll")}
-                  {filters.resolved === false && t("comments.showUnresolved")}
-                  {filters.resolved === true && t("comments.showResolved")}
-                </span>
+                <span>{t("comments.showResolved")}</span>
+                <div
+                  className={`${styles.toggle} ${
+                    filters.resolved ? styles.toggleActive : ""
+                  }`}
+                >
+                  <div className={styles.toggleThumb} />
+                </div>
               </button>
             </div>
           </div>

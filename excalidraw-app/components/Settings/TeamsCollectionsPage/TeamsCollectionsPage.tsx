@@ -469,98 +469,236 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
           <>
             {/* Teams Section */}
             <section className={styles.section}>
-              <h2 className={styles.sectionTitle}>{t("settings.teams")}</h2>
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>{t("settings.teams")}</h2>
+              </div>
 
-              {teams.length === 0 ? (
-                <div className={styles.emptySection}>
-                  <p>{t("settings.noTeams")}</p>
-                  {isAdmin && (
-                    <button
-                      className={styles.addButton}
-                      onClick={openCreateTeamDialog}
-                    >
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
+              <div className={styles.sectionContent}>
+                {teams.length === 0 ? (
+                  <div className={styles.emptySection}>
+                    <p>{t("settings.noTeams")}</p>
+                    {isAdmin && (
+                      <button
+                        className={styles.addButton}
+                        onClick={openCreateTeamDialog}
                       >
-                        <path d="M12 5v14M5 12h14" />
-                      </svg>
-                      {t("settings.createTeam")}
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <div className={styles.table}>
-                  <div className={styles.tableHeader}>
-                    <div className={styles.tableCellTeam}>
-                      {t("settings.teams")}
-                    </div>
-                    <div className={styles.tableCellMembers}>
-                      {t("settings.teamMembersLabel")}
-                    </div>
-                    <div className={styles.tableCellActions} />
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
+                          <path d="M12 5v14M5 12h14" />
+                        </svg>
+                        {t("settings.createTeam")}
+                      </button>
+                    )}
                   </div>
-                  {teams.map((team) => (
-                    <div
-                      key={team.id}
-                      className={styles.tableRowClickable}
-                      onClick={() => isAdmin && openEditTeamDialog(team)}
-                    >
+                ) : (
+                  <div className={styles.table}>
+                    <div className={styles.tableHeader}>
                       <div className={styles.tableCellTeam}>
-                        <div
-                          className={styles.teamColor}
-                          style={{ backgroundColor: team.color }}
-                        />
-                        {editingTeamId === team.id ? (
-                          <input
-                            type="text"
-                            defaultValue={team.name}
-                            onKeyDown={(e) => {
-                              stopPropagation(e);
-                              if (e.key === "Enter") {
-                                handleInlineTeamNameUpdate(
-                                  team.id,
-                                  e.currentTarget.value,
-                                );
-                              } else if (e.key === "Escape") {
-                                setEditingTeamId(null);
-                              }
-                            }}
-                            onKeyUp={stopPropagation}
-                            onBlur={(e) => {
-                              if (e.target.value !== team.name) {
-                                handleInlineTeamNameUpdate(
-                                  team.id,
-                                  e.target.value,
-                                );
-                              } else {
-                                setEditingTeamId(null);
-                              }
-                            }}
-                            onClick={(e) => e.stopPropagation()}
-                            autoFocus
-                            className={styles.inlineInput}
-                          />
-                        ) : (
-                          <span className={styles.teamName}>{team.name}</span>
-                        )}
+                        {t("settings.teams")}
                       </div>
                       <div className={styles.tableCellMembers}>
-                        {t("settings.teamMemberCount", {
-                          count: getEffectiveMemberCount(team),
-                        })}
+                        {t("settings.teamMembersLabel")}
                       </div>
-                      <div className={styles.tableCellActions}>
-                        {isAdmin && (
-                          <>
+                      <div className={styles.tableCellActions} />
+                    </div>
+                    {teams.map((team) => (
+                      <div
+                        key={team.id}
+                        className={styles.tableRowClickable}
+                        onClick={() => isAdmin && openEditTeamDialog(team)}
+                      >
+                        <div className={styles.tableCellTeam}>
+                          <div
+                            className={styles.teamColor}
+                            style={{ backgroundColor: team.color }}
+                          />
+                          {editingTeamId === team.id ? (
+                            <input
+                              type="text"
+                              defaultValue={team.name}
+                              onKeyDown={(e) => {
+                                stopPropagation(e);
+                                if (e.key === "Enter") {
+                                  handleInlineTeamNameUpdate(
+                                    team.id,
+                                    e.currentTarget.value,
+                                  );
+                                } else if (e.key === "Escape") {
+                                  setEditingTeamId(null);
+                                }
+                              }}
+                              onKeyUp={stopPropagation}
+                              onBlur={(e) => {
+                                if (e.target.value !== team.name) {
+                                  handleInlineTeamNameUpdate(
+                                    team.id,
+                                    e.target.value,
+                                  );
+                                } else {
+                                  setEditingTeamId(null);
+                                }
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                              autoFocus
+                              className={styles.inlineInput}
+                            />
+                          ) : (
+                            <span className={styles.teamName}>{team.name}</span>
+                          )}
+                        </div>
+                        <div className={styles.tableCellMembers}>
+                          {t("settings.teamMemberCount", {
+                            count: getEffectiveMemberCount(team),
+                          })}
+                        </div>
+                        <div className={styles.tableCellActions}>
+                          {isAdmin && (
+                            <>
+                              <button
+                                className={styles.actionButton}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openEditTeamDialog(team);
+                                }}
+                                title={t("settings.edit")}
+                              >
+                                <svg
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                >
+                                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                </svg>
+                              </button>
+                              <button
+                                className={styles.actionButtonDanger}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteTeam(team.id, team.name);
+                                }}
+                                title={t("workspace.delete")}
+                              >
+                                <svg
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                >
+                                  <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                </svg>
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </section>
+
+            {/* Collections Section */}
+            <section className={styles.section}>
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>
+                  {t("settings.collections")}
+                </h2>
+              </div>
+
+              <div className={styles.sectionContent}>
+                {collections.length === 0 ? (
+                  <div className={styles.emptySection}>
+                    <p>{t("settings.noCollections")}</p>
+                  </div>
+                ) : (
+                  <div className={styles.table}>
+                    <div className={styles.tableHeader}>
+                      <div className={styles.tableCellCollection}>
+                        {t("settings.collections")}
+                      </div>
+                      <div className={styles.tableCellAccess}>
+                        {t("settings.collectionAccess")}
+                      </div>
+                      <div className={styles.tableCellActions} />
+                    </div>
+                    {collections.map((collection) => (
+                      <div key={collection.id} className={styles.tableRow}>
+                        <div className={styles.tableCellCollection}>
+                          <span className={styles.collectionIcon}>
+                            {collection.icon || "📁"}
+                          </span>
+                          {editingCollectionId === collection.id ? (
+                            <input
+                              type="text"
+                              defaultValue={collection.name}
+                              onKeyDown={(e) => {
+                                stopPropagation(e);
+                                if (e.key === "Enter") {
+                                  handleInlineCollectionNameUpdate(
+                                    collection.id,
+                                    e.currentTarget.value,
+                                  );
+                                } else if (e.key === "Escape") {
+                                  setEditingCollectionId(null);
+                                }
+                              }}
+                              onKeyUp={stopPropagation}
+                              onBlur={(e) => {
+                                if (e.target.value !== collection.name) {
+                                  handleInlineCollectionNameUpdate(
+                                    collection.id,
+                                    e.target.value,
+                                  );
+                                } else {
+                                  setEditingCollectionId(null);
+                                }
+                              }}
+                              autoFocus
+                              className={styles.inlineInput}
+                            />
+                          ) : (
+                            <span className={styles.collectionName}>
+                              {collection.name}
+                            </span>
+                          )}
+                        </div>
+                        <div className={styles.tableCellAccess}>
+                          {collection.isPrivate ? (
+                            <span className={styles.accessBadgePrivate}>
+                              {t("settings.privateCollection")}
+                            </span>
+                          ) : collection.teamAccess &&
+                            collection.teamAccess.length > 0 ? (
+                            <div className={styles.teamChips}>
+                              {collection.teamAccess.map((ta) => (
+                                <span
+                                  key={ta.teamId}
+                                  className={styles.teamChip}
+                                  style={{ backgroundColor: ta.teamColor }}
+                                >
+                                  {ta.teamName}
+                                </span>
+                              ))}
+                            </div>
+                          ) : (
+                            <span className={styles.accessBadgeEveryone}>
+                              {t("settings.allMembers")}
+                            </span>
+                          )}
+                        </div>
+                        <div className={styles.tableCellActions}>
+                          {isAdmin && !collection.isPrivate && (
                             <button
                               className={styles.actionButton}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                openEditTeamDialog(team);
-                              }}
+                              onClick={() =>
+                                openCollectionTeamsDialog(collection)
+                              }
                               title={t("settings.edit")}
                             >
                               <svg
@@ -573,12 +711,16 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
                                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                               </svg>
                             </button>
+                          )}
+                          {isAdmin && (
                             <button
                               className={styles.actionButtonDanger}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteTeam(team.id, team.name);
-                              }}
+                              onClick={() =>
+                                handleDeleteCollection(
+                                  collection.id,
+                                  collection.name,
+                                )
+                              }
                               title={t("workspace.delete")}
                             >
                               <svg
@@ -590,165 +732,13 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
                                 <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                               </svg>
                             </button>
-                          </>
-                        )}
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </section>
-
-            {/* Collections Section */}
-            <section className={styles.section}>
-              <div className={styles.sectionHeader}>
-                <h2 className={styles.sectionTitle}>
-                  {t("settings.collections")}
-                </h2>
-                {isAdmin && (
-                  <button
-                    className={styles.addButtonInline}
-                    onClick={() => setShowCreateCollection(true)}
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    >
-                      <path d="M12 5v14M5 12h14" />
-                    </svg>
-                    {t("settings.createCollection")}
-                  </button>
+                    ))}
+                  </div>
                 )}
               </div>
-
-              {collections.length === 0 ? (
-                <div className={styles.emptySection}>
-                  <p>{t("settings.noCollections")}</p>
-                </div>
-              ) : (
-                <div className={styles.table}>
-                  <div className={styles.tableHeader}>
-                    <div className={styles.tableCellCollection}>
-                      {t("settings.collections")}
-                    </div>
-                    <div className={styles.tableCellAccess}>
-                      {t("settings.collectionAccess")}
-                    </div>
-                    <div className={styles.tableCellActions} />
-                  </div>
-                  {collections.map((collection) => (
-                    <div key={collection.id} className={styles.tableRow}>
-                      <div className={styles.tableCellCollection}>
-                        <span className={styles.collectionIcon}>
-                          {collection.icon || "📁"}
-                        </span>
-                        {editingCollectionId === collection.id ? (
-                          <input
-                            type="text"
-                            defaultValue={collection.name}
-                            onKeyDown={(e) => {
-                              stopPropagation(e);
-                              if (e.key === "Enter") {
-                                handleInlineCollectionNameUpdate(
-                                  collection.id,
-                                  e.currentTarget.value,
-                                );
-                              } else if (e.key === "Escape") {
-                                setEditingCollectionId(null);
-                              }
-                            }}
-                            onKeyUp={stopPropagation}
-                            onBlur={(e) => {
-                              if (e.target.value !== collection.name) {
-                                handleInlineCollectionNameUpdate(
-                                  collection.id,
-                                  e.target.value,
-                                );
-                              } else {
-                                setEditingCollectionId(null);
-                              }
-                            }}
-                            autoFocus
-                            className={styles.inlineInput}
-                          />
-                        ) : (
-                          <span className={styles.collectionName}>
-                            {collection.name}
-                          </span>
-                        )}
-                      </div>
-                      <div className={styles.tableCellAccess}>
-                        {collection.isPrivate ? (
-                          <span className={styles.accessBadgePrivate}>
-                            {t("settings.privateCollection")}
-                          </span>
-                        ) : collection.teamAccess &&
-                          collection.teamAccess.length > 0 ? (
-                          <div className={styles.teamChips}>
-                            {collection.teamAccess.map((ta) => (
-                              <span
-                                key={ta.teamId}
-                                className={styles.teamChip}
-                                style={{ backgroundColor: ta.teamColor }}
-                              >
-                                {ta.teamName}
-                              </span>
-                            ))}
-                          </div>
-                        ) : (
-                          <span className={styles.accessBadgeEveryone}>
-                            {t("settings.allMembers")}
-                          </span>
-                        )}
-                      </div>
-                      <div className={styles.tableCellActions}>
-                        {isAdmin && !collection.isPrivate && (
-                          <button
-                            className={styles.actionButton}
-                            onClick={() =>
-                              openCollectionTeamsDialog(collection)
-                            }
-                            title={t("settings.edit")}
-                          >
-                            <svg
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                            >
-                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                            </svg>
-                          </button>
-                        )}
-                        {isAdmin && (
-                          <button
-                            className={styles.actionButtonDanger}
-                            onClick={() =>
-                              handleDeleteCollection(
-                                collection.id,
-                                collection.name,
-                              )
-                            }
-                            title={t("workspace.delete")}
-                          >
-                            <svg
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                            >
-                              <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                            </svg>
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
             </section>
           </>
         )}

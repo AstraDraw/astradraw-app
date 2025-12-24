@@ -11,6 +11,7 @@ import { useState, useCallback, useRef } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 
 import { MentionInput } from "../MentionInput";
+
 import { InlineEmojiPicker } from "./InlineEmojiPicker";
 
 import styles from "./CommentInput.module.scss";
@@ -38,6 +39,7 @@ export function CommentInput({
   const [mentions, setMentions] = useState<string[]>([]);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const inputRef = useRef<MentionInputHandle>(null);
+  const emojiButtonRef = useRef<HTMLButtonElement>(null);
 
   // Handle content change from MentionInput
   const handleChange = useCallback(
@@ -58,7 +60,7 @@ export function CommentInput({
 
   // Handle @ button click - insert @ and focus input
   const handleAtClick = useCallback(() => {
-    setContent((prev) => prev + "@");
+    setContent((prev) => `${prev}@`);
     inputRef.current?.focus();
   }, []);
 
@@ -105,8 +107,11 @@ export function CommentInput({
           {/* Left side: Emoji and @ buttons */}
           <div className={styles.leftTools}>
             <button
+              ref={emojiButtonRef}
               type="button"
-              className={`${styles.toolButton} ${showEmojiPicker ? styles.active : ""}`}
+              className={`${styles.toolButton} ${
+                showEmojiPicker ? styles.active : ""
+              }`}
               title={t("comments.addEmoji")}
               disabled={isSubmitting}
               onClick={() => setShowEmojiPicker(!showEmojiPicker)}
@@ -122,13 +127,14 @@ export function CommentInput({
             >
               <AtIcon />
             </button>
-            {showEmojiPicker && (
-              <InlineEmojiPicker
-                onSelect={handleEmojiSelect}
-                onClose={() => setShowEmojiPicker(false)}
-              />
-            )}
           </div>
+          {showEmojiPicker && (
+            <InlineEmojiPicker
+              onSelect={handleEmojiSelect}
+              onClose={() => setShowEmojiPicker(false)}
+              anchorRef={emojiButtonRef}
+            />
+          )}
 
           {/* Right side: Send button */}
           <button

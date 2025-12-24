@@ -33,7 +33,7 @@ export const isCommentModeAtom = atom<boolean>(false);
  * Filter and sort settings for the comments sidebar
  */
 export const commentFiltersAtom = atom<ThreadFilters>({
-  resolved: undefined, // undefined = show all
+  resolved: false, // false = show all, true = show only resolved
   sort: "date",
   search: "",
 });
@@ -116,7 +116,7 @@ export const updateCommentFiltersAtom = atom(
  */
 export const resetCommentFiltersAtom = atom(null, (_get, set) => {
   set(commentFiltersAtom, {
-    resolved: undefined,
+    resolved: false,
     sort: "date",
     search: "",
   });

@@ -6,6 +6,7 @@ import { newEmbeddableElement, newImageElement } from "@excalidraw/element";
 
 import { t, type TranslationKeys } from "@excalidraw/excalidraw/i18n";
 import { searchIcon } from "@excalidraw/excalidraw/components/icons";
+import { TextField } from "@excalidraw/excalidraw/components/TextField";
 
 import type { FileId } from "@excalidraw/element/types";
 
@@ -194,9 +195,8 @@ export const StickersPanel: React.FC<StickersPanelProps> = ({
 
   // Debounced search
   const handleSearchChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const query = e.target.value;
-      setSearchQuery(query);
+    (value: string) => {
+      setSearchQuery(value);
 
       // Clear previous timeout
       if (searchTimeoutRef.current) {
@@ -206,9 +206,9 @@ export const StickersPanel: React.FC<StickersPanelProps> = ({
       // Debounce search
       searchTimeoutRef.current = setTimeout(() => {
         if (isStaticTab) {
-          loadTwemojiContent(query, selectedEmojiGroup);
+          loadTwemojiContent(value, selectedEmojiGroup);
         } else {
-          loadGiphyContent(query, activeTab as ContentType);
+          loadGiphyContent(value, activeTab as ContentType);
         }
       }, 300);
     },
@@ -724,16 +724,17 @@ export const StickersPanel: React.FC<StickersPanelProps> = ({
 
   return (
     <div className={styles.panel} onWheel={(e) => e.stopPropagation()}>
-      {/* Search input */}
-      <div className={styles.search}>
-        <span className={styles.searchIcon}>{searchIcon}</span>
-        <input
+      {/* Search input using TextField component */}
+      <div className={styles.searchWrapper}>
+        <TextField
           ref={searchInputRef}
-          type="text"
-          className={styles.searchInput}
-          placeholder={t("stickers.search")}
           value={searchQuery}
+          placeholder={t("stickers.search")}
+          icon={searchIcon}
           onChange={handleSearchChange}
+          onKeyDown={(e) => e.stopPropagation()}
+          fullWidth
+          type="search"
         />
       </div>
 

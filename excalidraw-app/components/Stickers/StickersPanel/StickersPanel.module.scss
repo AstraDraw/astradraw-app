@@ -12,37 +12,27 @@
   overflow: hidden;
 }
 
-// Search input container
-.search {
+// Search input (using TextField component, matching Search tab pattern)
+.searchWrapper {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 16px;
+  padding: 8px 12px;
   border-bottom: 1px solid var(--default-border-color, #e5e5e5);
-}
 
-.searchIcon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-secondary-color, #6b6b6b);
-
-  svg {
-    width: 18px;
-    height: 18px;
+  // Override TextField styles to match Search tab
+  :global(.ExcTextField) {
+    flex: 1 0 auto;
   }
-}
 
-.searchInput {
-  flex: 1;
-  border: none;
-  background: transparent;
-  font-size: 14px;
-  color: var(--text-primary-color, #1b1b1f);
-  outline: none;
+  :global(.ExcTextField__input) {
+    background-color: #f5f5f9;
+    border-radius: var(--border-radius-md);
+    border: 0;
 
-  &::placeholder {
-    color: var(--text-secondary-color, #6b6b6b);
+    input::placeholder {
+      font-size: 0.9rem;
+    }
   }
 }
 
@@ -322,6 +312,14 @@
 
 // Dark theme adjustments
 @include dark-mode {
+  .searchWrapper {
+    border-bottom-color: var(--default-border-color, #3a3a3a);
+
+    :global(.ExcTextField__input) {
+      background-color: #31303b;
+    }
+  }
+
   .item {
     background: rgba(255, 255, 255, 0.05);
   }

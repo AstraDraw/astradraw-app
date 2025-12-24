@@ -144,29 +144,40 @@
   }
 }
 
-// Sections
+// Sections - two-column layout matching WorkspaceSettingsPage
 .section {
-  margin-bottom: 40px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 32px;
+  margin-bottom: 32px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid var(--default-border-color, #e5e5e5);
+
+  &:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
 }
 
 .sectionHeader {
+  flex: 0 0 200px; // Fixed width for label column (matches sectionTitle width in WorkspaceSettingsPage)
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
+  flex-direction: column;
+  gap: 0;
 }
 
 .sectionTitle {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
-  color: var(--color-primary, #6965db);
-  margin: 0 0 16px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  color: var(--text-primary-color, #1b1b1f);
+  margin: 0;
+  line-height: 1.4;
+}
 
-  .sectionHeader & {
-    margin-bottom: 0;
-  }
+.sectionContent {
+  flex: 1; // Right column - takes remaining space
+  min-width: 0; // Allow content to shrink
 }
 
 // Table layout

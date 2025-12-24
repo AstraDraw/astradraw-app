@@ -65,6 +65,10 @@
 
 // Sections
 .section {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 32px;
   margin-bottom: 32px;
   padding-bottom: 32px;
   border-bottom: 1px solid var(--default-border-color, #e5e5e5);
@@ -75,24 +79,33 @@
   }
 }
 
+.sectionTitle {
+  flex: 0 0 200px; // Fixed width for label column
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary-color, #1b1b1f);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.sectionContent {
+  flex: 1;
+  min-width: 0; // Allow content to shrink
+}
+
 .sectionDanger {
-  composes: section;
-  background: rgba(220, 38, 38, 0.05);
-  margin: 32px -24px 0;
-  padding: 24px;
-  border-radius: 12px;
+  display: block; // Not using flex layout, stack vertically
+  background: transparent;
+  margin: 32px 0 0;
+  padding: 24px 0 0;
+  border-radius: 0;
+  border: none;
   border-bottom: none;
 
   .sectionTitle {
     color: var(--color-danger, #dc2626);
+    margin-bottom: 24px; // Space below the "Danger Zone" title
   }
-}
-
-.sectionTitle {
-  margin: 0 0 16px;
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--color-primary, #6965db);
 }
 
 // Avatar section
@@ -250,28 +263,41 @@
   gap: 8px;
 }
 
-// Danger zone
+// Danger zone item - uses two-column layout like other sections
 .dangerItem {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 24px;
+  gap: 32px; // Match section gap
 }
 
 .dangerInfo {
-  flex: 1;
+  flex: 0 0 200px; // Same as sectionTitle width - left column
 
   h3 {
     font-size: 15px;
     font-weight: 600;
     color: var(--text-primary-color, #1b1b1f);
-    margin: 0 0 4px;
+    margin: 0;
+    line-height: 1.4;
   }
+
+  p {
+    display: none; // Hide the description paragraph, it will go in dangerContent
+  }
+}
+
+.dangerContent {
+  flex: 1; // Right column - takes remaining space
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 
   p {
     font-size: 14px;
     color: var(--text-secondary-color, #6b6b6b);
     margin: 0;
+    line-height: 1.5;
   }
 }
 
@@ -356,7 +382,8 @@
   }
 
   .sectionDanger {
-    background: rgba(239, 68, 68, 0.1);
+    background: transparent; // No background in dark mode either
+    border: none; // No border
   }
 
   .field {
@@ -431,7 +458,7 @@
   }
 
   .sectionDanger {
-    margin: 32px -16px 0;
-    padding: 24px 16px;
+    margin: 32px 0 0;
+    padding: 16px;
   }
 }

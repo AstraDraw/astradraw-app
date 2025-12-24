@@ -7,6 +7,7 @@
 
 import { useRef, useEffect, useCallback, useState } from "react";
 import { sceneCoordsToViewportCoords } from "@excalidraw/common";
+import { t } from "@excalidraw/excalidraw/i18n";
 
 import type {
   AppState,
@@ -43,6 +44,10 @@ export interface ThreadPopupProps {
 /**
  * Calculates popup position based on thread position
  * Positions popup to the right of the marker
+ *
+ * Note: We subtract offsetLeft/offsetTop to position relative to the canvas
+ * container rather than the viewport. This fixes popup position when the
+ * left workspace sidebar is open (which changes the canvas container offset).
  */
 function getPopupPosition(
   thread: CommentThread,
@@ -53,9 +58,10 @@ function getPopupPosition(
     appState,
   );
   // Position popup to the right and slightly above the marker
+  // Subtract offsets to position relative to canvas container
   return {
-    x: markerPos.x + 20,
-    y: markerPos.y - 16,
+    x: markerPos.x - appState.offsetLeft + 20,
+    y: markerPos.y - appState.offsetTop - 16,
   };
 }
 
@@ -252,17 +258,20 @@ export function ThreadPopup({
         ))}
       </div>
 
-      <CommentInput
-        onSubmit={handleReply}
-        isSubmitting={isAddingComment}
-        workspaceId={workspaceId}
-        placeholder="Reply, @mention someone..."
-      />
+      {/* Only show input if thread is not resolved */}
+      {!thread.resolved && (
+        <CommentInput
+          onSubmit={handleReply}
+          isSubmitting={isAddingComment}
+          workspaceId={workspaceId}
+          placeholder="Reply, @mention someone..."
+        />
+      )}
 
       {thread.resolved && (
         <div className={styles.resolvedBanner}>
           <span className={styles.checkIcon}>✓</span>
-          This thread was resolved
+          {t("comments.threadResolved")}
         </div>
       )}
     </div>
