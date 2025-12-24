@@ -305,6 +305,8 @@ export type InteractiveCanvasAppState = Readonly<
     frameRendering: AppState["frameRendering"];
     shouldCacheIgnoreZoom: AppState["shouldCacheIgnoreZoom"];
     exportScale: AppState["exportScale"];
+    // Comment markers for canvas rendering
+    commentMarkers: AppState["commentMarkers"];
   }
 >;
 
@@ -537,6 +539,10 @@ export interface AppState {
   // Presentation Mode State
   /** Presentation mode state - null when not in presentation mode */
   presentationMode: PresentationModeState | null;
+
+  // Comment Markers State
+  /** Comment markers for canvas rendering - managed by ThreadMarkersLayer */
+  commentMarkers: CommentMarker[];
 }
 
 /**
@@ -559,6 +565,27 @@ export interface PresentationModeState {
     clip: boolean;
   };
   // Note: Laser is now implicit in presentation mode - any pointer draws laser trail
+}
+
+/**
+ * Comment marker for canvas rendering
+ * Used by the comment system to render thread markers directly on the canvas
+ */
+export interface CommentMarker {
+  /** Thread ID */
+  id: string;
+  /** Scene X coordinate */
+  x: number;
+  /** Scene Y coordinate */
+  y: number;
+  /** Whether the thread is resolved */
+  resolved: boolean;
+  /** Whether this marker is currently selected */
+  selected: boolean;
+  /** First letter of author's name for avatar fallback */
+  authorInitial: string;
+  /** Author's avatar URL (optional) */
+  authorAvatar?: string;
 }
 
 export type SearchMatch = {

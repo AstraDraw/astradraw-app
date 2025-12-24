@@ -77,7 +77,11 @@ import {
   type InteractiveCanvasAppState,
 } from "../types";
 
-import { getClientColor, renderRemoteCursors } from "../clients";
+import {
+  getClientColor,
+  renderCommentMarkers,
+  renderRemoteCursors,
+} from "../clients";
 
 import {
   bootstrapCanvas,
@@ -1553,6 +1557,17 @@ const _renderInteractiveScene = ({
     normalizedWidth,
     normalizedHeight,
   });
+
+  // Render comment markers (if any)
+  if (renderConfig.commentMarkers?.length) {
+    renderCommentMarkers({
+      context,
+      appState,
+      markers: renderConfig.commentMarkers,
+      normalizedWidth,
+      normalizedHeight,
+    });
+  }
 
   // Paint scrollbars
   let scrollBars;

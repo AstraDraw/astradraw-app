@@ -11,6 +11,7 @@ import { roundRect } from "./renderer/roundRect";
 import type { InteractiveCanvasRenderConfig } from "./scene/types";
 import type {
   Collaborator,
+  CommentMarker,
   InteractiveCanvasAppState,
   SocketId,
 } from "./types";
@@ -259,3 +260,186 @@ export const renderRemoteCursors = ({
     context.closePath();
   }
 };
+
+/**
+ * Renders comment markers on the interactive canvas.
+ * Draws a teardrop/pin shape with the tip pointing down-left.
+ * Follows the same pattern as renderRemoteCursors for consistency.
+ */
+export const renderCommentMarkers = ({
+  context,
+  appState,
+  markers,
+  normalizedWidth,
+  normalizedHeight,
+}: {
+  context: CanvasRenderingContext2D;
+  appState: InteractiveCanvasAppState;
+  markers: CommentMarker[];
+  normalizedWidth: number;
+  normalizedHeight: number;
+}) => {
+  // Pin dimensions (matches ThreadMarker.module.scss)
+  const PIN_SIZE = 32;
+  const AVATAR_SIZE = 24;
+
+  for (const marker of markers) {
+    // Skip resolved markers
+    if (marker.resolved) {
+      continue;
+    }
+
+    // Convert scene coordinates to container-relative coordinates
+    // The canvas is already positioned within the container, so no offset needed
+    const x = (marker.x + appState.scrollX) * appState.zoom.value;
+    const y = (marker.y + appState.scrollY) * appState.zoom.value;
+
+    // Skip if outside viewport (with padding for marker size)
+    if (
+      x < -PIN_SIZE * 2 ||
+      x > normalizedWidth + PIN_SIZE ||
+      y < -PIN_SIZE * 2 ||
+      y > normalizedHeight + PIN_SIZE
+    ) {
+      continue;
+    }
+
+    context.save();
+
+    const isSelected = marker.selected;
+    const isDark = appState.theme === THEME.DARK;
+
+    // Pin colors (matches CSS variables)
+    const pinBgColor = isSelected
+      ? "#6965db" // --color-primary when selected
+      : isDark
+        ? "#3d3d42" // --color-surface-high dark
+        : "#f5f5f5"; // --color-surface-low light
+
+    // The marker coordinate (x, y) is where the pin TIP should be
+    // The pin is drawn with CSS: transform: rotate(-45deg)
+    // and margin-left: -16px, margin-top: -32px
+    //
+    // To replicate this:
+    // 1. Translate to marker position
+    // 2. Apply the same offsets as CSS (center horizontally, pin tip at bottom)
+    // 3. Rotate -45° around the center of the pin
+
+    const pinCenterX = x;
+    const pinCenterY = y - PIN_SIZE * 0.7; // Offset so tip points to marker coords
+
+    context.translate(pinCenterX, pinCenterY);
+    context.rotate((-45 * Math.PI) / 180);
+
+    // Draw pin shadow
+    context.shadowColor = "rgba(0, 0, 0, 0.15)";
+    context.shadowBlur = 4;
+    context.shadowOffsetX = 0;
+    context.shadowOffsetY = 2;
+
+    // Draw pin shape - teardrop with asymmetric border-radius
+    // CSS: border-radius: 66px 67px 67px 0
+    // This means: top-left, top-right, bottom-right are rounded; bottom-left is sharp
+    context.beginPath();
+    drawTeardropPin(context, -PIN_SIZE / 2, -PIN_SIZE / 2, PIN_SIZE);
+    context.fillStyle = pinBgColor;
+    context.fill();
+
+    // Reset shadow for the rest
+    context.shadowColor = "transparent";
+    context.shadowBlur = 0;
+
+    // Selection ring
+    if (isSelected) {
+      context.strokeStyle = "#a5b4fc";
+      context.lineWidth = 3;
+      context.beginPath();
+      drawTeardropPin(context, -PIN_SIZE / 2 - 2, -PIN_SIZE / 2 - 2, PIN_SIZE + 4);
+      context.stroke();
+    }
+
+    // Draw avatar circle
+    // Avatar background
+    context.beginPath();
+    context.arc(0, 0, AVATAR_SIZE / 2, 0, 2 * Math.PI);
+
+    // Avatar border
+    context.strokeStyle = isDark ? "#232329" : "#ffffff";
+    context.lineWidth = 2;
+    context.stroke();
+
+    // Avatar fill
+    const avatarBgColor = isSelected
+      ? isDark
+        ? "#232329"
+        : "#ffffff"
+      : isDark
+        ? "#4a47a3"
+        : "#e8e7f8";
+    context.fillStyle = avatarBgColor;
+    context.fill();
+
+    // Draw initial text (counter-rotated to stay upright)
+    context.save();
+    context.rotate((45 * Math.PI) / 180); // Counter-rotate
+
+    const textColor = isSelected
+      ? isDark
+        ? "#e8e7f8"
+        : "#6965db"
+      : isDark
+        ? "#e8e7f8"
+        : "#6965db";
+    context.fillStyle = textColor;
+    context.font = "600 12px -apple-system, BlinkMacSystemFont, sans-serif";
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+    context.fillText(marker.authorInitial, 0, 0);
+
+    context.restore(); // Restore from text rotation
+    context.restore(); // Restore from main transform
+  }
+};
+
+/**
+ * Draws a teardrop pin shape (rounded rectangle with one sharp corner).
+ * CSS border-radius: 66px 67px 67px 0 means:
+ * - top-left: rounded
+ * - top-right: rounded
+ * - bottom-right: rounded
+ * - bottom-left: SHARP (this is the pin tip)
+ */
+function drawTeardropPin(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  size: number,
+) {
+  const radius = size * 0.5; // Large radius for rounded corners (66px on 32px = ~50%)
+
+  // Start at bottom-left (sharp corner / pin tip)
+  ctx.moveTo(x, y + size);
+
+  // Left edge up to where top-left curve starts
+  ctx.lineTo(x, y + radius);
+
+  // Top-left rounded corner
+  ctx.arcTo(x, y, x + radius, y, radius);
+
+  // Top edge
+  ctx.lineTo(x + size - radius, y);
+
+  // Top-right rounded corner
+  ctx.arcTo(x + size, y, x + size, y + radius, radius);
+
+  // Right edge down to where bottom-right curve starts
+  ctx.lineTo(x + size, y + size - radius);
+
+  // Bottom-right rounded corner
+  ctx.arcTo(x + size, y + size, x + size - radius, y + size, radius);
+
+  // Bottom edge back to sharp corner
+  ctx.lineTo(x, y + size);
+
+  ctx.closePath();
+}

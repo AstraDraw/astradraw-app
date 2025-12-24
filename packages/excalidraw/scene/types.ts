@@ -11,6 +11,7 @@ import type { MakeBrand } from "@excalidraw/common/utility-types";
 import type {
   AppClassProperties,
   AppState,
+  CommentMarker,
   EmbedsValidationStatus,
   ElementsPendingErasure,
   InteractiveCanvasAppState,
@@ -69,6 +70,9 @@ export type InteractiveCanvasRenderConfig = {
   // extra options passed to the renderer
   // ---------------------------------------------------------------------------
   renderScrollbars?: boolean;
+  // comment markers for canvas rendering
+  // ---------------------------------------------------------------------------
+  commentMarkers?: CommentMarker[];
 };
 
 export type RenderInteractiveSceneCallback = {

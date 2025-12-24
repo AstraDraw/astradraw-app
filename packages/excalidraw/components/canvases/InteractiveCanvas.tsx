@@ -159,6 +159,8 @@ const InteractiveCanvas = (props: InteractiveCanvasProps) => {
         renderScrollbars: props.renderScrollbars,
         // NOTE not memoized on so we don't rerender on cursor move
         lastViewportPosition: props.app.lastViewportPosition,
+        // Comment markers for canvas rendering
+        commentMarkers: props.appState.commentMarkers,
       },
       editorInterface: props.editorInterface,
       callback: props.renderInteractiveSceneCallback,
@@ -262,6 +264,7 @@ const getRelevantAppStateProps = (
   frameRendering: appState.frameRendering,
   shouldCacheIgnoreZoom: appState.shouldCacheIgnoreZoom,
   exportScale: appState.exportScale,
+  commentMarkers: appState.commentMarkers,
 });
 
 const areEqual = (

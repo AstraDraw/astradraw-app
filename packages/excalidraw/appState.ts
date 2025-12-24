@@ -135,6 +135,8 @@ export const getDefaultAppState = (): Omit<
     customPens: [],
     // Presentation Mode State
     presentationMode: null,
+    // Comment Markers State
+    commentMarkers: [],
   };
 };
 
@@ -268,6 +270,8 @@ const APP_STATE_STORAGE_CONF = (<
   customPens: { browser: true, export: false, server: false },
   // Presentation Mode State - never stored (transient UI state)
   presentationMode: { browser: false, export: false, server: false },
+  // Comment Markers State - never stored (managed by ThreadMarkersLayer)
+  commentMarkers: { browser: false, export: false, server: false },
 });
 
 const _clearAppStateForStorage = <

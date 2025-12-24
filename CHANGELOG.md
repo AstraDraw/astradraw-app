@@ -9,6 +9,25 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.82] - 2025-12-24
+
+### Added
+
+- **Fork Architecture Refactoring - Phase 3: Native Comment Markers**
+  - Added `CommentMarker` interface to `packages/excalidraw/types.ts`
+  - Added `commentMarkers` to `AppState` and `InteractiveCanvasAppState`
+  - Created `renderCommentMarkers()` in `packages/excalidraw/clients.ts`
+  - Canvas-rendered markers eliminate position lag during pan/zoom
+  - Markers rendered in same frame as canvas (no DOM update delay)
+
+### Changed
+
+- **ThreadMarkersLayer** transformed from DOM renderer to data provider
+  - Now writes marker data to `appState.commentMarkers` via `updateScene()`
+  - Invisible hit targets preserved for click/drag interaction
+  - Canvas handles visual rendering via `renderCommentMarkers()`
+  - Automatic offset handling (sidebar open/close) via canvas render pipeline
+
 ## [0.18.0-beta0.81] - 2025-12-24
 
 ### Added
