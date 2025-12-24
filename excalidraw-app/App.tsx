@@ -162,6 +162,7 @@ import {
   isPrivateCollectionAtom,
   isAutoCollabSceneAtom,
   logoutSignalAtom,
+  isLoggingOutAtom,
   quickSearchOpenAtom,
   workspaceSidebarOpenAtom,
   openWorkspaceSidebarAtom,
@@ -465,6 +466,8 @@ const ExcalidrawWrapper = () => {
 
   // Logout signal - used to reset the canvas when user logs out
   const logoutSignal = useAtomValue(logoutSignalAtom);
+  // Logout in progress flag - prevents autosave from saving empty canvas
+  const isLoggingOut = useAtomValue(isLoggingOutAtom);
 
   // Quick Search modal state
   const setQuickSearchOpen = useSetAtom(quickSearchOpenAtom);
@@ -568,11 +571,12 @@ const ExcalidrawWrapper = () => {
     handleSaveRetry,
     markUnsaved,
     initializeWithLoadedData,
-    saveImmediately,
+    // saveImmediately - available but not currently used
   } = useAutoSave({
     currentSceneId,
     excalidrawAPI,
     isCollaborating,
+    isLoggingOut,
   });
 
   // Setter for selected thread (for deep links)
@@ -706,23 +710,42 @@ const ExcalidrawWrapper = () => {
     wasAuthenticated.current = isAuthenticated;
   }, [isAuthenticated, openWorkspaceSidebar]);
 
-  // Reset canvas when user logs out
+  // Clear canvas visually when user logs out
   // This prevents private scene content from being visible on the anonymous screen
+  // IMPORTANT: We use updateScene() NOT resetScene() to avoid triggering saves
   const logoutSignalRef = useRef(logoutSignal);
   useEffect(() => {
     // Skip initial render (logoutSignal starts at 0)
     if (logoutSignal > 0 && logoutSignal !== logoutSignalRef.current) {
       logoutSignalRef.current = logoutSignal;
-      // Reset the canvas to clear any private content
+
+      // Stop any active collaboration FIRST (without saving - user is logging out)
+      if (collabAPI?.isCollaborating()) {
+        // Pass empty array to prevent saving current elements
+        collabAPI.stopCollaboration(false, []);
+      }
+
+      // Clear the canvas visually without triggering autosave
+      // updateScene with empty elements just clears the display
+      // resetScene() would trigger onChange which could save empty data
       if (excalidrawAPI) {
-        excalidrawAPI.resetScene();
+        excalidrawAPI.updateScene({
+          elements: [],
+          appState: {
+            // Reset to default state for anonymous user
+            collaborators: new Map(),
+          },
+          captureUpdate: CaptureUpdateAction.NEVER, // Don't capture this as a change
+        });
         // Navigate to root URL
         window.history.pushState({}, "", "/");
       }
-      // Stop any active collaboration
-      if (collabAPI?.isCollaborating()) {
-        collabAPI.stopCollaboration(false);
-      }
+
+      // Clear logout flag after canvas is cleared
+      // Use setTimeout to ensure it happens after any pending onChange handlers
+      setTimeout(() => {
+        appJotaiStore.set(isLoggingOutAtom, false);
+      }, 0);
     }
   }, [logoutSignal, excalidrawAPI, collabAPI]);
 
@@ -1240,6 +1263,7 @@ const ExcalidrawWrapper = () => {
     initializeWithLoadedData,
     loadSceneRef,
     currentSceneIdRef,
+    setActiveCollectionId,
   ]);
 
   // =========================================================================
@@ -1249,6 +1273,14 @@ const ExcalidrawWrapper = () => {
   useEffect(() => {
     const unloadHandler = (event: BeforeUnloadEvent) => {
       LocalData.flushSave();
+
+      // Don't show "unsaved changes" warning during logout or when in dashboard mode
+      // - During logout: we're intentionally clearing the canvas
+      // - In dashboard mode: canvas is hidden, user isn't actively editing
+      const currentIsLoggingOut = appJotaiStore.get(isLoggingOutAtom);
+      if (currentIsLoggingOut || appMode === "dashboard") {
+        return;
+      }
 
       if (
         currentSceneId &&
@@ -1278,7 +1310,7 @@ const ExcalidrawWrapper = () => {
     return () => {
       window.removeEventListener(EVENT.BEFORE_UNLOAD, unloadHandler);
     };
-  }, [excalidrawAPI, currentSceneId, saveStatus]);
+  }, [excalidrawAPI, currentSceneId, saveStatus, appMode]);
 
   // =========================================================================
   // onChange handler
@@ -1324,7 +1356,9 @@ const ExcalidrawWrapper = () => {
     }
 
     // Mark as having unsaved changes for auto-save
-    if (currentSceneId && !collabAPI?.isCollaborating()) {
+    // Skip during logout to prevent saving empty canvas data
+    const isLoggingOut = appJotaiStore.get(isLoggingOutAtom);
+    if (currentSceneId && !collabAPI?.isCollaborating() && !isLoggingOut) {
       const currentFiles = excalidrawAPI?.getFiles() || {};
       const currentData = JSON.stringify({
         type: "excalidraw",
@@ -1544,6 +1578,8 @@ const ExcalidrawWrapper = () => {
       setCurrentSceneTitle,
       setIsAutoCollabScene,
       openWorkspaceSidebar,
+      isCreatingScene,
+      setAppMode,
     ],
   );
 

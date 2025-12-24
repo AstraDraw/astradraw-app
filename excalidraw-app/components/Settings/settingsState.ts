@@ -401,11 +401,21 @@ export const activeCollectionAtom = atom<CollectionData | null>((get) => {
 export const logoutSignalAtom = atom(0);
 
 /**
+ * Flag to indicate logout is in progress
+ * Used to prevent autosave from saving empty canvas data during logout
+ * Set to true before clearing workspace data, cleared after canvas is reset
+ */
+export const isLoggingOutAtom = atom(false);
+
+/**
  * Action atom to clear workspace data and signal logout
  * This clears all workspace state and increments the logout signal
  * Components like App.tsx should subscribe to logoutSignalAtom to reset the canvas
  */
 export const clearWorkspaceDataAtom = atom(null, (get, set) => {
+  // Set logout flag FIRST to prevent autosave from saving empty canvas
+  set(isLoggingOutAtom, true);
+
   set(workspacesAtom, []);
   set(currentWorkspaceAtom, null);
   set(collectionsAtom, []);

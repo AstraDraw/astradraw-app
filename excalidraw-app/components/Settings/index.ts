@@ -44,6 +44,7 @@ export {
   activeCollectionAtom,
   clearWorkspaceDataAtom,
   logoutSignalAtom,
+  isLoggingOutAtom,
   type AppMode,
   type SidebarMode,
   type DashboardView,

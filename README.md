@@ -19,12 +19,15 @@ Self-hosted Excalidraw frontend with user workspaces, video recordings, presenta
 ### AstraDraw Extensions
 
 - 👤 **User Authentication** - Local accounts and OIDC/SSO support
-- 📁 **Personal Workspaces** - Save, organize, and sync scenes
+- 📁 **Workspaces** - Personal and shared workspaces with teams and collections
+- 💬 **Comments** - Threaded canvas comments with @mentions and real-time sync
+- 🔔 **Notifications** - In-app notifications for mentions and comments
 - 🎬 **Talktrack** - Record canvas walkthroughs with camera PIP
-- 📽️ **Presentation Mode** - Use frames as slides with laser pointer
+- 📽️ **Presentation Mode** - Use frames as slides with implicit laser pointer
 - 🖊️ **Custom Pens** - Highlighter, fountain, marker presets
 - 🎭 **Stickers & GIFs** - GIPHY integration
 - 📚 **Pre-bundled Libraries** - Team-wide shape collections
+- 🔍 **Quick Search** - Cmd+K to search scenes across workspaces
 
 ## Quick Start
 
@@ -101,15 +104,19 @@ Full documentation is in the main [astradraw](https://github.com/astrateam-net/a
 frontend/
 ├── excalidraw-app/           # AstraDraw application
 │   ├── components/           # React components
-│   │   ├── Workspace/        # Scene management, auth
+│   │   ├── Workspace/        # Scene management, dashboard, auth
+│   │   ├── Comments/         # Threaded comments with markers
+│   │   ├── Settings/         # User profile, preferences, Jotai atoms
 │   │   ├── Talktrack/        # Video recording
 │   │   ├── Presentation/     # Slideshow mode
 │   │   └── Stickers/         # GIPHY integration
+│   ├── hooks/                # React Query + custom hooks
 │   ├── pens/                 # Custom pen presets
-│   ├── auth/                 # Auth context and API
+│   ├── auth/                 # Auth context and API client
+│   ├── collab/               # Real-time collaboration
 │   └── data/                 # Storage backends
 ├── packages/
-│   ├── excalidraw/           # Core React component
+│   ├── excalidraw/           # Core React component (AstraDraw fork)
 │   ├── common/               # Shared utilities
 │   ├── element/              # Element types
 │   ├── math/                 # Math utilities

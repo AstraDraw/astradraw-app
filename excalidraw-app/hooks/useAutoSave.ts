@@ -23,6 +23,8 @@ export interface UseAutoSaveOptions {
   currentSceneId: string | null;
   excalidrawAPI: ExcalidrawImperativeAPI | null;
   isCollaborating: boolean;
+  /** Flag to indicate logout is in progress - prevents saving empty canvas */
+  isLoggingOut?: boolean;
 }
 
 export interface UseAutoSaveReturn {
@@ -48,6 +50,7 @@ export function useAutoSave({
   currentSceneId,
   excalidrawAPI,
   isCollaborating,
+  isLoggingOut = false,
 }: UseAutoSaveOptions): UseAutoSaveReturn {
   // Save status state machine
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("saved");
@@ -71,7 +74,8 @@ export function useAutoSave({
 
   // Core save function
   const performSave = useCallback(async (): Promise<boolean> => {
-    if (!currentSceneId || !excalidrawAPI) {
+    // Skip save during logout to prevent saving empty canvas
+    if (!currentSceneId || !excalidrawAPI || isLoggingOut) {
       return false;
     }
 
@@ -136,7 +140,7 @@ export function useAutoSave({
       setSaveStatus("error");
       return false;
     }
-  }, [currentSceneId, excalidrawAPI]);
+  }, [currentSceneId, excalidrawAPI, isLoggingOut]);
 
   // Immediate save function - bypasses debounce, used before navigation
   const saveImmediately = useCallback(async (): Promise<boolean> => {

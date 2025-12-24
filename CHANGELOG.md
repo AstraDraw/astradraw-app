@@ -9,6 +9,16 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.83] - 2025-12-25
+
+### Fixed
+
+- **Logout autosave race condition (AUTH-002)**: Scene data was being lost after logout because autosave saved empty canvas to backend. Added `isLoggingOutAtom` flag to prevent autosave during logout with defense in depth at multiple levels (onChange handler + useAutoSave hook).
+
+- **"Leave site?" warning during logout**: Browser's beforeunload warning no longer appears when logging out or navigating while in dashboard mode.
+
+- **ESLint warnings in App.tsx**: Fixed missing React Hook dependencies (`setActiveCollectionId`, `isCreatingScene`, `setAppMode`) and removed unused `saveImmediately` destructuring.
+
 ## [0.18.0-beta0.82] - 2025-12-24
 
 ### Added
