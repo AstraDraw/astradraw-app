@@ -261,9 +261,42 @@ export const renderRemoteCursors = ({
   }
 };
 
+// Cache for loaded avatar images
+const avatarImageCache = new Map<string, HTMLImageElement | "loading" | "error">();
+
+/**
+ * Loads an avatar image and caches it.
+ * Returns the image if already loaded, null if loading/error.
+ */
+function getAvatarImage(url: string): HTMLImageElement | null {
+  const cached = avatarImageCache.get(url);
+
+  if (cached === "loading" || cached === "error") {
+    return null;
+  }
+
+  if (cached instanceof HTMLImageElement) {
+    return cached;
+  }
+
+  // Start loading
+  avatarImageCache.set(url, "loading");
+  const img = new Image();
+  img.crossOrigin = "anonymous";
+  img.onload = () => {
+    avatarImageCache.set(url, img);
+  };
+  img.onerror = () => {
+    avatarImageCache.set(url, "error");
+  };
+  img.src = url;
+
+  return null;
+}
+
 /**
  * Renders comment markers on the interactive canvas.
- * Draws a teardrop/pin shape with the tip pointing down-left.
+ * Draws a teardrop/pin shape with avatar stack inside.
  * Follows the same pattern as renderRemoteCursors for consistency.
  */
 export const renderCommentMarkers = ({
@@ -279,9 +312,11 @@ export const renderCommentMarkers = ({
   normalizedWidth: number;
   normalizedHeight: number;
 }) => {
-  // Pin dimensions (matches ThreadMarker.module.scss)
-  const PIN_SIZE = 32;
+  // Dimensions matching the CSS implementation
   const AVATAR_SIZE = 24;
+  const AVATAR_OVERLAP = 12; // margin-left: -12px in CSS
+  const PADDING = 2; // p-0.5 = 2px
+  const MAX_AVATARS = 3; // Limit visible avatars
 
   for (const marker of markers) {
     // Skip resolved markers
@@ -290,16 +325,25 @@ export const renderCommentMarkers = ({
     }
 
     // Convert scene coordinates to container-relative coordinates
-    // The canvas is already positioned within the container, so no offset needed
     const x = (marker.x + appState.scrollX) * appState.zoom.value;
     const y = (marker.y + appState.scrollY) * appState.zoom.value;
 
-    // Skip if outside viewport (with padding for marker size)
+    // Calculate pin dimensions based on number of participants
+    const participantCount = Math.min(
+      marker.participants.length,
+      MAX_AVATARS,
+    );
+    const avatarsWidth =
+      AVATAR_SIZE + (participantCount - 1) * (AVATAR_SIZE - AVATAR_OVERLAP);
+    const pinWidth = avatarsWidth + PADDING * 2;
+    const pinHeight = AVATAR_SIZE + PADDING * 2;
+
+    // Skip if outside viewport
     if (
-      x < -PIN_SIZE * 2 ||
-      x > normalizedWidth + PIN_SIZE ||
-      y < -PIN_SIZE * 2 ||
-      y > normalizedHeight + PIN_SIZE
+      x < -pinWidth * 2 ||
+      x > normalizedWidth + pinWidth ||
+      y < -pinHeight * 2 ||
+      y > normalizedHeight + pinHeight
     ) {
       continue;
     }
@@ -309,94 +353,128 @@ export const renderCommentMarkers = ({
     const isSelected = marker.selected;
     const isDark = appState.theme === THEME.DARK;
 
-    // Pin colors (matches CSS variables)
+    // Pin colors (matches CSS: bg-surface-low-for-dropdown)
     const pinBgColor = isSelected
-      ? "#6965db" // --color-primary when selected
+      ? "#6965db"
       : isDark
-        ? "#3d3d42" // --color-surface-high dark
-        : "#f5f5f5"; // --color-surface-low light
+        ? "#3d3d42"
+        : "#f8f9fa";
 
-    // The marker coordinate (x, y) is where the pin TIP should be
-    // The pin is drawn with CSS: transform: rotate(-45deg)
-    // and margin-left: -16px, margin-top: -32px
+    // The marker coordinate (x, y) is where the pin TIP (bottom-left corner) should be
+    // CSS: border-radius: 66px 67px 67px 0 (tl, tr, br, bl) - bl is sharp
+    // CSS: transform: rotate(-45deg)
     //
-    // To replicate this:
-    // 1. Translate to marker position
-    // 2. Apply the same offsets as CSS (center horizontally, pin tip at bottom)
-    // 3. Rotate -45° around the center of the pin
+    // After -45° rotation, the sharp bottom-left corner points down-left
 
-    const pinCenterX = x;
-    const pinCenterY = y - PIN_SIZE * 0.7; // Offset so tip points to marker coords
+    // Calculate pin position so the tip is at marker coords
+    // The pin center after rotation needs to be offset
+    const pinCenterX = x + pinWidth * 0.35;
+    const pinCenterY = y - pinHeight * 0.35;
 
     context.translate(pinCenterX, pinCenterY);
     context.rotate((-45 * Math.PI) / 180);
 
     // Draw pin shadow
-    context.shadowColor = "rgba(0, 0, 0, 0.15)";
+    context.shadowColor = "rgba(0, 0, 0, 0.1)";
     context.shadowBlur = 4;
     context.shadowOffsetX = 0;
     context.shadowOffsetY = 2;
 
     // Draw pin shape - teardrop with asymmetric border-radius
-    // CSS: border-radius: 66px 67px 67px 0
-    // This means: top-left, top-right, bottom-right are rounded; bottom-left is sharp
     context.beginPath();
-    drawTeardropPin(context, -PIN_SIZE / 2, -PIN_SIZE / 2, PIN_SIZE);
+    drawTeardropPin(context, -pinWidth / 2, -pinHeight / 2, pinWidth, pinHeight);
     context.fillStyle = pinBgColor;
     context.fill();
 
-    // Reset shadow for the rest
+    // Reset shadow
     context.shadowColor = "transparent";
     context.shadowBlur = 0;
 
     // Selection ring
     if (isSelected) {
       context.strokeStyle = "#a5b4fc";
-      context.lineWidth = 3;
+      context.lineWidth = 2;
       context.beginPath();
-      drawTeardropPin(context, -PIN_SIZE / 2 - 2, -PIN_SIZE / 2 - 2, PIN_SIZE + 4);
+      drawTeardropPin(
+        context,
+        -pinWidth / 2 - 2,
+        -pinHeight / 2 - 2,
+        pinWidth + 4,
+        pinHeight + 4,
+      );
       context.stroke();
     }
 
-    // Draw avatar circle
-    // Avatar background
-    context.beginPath();
-    context.arc(0, 0, AVATAR_SIZE / 2, 0, 2 * Math.PI);
-
-    // Avatar border
-    context.strokeStyle = isDark ? "#232329" : "#ffffff";
-    context.lineWidth = 2;
-    context.stroke();
-
-    // Avatar fill
-    const avatarBgColor = isSelected
-      ? isDark
-        ? "#232329"
-        : "#ffffff"
-      : isDark
-        ? "#4a47a3"
-        : "#e8e7f8";
-    context.fillStyle = avatarBgColor;
-    context.fill();
-
-    // Draw initial text (counter-rotated to stay upright)
+    // Draw avatars (counter-rotated to stay upright)
     context.save();
     context.rotate((45 * Math.PI) / 180); // Counter-rotate
 
-    const textColor = isSelected
-      ? isDark
-        ? "#e8e7f8"
-        : "#6965db"
-      : isDark
-        ? "#e8e7f8"
-        : "#6965db";
-    context.fillStyle = textColor;
-    context.font = "600 12px -apple-system, BlinkMacSystemFont, sans-serif";
-    context.textAlign = "center";
-    context.textBaseline = "middle";
-    context.fillText(marker.authorInitial, 0, 0);
+    // Calculate starting position for avatar stack
+    const startX = -avatarsWidth / 2 + AVATAR_SIZE / 2;
+    const avatarY = 0;
 
-    context.restore(); // Restore from text rotation
+    // Draw avatars in reverse order (last on top) then draw from right to left
+    const visibleParticipants = marker.participants.slice(0, MAX_AVATARS);
+
+    for (let i = visibleParticipants.length - 1; i >= 0; i--) {
+      const participant = visibleParticipants[i];
+      const avatarX = startX + i * (AVATAR_SIZE - AVATAR_OVERLAP);
+      const avatarRadius = AVATAR_SIZE / 2;
+
+      // Clip to circle for avatar
+      context.save();
+      context.beginPath();
+      context.arc(avatarX, avatarY, avatarRadius, 0, 2 * Math.PI);
+      context.clip();
+
+      // Try to draw avatar image
+      let drewImage = false;
+      if (participant.avatar) {
+        const img = getAvatarImage(participant.avatar);
+        if (img) {
+          context.drawImage(
+            img,
+            avatarX - avatarRadius,
+            avatarY - avatarRadius,
+            AVATAR_SIZE,
+            AVATAR_SIZE,
+          );
+          drewImage = true;
+        }
+      }
+
+      // Fallback: draw initial
+      if (!drewImage) {
+        // Background
+        const avatarBgColor = isDark ? "#4a47a3" : "#e8e7f8";
+        context.fillStyle = avatarBgColor;
+        context.fillRect(
+          avatarX - avatarRadius,
+          avatarY - avatarRadius,
+          AVATAR_SIZE,
+          AVATAR_SIZE,
+        );
+
+        // Initial letter
+        context.fillStyle = isDark ? "#e8e7f8" : "#6965db";
+        context.font = "600 12px -apple-system, BlinkMacSystemFont, sans-serif";
+        context.textAlign = "center";
+        context.textBaseline = "middle";
+        const initial = participant.name?.charAt(0).toUpperCase() || "?";
+        context.fillText(initial, avatarX, avatarY);
+      }
+
+      context.restore(); // Restore from clip
+
+      // Draw avatar border
+      context.beginPath();
+      context.arc(avatarX, avatarY, avatarRadius, 0, 2 * Math.PI);
+      context.strokeStyle = isDark ? "#232329" : "#ffffff";
+      context.lineWidth = 1;
+      context.stroke();
+    }
+
+    context.restore(); // Restore from counter-rotation
     context.restore(); // Restore from main transform
   }
 };
@@ -413,12 +491,14 @@ function drawTeardropPin(
   ctx: CanvasRenderingContext2D,
   x: number,
   y: number,
-  size: number,
+  width: number,
+  height: number,
 ) {
-  const radius = size * 0.5; // Large radius for rounded corners (66px on 32px = ~50%)
+  // Radius is based on the smaller dimension
+  const radius = Math.min(width, height) * 0.5;
 
   // Start at bottom-left (sharp corner / pin tip)
-  ctx.moveTo(x, y + size);
+  ctx.moveTo(x, y + height);
 
   // Left edge up to where top-left curve starts
   ctx.lineTo(x, y + radius);
@@ -427,19 +507,19 @@ function drawTeardropPin(
   ctx.arcTo(x, y, x + radius, y, radius);
 
   // Top edge
-  ctx.lineTo(x + size - radius, y);
+  ctx.lineTo(x + width - radius, y);
 
   // Top-right rounded corner
-  ctx.arcTo(x + size, y, x + size, y + radius, radius);
+  ctx.arcTo(x + width, y, x + width, y + radius, radius);
 
   // Right edge down to where bottom-right curve starts
-  ctx.lineTo(x + size, y + size - radius);
+  ctx.lineTo(x + width, y + height - radius);
 
   // Bottom-right rounded corner
-  ctx.arcTo(x + size, y + size, x + size - radius, y + size, radius);
+  ctx.arcTo(x + width, y + height, x + width - radius, y + height, radius);
 
   // Bottom edge back to sharp corner
-  ctx.lineTo(x, y + size);
+  ctx.lineTo(x, y + height);
 
   ctx.closePath();
 }

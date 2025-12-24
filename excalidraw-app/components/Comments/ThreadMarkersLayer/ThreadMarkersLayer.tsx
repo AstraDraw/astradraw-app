@@ -68,6 +68,7 @@ function getHitTargetPosition(
 
 /**
  * Converts thread data to CommentMarker format for canvas rendering.
+ * Collects unique participants from all comments in the thread.
  */
 function threadToMarker(
   thread: CommentThread,
@@ -78,14 +79,37 @@ function threadToMarker(
   const x = dragOverride?.id === thread.id ? dragOverride.x : thread.x;
   const y = dragOverride?.id === thread.id ? dragOverride.y : thread.y;
 
+  // Collect unique participants from thread creator and all comments
+  const participantsMap = new Map<
+    string,
+    { id: string; name: string; avatar?: string }
+  >();
+
+  // Add thread creator first
+  participantsMap.set(thread.createdBy.id, {
+    id: thread.createdBy.id,
+    name: thread.createdBy.name || "?",
+    avatar: thread.createdBy.avatar,
+  });
+
+  // Add comment authors (in order of appearance)
+  for (const comment of thread.comments || []) {
+    if (!participantsMap.has(comment.createdBy.id)) {
+      participantsMap.set(comment.createdBy.id, {
+        id: comment.createdBy.id,
+        name: comment.createdBy.name || "?",
+        avatar: comment.createdBy.avatar,
+      });
+    }
+  }
+
   return {
     id: thread.id,
     x,
     y,
     resolved: thread.resolved,
     selected: thread.id === selectedThreadId,
-    authorInitial: thread.createdBy.name?.charAt(0).toUpperCase() || "?",
-    authorAvatar: thread.createdBy.avatar,
+    participants: Array.from(participantsMap.values()),
   };
 }
 
@@ -267,10 +291,18 @@ export function ThreadMarkersLayer({
       const sceneY =
         dragState?.threadId === thread.id ? dragState.sceneY : thread.y;
 
+      // Count unique participants for hit target sizing
+      const participantIds = new Set<string>();
+      participantIds.add(thread.createdBy.id);
+      for (const comment of thread.comments || []) {
+        participantIds.add(comment.createdBy.id);
+      }
+
       return {
         thread,
         position: getHitTargetPosition(sceneX, sceneY, appState),
         isDragging: dragState?.threadId === thread.id,
+        participantCount: Math.min(participantIds.size, 3), // Max 3 avatars shown
       };
     });
   }, [threads, appState, dragState]);
@@ -287,7 +319,7 @@ export function ThreadMarkersLayer({
   // Render invisible hit targets for click/drag interaction
   return (
     <div className={styles.layer}>
-      {hitTargets.map(({ thread, position, isDragging }) => (
+      {hitTargets.map(({ thread, position, isDragging, participantCount }) => (
         <HitTarget
           key={thread.id}
           threadId={thread.id}
@@ -295,6 +327,7 @@ export function ThreadMarkersLayer({
           y={position.y}
           isSelected={thread.id === selectedThreadId}
           isDragging={isDragging}
+          participantCount={participantCount}
           onClick={() => selectThread(thread.id)}
           onDragStart={() => handleDragStart(thread.id)}
           onDragMove={(containerX, containerY) =>
@@ -318,6 +351,7 @@ interface HitTargetProps {
   y: number;
   isSelected: boolean;
   isDragging: boolean;
+  participantCount: number;
   onClick: () => void;
   onDragStart: () => void;
   onDragMove: (clientX: number, clientY: number) => void;
@@ -331,6 +365,7 @@ function HitTarget({
   y,
   isSelected,
   isDragging,
+  participantCount,
   onClick,
   onDragStart,
   onDragMove,
@@ -420,20 +455,25 @@ function HitTarget({
   }, [onDragCancel]);
 
   // Hit target dimensions matching the canvas-rendered marker
-  // The pin is 32x32 rotated -45°, so bounding box is roughly 45x45
-  // But we use a smaller hit area centered on the visual marker
-  const PIN_SIZE = 32;
-  const HIT_SIZE = 40; // Slightly larger than pin for easier clicking
+  // Must match the calculations in renderCommentMarkers()
+  const AVATAR_SIZE = 24;
+  const AVATAR_OVERLAP = 12;
+  const PADDING = 2;
+
+  const avatarsWidth =
+    AVATAR_SIZE + (participantCount - 1) * (AVATAR_SIZE - AVATAR_OVERLAP);
+  const hitWidth = avatarsWidth + PADDING * 2 + 8; // Extra padding for easier clicking
+  const hitHeight = AVATAR_SIZE + PADDING * 2 + 8;
 
   return (
     <div
       className={`${styles.hitTarget} ${isDragging ? styles.dragging : ""}`}
       style={{
         // Position so the bottom-left of hit area is at marker coords
-        // (matching the pin tip position)
-        transform: `translate(${x - HIT_SIZE / 4}px, ${y - HIT_SIZE}px)`,
-        width: HIT_SIZE,
-        height: HIT_SIZE,
+        // (matching the pin tip position after -45° rotation)
+        transform: `translate(${x}px, ${y - hitHeight}px)`,
+        width: hitWidth,
+        height: hitHeight,
       }}
       data-comment-marker
       data-thread-id={threadId}
