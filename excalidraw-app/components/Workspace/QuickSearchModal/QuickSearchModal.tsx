@@ -548,3 +548,5 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
 };
 
 export default QuickSearchModal;
+
+

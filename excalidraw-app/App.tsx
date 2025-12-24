@@ -205,6 +205,10 @@ import { useAutoSave } from "./hooks/useAutoSave";
 import { useSceneLoader } from "./hooks/useSceneLoader";
 import { useUrlRouting } from "./hooks/useUrlRouting";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
+import {
+  useUIDebugLogger,
+  useVisibilityDebugLogger,
+} from "./hooks/useUIDebugLogger";
 
 import type { CollabAPI } from "./collab/Collab";
 
@@ -611,6 +615,64 @@ const ExcalidrawWrapper = () => {
     setQuickSearchOpen,
     toggleCommentMode,
   });
+
+  // Debug logging for UI state (enable with: window.__ASTRADRAW_DEBUG_UI__ = true)
+  useUIDebugLogger(excalidrawAPI);
+  useVisibilityDebugLogger();
+
+  // =========================================================================
+  // Prevent browser zoom on pinch gestures over UI elements
+  // =========================================================================
+  // When pinch-to-zoom happens over toolbar/sidebar (not canvas),
+  // the browser's native zoom kicks in. This prevents that.
+  useEffect(() => {
+    const preventBrowserZoom = (event: WheelEvent) => {
+      // ctrlKey is set during trackpad pinch-to-zoom on macOS
+      if (event.ctrlKey || event.metaKey) {
+        // Check if target is inside excalidraw container but NOT on canvas
+        const target = event.target as HTMLElement;
+        const isOnCanvas = target instanceof HTMLCanvasElement;
+        const isInsideExcalidraw = target.closest(".excalidraw");
+
+        // If we're over UI elements (not canvas), prevent browser zoom
+        if (isInsideExcalidraw && !isOnCanvas) {
+          event.preventDefault();
+
+          // Optionally: forward zoom to canvas if excalidrawAPI is available
+          if (excalidrawAPI) {
+            const appState = excalidrawAPI.getAppState();
+            const delta = event.deltaY;
+            const sign = Math.sign(delta);
+            const ZOOM_STEP = 0.1;
+            const MAX_STEP = ZOOM_STEP * 100;
+            const absDelta = Math.abs(delta);
+            const clampedDelta = absDelta > MAX_STEP ? MAX_STEP * sign : delta;
+
+            let newZoom = appState.zoom.value - clampedDelta / 100;
+            newZoom = Math.max(0.1, Math.min(10, newZoom)); // Clamp zoom
+
+            excalidrawAPI.updateScene({
+              appState: {
+                zoom: { value: newZoom as typeof appState.zoom.value },
+              },
+            });
+          }
+        }
+      }
+    };
+
+    // Use capture phase to intercept before any other handlers
+    document.addEventListener("wheel", preventBrowserZoom, {
+      passive: false,
+      capture: true,
+    });
+
+    return () => {
+      document.removeEventListener("wheel", preventBrowserZoom, {
+        capture: true,
+      });
+    };
+  }, [excalidrawAPI]);
 
   // =========================================================================
   // Sync Jotai atoms with local state

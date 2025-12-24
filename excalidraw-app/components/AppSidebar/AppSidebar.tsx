@@ -1,13 +1,12 @@
 import { useState, useCallback } from "react";
 
-import { DefaultSidebar, Sidebar } from "@excalidraw/excalidraw";
+import { DefaultSidebar, Sidebar, useUIAppState } from "@excalidraw/excalidraw";
 import {
   messageCircleIcon,
   presentationIcon,
   stickerIcon,
   videoIcon,
 } from "@excalidraw/excalidraw/components/icons";
-import { useUIAppState } from "@excalidraw/excalidraw/context/ui-appState";
 
 import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 

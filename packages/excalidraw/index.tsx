@@ -286,6 +286,9 @@ export { FooterLeftExtra };
 export { MainMenu };
 export { Ellipsify } from "./components/Ellipsify";
 export { useEditorInterface, useStylesPanelMode } from "./components/App";
+// AstraDraw: Export internal hooks for app-level components
+export { useApp, useAppProps } from "./components/App";
+export { useUIAppState } from "./context/ui-appState";
 export { WelcomeScreen };
 export { LiveCollaborationTrigger };
 export { Stats } from "./components/Stats";

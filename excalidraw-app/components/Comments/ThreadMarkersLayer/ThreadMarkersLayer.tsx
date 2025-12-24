@@ -42,16 +42,27 @@ export interface ThreadMarkersLayerProps {
 }
 
 /**
- * Calculates viewport position for a thread marker
+ * Calculates position for a thread marker relative to the Excalidraw container.
+ *
+ * sceneCoordsToViewportCoords returns viewport coordinates (relative to browser window),
+ * but markers are positioned inside the Excalidraw container which is already offset.
+ * So we need to subtract the offset to get container-relative coordinates.
  */
 function getMarkerPosition(
   thread: CommentThread,
   appState: AppState,
 ): { x: number; y: number } {
-  return sceneCoordsToViewportCoords(
+  const viewportCoords = sceneCoordsToViewportCoords(
     { sceneX: thread.x, sceneY: thread.y },
     appState,
   );
+
+  // Convert from viewport coords to container-relative coords
+  // by subtracting the container's offset
+  return {
+    x: viewportCoords.x - appState.offsetLeft,
+    y: viewportCoords.y - appState.offsetTop,
+  };
 }
 
 export function ThreadMarkersLayer({
@@ -77,6 +88,32 @@ export function ThreadMarkersLayer({
     // Subscribe to scroll/zoom changes
     const unsubscribe = excalidrawAPI.onScrollChange(() => {
       setAppState(excalidrawAPI.getAppState());
+    });
+
+    return unsubscribe;
+  }, [excalidrawAPI]);
+
+  // Also subscribe to onChange to catch offsetLeft/offsetTop changes
+  // (sidebar open/close changes canvas offset but doesn't trigger onScrollChange)
+  useEffect(() => {
+    if (!excalidrawAPI) {
+      return;
+    }
+
+    let lastOffsetLeft = excalidrawAPI.getAppState().offsetLeft;
+    let lastOffsetTop = excalidrawAPI.getAppState().offsetTop;
+
+    const unsubscribe = excalidrawAPI.onChange(() => {
+      const currentState = excalidrawAPI.getAppState();
+      // Update when offset changes (sidebar open/close)
+      if (
+        currentState.offsetLeft !== lastOffsetLeft ||
+        currentState.offsetTop !== lastOffsetTop
+      ) {
+        lastOffsetLeft = currentState.offsetLeft;
+        lastOffsetTop = currentState.offsetTop;
+        setAppState(currentState);
+      }
     });
 
     return unsubscribe;

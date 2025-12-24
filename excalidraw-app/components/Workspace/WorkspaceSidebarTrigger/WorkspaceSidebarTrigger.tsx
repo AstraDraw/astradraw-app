@@ -85,3 +85,5 @@ export const WorkspaceSidebarTrigger: React.FC = () => {
 };
 
 export default WorkspaceSidebarTrigger;
+
+

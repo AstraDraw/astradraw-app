@@ -64,6 +64,32 @@ export function NewThreadPopup({
     return unsubscribe;
   }, [excalidrawAPI]);
 
+  // Also subscribe to onChange to catch offsetLeft/offsetTop changes
+  // (sidebar open/close changes canvas offset but doesn't trigger onScrollChange)
+  useEffect(() => {
+    if (!excalidrawAPI) {
+      return;
+    }
+
+    let lastOffsetLeft = excalidrawAPI.getAppState().offsetLeft;
+    let lastOffsetTop = excalidrawAPI.getAppState().offsetTop;
+
+    const unsubscribe = excalidrawAPI.onChange(() => {
+      const currentState = excalidrawAPI.getAppState();
+      // Only update if offset changed (to avoid unnecessary re-renders)
+      if (
+        currentState.offsetLeft !== lastOffsetLeft ||
+        currentState.offsetTop !== lastOffsetTop
+      ) {
+        lastOffsetLeft = currentState.offsetLeft;
+        lastOffsetTop = currentState.offsetTop;
+        setAppState(currentState);
+      }
+    });
+
+    return unsubscribe;
+  }, [excalidrawAPI]);
+
   // Handle click outside to close
   useEffect(() => {
     if (!pendingPosition) {

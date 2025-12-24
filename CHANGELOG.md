@@ -9,6 +9,15 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.79] - 2025-12-24
+
+### Changed
+
+- **Fork Architecture Refactoring - Phase 1: Export Hooks**
+  - Exported `useApp`, `useAppProps`, `useUIAppState` hooks from `packages/excalidraw/index.tsx`
+  - Updated `AppSidebar` to use exported `useUIAppState` from main package
+  - Note: Comment components still require `excalidrawAPI` prop for scroll subscriptions (`app.state` is not reactive)
+
 ## [0.18.0-beta0.78] - 2025-12-24
 
 ### Added

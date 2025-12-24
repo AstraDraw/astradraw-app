@@ -175,7 +175,7 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
 
   // Handle resolve toggle from list item
   const handleResolveToggle = useCallback(
-    (threadId: string) => {
+    (_threadId: string) => {
       // This will be handled by ThreadListItem using useCommentMutations
       // Just need to ensure the popup is closed if it was open
       setSelectedThreadId(null);
