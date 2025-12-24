@@ -46,4 +46,3 @@ Wraps content in both dark mode selectors:
 
 1. Add to `_mixins.scss` with documentation comment
 2. Use `:global()` wrapper for class selectors that need to match parent containers
-

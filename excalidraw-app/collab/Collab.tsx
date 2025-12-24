@@ -48,7 +48,6 @@ import type {
   Gesture,
 } from "@excalidraw/excalidraw/types";
 import type { Mutable, ValueOf } from "@excalidraw/common/utility-types";
-import type { Socket } from "socket.io-client";
 
 import { ENV } from "../env";
 
@@ -88,6 +87,8 @@ import { profileEnd, profileStart } from "./collabProfiling";
 
 import { collabErrorIndicatorAtom } from "./CollabError";
 import Portal from "./Portal";
+
+import type { Socket } from "socket.io-client";
 
 import type {
   SocketUpdateDataSource,

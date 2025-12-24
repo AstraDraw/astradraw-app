@@ -100,4 +100,3 @@ export function CommentSyncProvider({
 export function useCommentSyncContext(): CommentSyncContextValue {
   return useContext(CommentSyncContext);
 }
-

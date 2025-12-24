@@ -118,7 +118,11 @@ export function useCommentSync(
                     ...t,
                     comments: t.comments.map((c) =>
                       c.id === event.commentId
-                        ? { ...c, content: event.content, editedAt: event.editedAt }
+                        ? {
+                            ...c,
+                            content: event.content,
+                            editedAt: event.editedAt,
+                          }
                         : c,
                     ),
                   }
@@ -135,7 +139,9 @@ export function useCommentSync(
               t.id === event.threadId
                 ? {
                     ...t,
-                    comments: t.comments.filter((c) => c.id !== event.commentId),
+                    comments: t.comments.filter(
+                      (c) => c.id !== event.commentId,
+                    ),
                     commentCount: Math.max(0, t.commentCount - 1),
                   }
                 : t,
@@ -190,4 +196,3 @@ export function useEmitCommentEvent(
     [socket, roomId],
   );
 }
-

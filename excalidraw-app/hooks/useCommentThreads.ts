@@ -18,7 +18,6 @@ import { useCommentSyncContext } from "../components/Comments/CommentSyncContext
 import type {
   CommentThread,
   Comment,
-  CommentEvent,
   CreateThreadDto,
   CreateCommentDto,
   UpdateCommentDto,

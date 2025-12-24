@@ -418,7 +418,11 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
       </div>
 
       {isAuthenticated && user && (
-        <SidebarFooter user={user} onProfileClick={() => navigateToProfile()} />
+        <SidebarFooter
+          user={user}
+          workspaceSlug={currentWorkspaceSlug || undefined}
+          onProfileClick={() => navigateToProfile()}
+        />
       )}
 
       {/* Dialogs */}

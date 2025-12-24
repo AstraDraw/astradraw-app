@@ -1,14 +1,22 @@
 import React from "react";
-import { t } from "@excalidraw/excalidraw/i18n";
 
-import { bellIcon } from "./icons";
+import { NotificationBell } from "../../Notifications";
+
 import styles from "./WorkspaceSidebar.module.scss";
 
 import type { User } from "../../../auth";
 
 interface SidebarFooterProps {
   user: User;
+  /** Current workspace slug for notification URLs */
+  workspaceSlug?: string;
   onProfileClick: () => void;
+  /** Callback when navigating to a notification */
+  onNotificationNavigate?: (
+    sceneId: string,
+    threadId?: string,
+    commentId?: string,
+  ) => void;
 }
 
 const getInitials = (name: string | null, email: string): string => {
@@ -25,7 +33,9 @@ const getInitials = (name: string | null, email: string): string => {
 
 export const SidebarFooter: React.FC<SidebarFooterProps> = ({
   user,
+  workspaceSlug,
   onProfileClick,
+  onNotificationNavigate,
 }) => {
   return (
     <>
@@ -47,12 +57,11 @@ export const SidebarFooter: React.FC<SidebarFooterProps> = ({
           )}
           <span className={styles.userName}>{user.name || user.email}</span>
         </button>
-        <button
-          className={styles.notificationButton}
-          title={t("workspace.notifications")}
-        >
-          {bellIcon}
-        </button>
+        <NotificationBell
+          workspaceSlug={workspaceSlug}
+          enabled={true}
+          onNavigate={onNotificationNavigate}
+        />
       </div>
     </>
   );

@@ -1816,7 +1816,9 @@ const ExcalidrawWrapper = () => {
             )}
 
             {excalidrawAPI && <PenToolbar excalidrawAPI={excalidrawAPI} />}
-            {excalidrawAPI && <PresentationMode excalidrawAPI={excalidrawAPI} />}
+            {excalidrawAPI && (
+              <PresentationMode excalidrawAPI={excalidrawAPI} />
+            )}
 
             {/* Comment Thread Markers and Popup */}
             {currentSceneId && !isLegacyMode && (

@@ -9,6 +9,28 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.77] - 2025-12-24
+
+### Added
+
+- **Notification System - Phases 3 & 4: Frontend API, State, Bell & Popup**
+  - `auth/api/notifications.ts`: API client with `listNotifications`, `getUnreadCount`, `markAsRead`, `markAllAsRead`
+  - `hooks/useNotifications.ts`: React Query hooks (`useNotifications` with infinite scroll, `useUnreadCount` with 60s polling, `useNotificationMutations`)
+  - `components/Notifications/notificationsState.ts`: Jotai atoms for popup open/close state
+  - `components/Notifications/NotificationBell`: Bell icon component with badge in sidebar footer
+  - `components/Notifications/NotificationBadge`: Red badge showing unread count (max "5+")
+  - `components/Notifications/NotificationPopup`: Popup with recent notifications, mark-as-read, view all
+  - `components/Notifications/Skeletons`: Loading skeleton components
+  - `utils/dateUtils.ts`: Date formatting utilities (`formatDistanceToNow`)
+  - Notification types added to `auth/api/types.ts`: `Notification`, `NotificationType`, `NotificationsResponse`
+  - Query keys added to `lib/queryClient.ts` for notifications
+  - Translations added for English (`en.json`) and Russian (`ru-RU.json`)
+
+### Changed
+
+- `SidebarFooter.tsx`: Replaced placeholder bell button with functional `NotificationBell` component
+- `WorkspaceSidebar.tsx`: Passes `workspaceSlug` prop to `SidebarFooter`
+
 ## [0.18.0-beta0.76] - 2025-12-24
 
 ### Added

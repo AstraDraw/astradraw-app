@@ -44,6 +44,10 @@ export type {
   UpdateThreadDto,
   UpdateCommentDto,
   ThreadFilters,
+  // Notification types
+  NotificationType,
+  Notification,
+  NotificationsResponse,
 } from "./types";
 
 // Scene API
@@ -141,3 +145,11 @@ export {
   updateComment,
   deleteComment,
 } from "./comments";
+
+// Notifications API
+export {
+  listNotifications,
+  getUnreadCount,
+  markAsRead,
+  markAllAsRead,
+} from "./notifications";

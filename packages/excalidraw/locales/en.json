@@ -1217,5 +1217,18 @@
     "minutesAgo": "{{count}}m ago",
     "hoursAgo": "{{count}}h ago",
     "daysAgo": "{{count}}d ago"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all as read",
+    "markAsRead": "Mark as read",
+    "viewAll": "View all notifications",
+    "empty": "No notifications yet",
+    "noMore": "No more notifications",
+    "scrollForMore": "Scroll for more",
+    "loading": "Loading notifications...",
+    "postedComment": "posted a comment in",
+    "mentionedYou": "mentioned you in",
+    "unread": "Unread"
   }
 }

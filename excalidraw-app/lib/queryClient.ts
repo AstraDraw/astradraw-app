@@ -78,10 +78,19 @@ export const queryKeys = {
       ["commentThreads", "detail", threadId] as const,
   },
 
+  // Notifications
+  notifications: {
+    all: ["notifications"] as const,
+    list: () => ["notifications", "list"] as const,
+    unreadCount: ["notifications", "unreadCount"] as const,
+  },
+
   // Mutations (for useMutation hooks)
   mutations: {
     deleteScene: ["deleteScene"] as const,
     renameScene: ["renameScene"] as const,
     duplicateScene: ["duplicateScene"] as const,
+    markNotificationRead: ["markNotificationRead"] as const,
+    markAllNotificationsRead: ["markAllNotificationsRead"] as const,
   },
 } as const;

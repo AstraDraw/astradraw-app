@@ -308,3 +308,48 @@ export type CommentEvent =
       editedAt: string;
     }
   | { type: "comment-deleted"; threadId: string; commentId: string };
+
+// ============================================================================
+// Notification System Types
+// ============================================================================
+
+/**
+ * Types of notifications
+ */
+export type NotificationType = "COMMENT" | "MENTION";
+
+/**
+ * A notification for the current user
+ */
+export interface Notification {
+  id: string;
+  type: NotificationType;
+  /** User who triggered the notification */
+  actor: UserSummary;
+  /** Reference to comment thread (if applicable) */
+  thread?: { id: string };
+  /** Reference to specific comment (if applicable) */
+  comment?: { id: string };
+  /** Scene where the notification occurred */
+  scene: {
+    id: string;
+    name: string;
+  };
+  /** Whether the notification has been read */
+  read: boolean;
+  /** When the notification was read */
+  readAt?: string;
+  /** When the notification was created */
+  createdAt: string;
+}
+
+/**
+ * Paginated response for notifications list
+ */
+export interface NotificationsResponse {
+  notifications: Notification[];
+  /** Cursor for next page (undefined if no more) */
+  nextCursor?: string;
+  /** Whether there are more notifications */
+  hasMore: boolean;
+}
