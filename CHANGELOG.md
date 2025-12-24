@@ -9,6 +9,24 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.76] - 2025-12-24
+
+### Added
+
+- **Comment System - Phase 6: Real-time Sync**
+  - Real-time comment synchronization during collaboration sessions
+  - `useCommentSync` hook: listens for WebSocket `comment:event` messages and updates React Query cache
+  - `CommentSyncContext` provider: provides `emitEvent` callback to all comment components
+  - `CommentEvent` type: union type for all comment-related WebSocket events (thread-created, thread-resolved, thread-deleted, thread-moved, comment-added, comment-updated, comment-deleted)
+  - Integrated with `CollabAPI`: exposed `getSocket()` and `getRoomId()` for comment sync
+  - All comment mutations now broadcast changes to collaborators via room-service
+  - Duplicate prevention: incoming events check for existing items before adding
+
+### Changed
+
+- `useCommentMutations` now uses `CommentSyncContext` to emit events after successful mutations
+- `App.tsx` wraps comment components with `CommentSyncProvider` and calls `useCommentSync`
+
 ## [0.18.0-beta0.75] - 2025-12-23
 
 ### Added

@@ -48,6 +48,7 @@ import type {
   Gesture,
 } from "@excalidraw/excalidraw/types";
 import type { Mutable, ValueOf } from "@excalidraw/common/utility-types";
+import type { Socket } from "socket.io-client";
 
 import { ENV } from "../env";
 
@@ -123,6 +124,10 @@ export interface CollabAPI {
   getActiveRoomLink: CollabInstance["getActiveRoomLink"];
   setCollabError: CollabInstance["setErrorDialog"];
   setSceneId: CollabInstance["setSceneId"];
+  /** Get the WebSocket for real-time features (e.g., comment sync) */
+  getSocket: () => Socket | null;
+  /** Get the current room ID for broadcasting */
+  getRoomId: () => string | null;
 }
 
 interface CollabProps {
@@ -268,6 +273,8 @@ class Collab extends PureComponent<CollabProps, CollabState> {
       getActiveRoomLink: this.getActiveRoomLink,
       setCollabError: this.setErrorDialog,
       setSceneId: this.setSceneId,
+      getSocket: () => this.portal.socket,
+      getRoomId: () => this.portal.roomId,
     };
 
     appJotaiStore.set(collabAPIAtom, collabAPI);

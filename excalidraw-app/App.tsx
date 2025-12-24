@@ -179,7 +179,9 @@ import {
   CommentCreationOverlay,
   ThreadPopup,
   NewThreadPopup,
+  CommentSyncProvider,
 } from "./components/Comments";
+import { useCommentSync } from "./hooks/useCommentSync";
 
 import { buildSceneUrl } from "./router";
 
@@ -571,6 +573,12 @@ const ExcalidrawWrapper = () => {
       excalidrawAPI.toggleSidebar({ name: "default", tab: "comments" });
     }
   }, [excalidrawAPI]);
+
+  // Comment real-time sync hook
+  // Listens for comment events from collaborators and updates React Query cache
+  const collabSocket = collabAPI?.getSocket() ?? null;
+  const collabRoomId = collabAPI?.getRoomId() ?? null;
+  useCommentSync(currentSceneId, collabSocket, collabRoomId, isCollaborating);
 
   // URL routing hook
   useUrlRouting({
@@ -1794,36 +1802,43 @@ const ExcalidrawWrapper = () => {
             }
           />
 
-          {!isLegacyMode && (
-            <AppSidebar
-              excalidrawAPI={excalidrawAPI}
-              sceneId={currentSceneId}
-            />
-          )}
+          {/* Comment Sync Provider wraps all comment-related UI */}
+          <CommentSyncProvider
+            socket={collabSocket}
+            roomId={collabRoomId}
+            isCollaborating={isCollaborating}
+          >
+            {!isLegacyMode && (
+              <AppSidebar
+                excalidrawAPI={excalidrawAPI}
+                sceneId={currentSceneId}
+              />
+            )}
 
-          {excalidrawAPI && <PenToolbar excalidrawAPI={excalidrawAPI} />}
-          {excalidrawAPI && <PresentationMode excalidrawAPI={excalidrawAPI} />}
+            {excalidrawAPI && <PenToolbar excalidrawAPI={excalidrawAPI} />}
+            {excalidrawAPI && <PresentationMode excalidrawAPI={excalidrawAPI} />}
 
-          {/* Comment Thread Markers and Popup */}
-          {currentSceneId && !isLegacyMode && (
-            <>
-              <ThreadMarkersLayer
-                sceneId={currentSceneId}
-                excalidrawAPI={excalidrawAPI}
-              />
-              <CommentCreationOverlay excalidrawAPI={excalidrawAPI} />
-              <ThreadPopup
-                sceneId={currentSceneId}
-                workspaceId={currentWorkspace?.id}
-                excalidrawAPI={excalidrawAPI}
-              />
-              <NewThreadPopup
-                sceneId={currentSceneId}
-                workspaceId={currentWorkspace?.id}
-                excalidrawAPI={excalidrawAPI}
-              />
-            </>
-          )}
+            {/* Comment Thread Markers and Popup */}
+            {currentSceneId && !isLegacyMode && (
+              <>
+                <ThreadMarkersLayer
+                  sceneId={currentSceneId}
+                  excalidrawAPI={excalidrawAPI}
+                />
+                <CommentCreationOverlay excalidrawAPI={excalidrawAPI} />
+                <ThreadPopup
+                  sceneId={currentSceneId}
+                  workspaceId={currentWorkspace?.id}
+                  excalidrawAPI={excalidrawAPI}
+                />
+                <NewThreadPopup
+                  sceneId={currentSceneId}
+                  workspaceId={currentWorkspace?.id}
+                  excalidrawAPI={excalidrawAPI}
+                />
+              </>
+            )}
+          </CommentSyncProvider>
 
           {errorMessage && (
             <ErrorDialog onClose={() => setErrorMessage("")}>

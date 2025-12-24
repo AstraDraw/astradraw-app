@@ -13,10 +13,12 @@ import {
   deleteComment,
   updateThread,
 } from "../auth/api/comments";
+import { useCommentSyncContext } from "../components/Comments/CommentSyncContext";
 
 import type {
   CommentThread,
   Comment,
+  CommentEvent,
   CreateThreadDto,
   CreateCommentDto,
   UpdateCommentDto,
@@ -128,11 +130,16 @@ interface UseCommentMutationsResult {
 /**
  * Hook for comment thread mutations with optimistic updates.
  *
+ * Automatically broadcasts changes to collaborators via WebSocket when
+ * wrapped in a CommentSyncProvider during collaboration sessions.
+ *
+ * @param sceneId - Current scene ID
+ *
  * @example
  * ```ts
  * const { createThread, toggleResolved, addComment } = useCommentMutations(sceneId);
  *
- * // Create a new thread
+ * // Create a new thread (automatically syncs to collaborators)
  * await createThread({ x: 100, y: 200, content: "Review this" });
  *
  * // Toggle resolved state
@@ -145,6 +152,8 @@ interface UseCommentMutationsResult {
 export function useCommentMutations(
   sceneId: string | undefined,
 ): UseCommentMutationsResult {
+  // Get emitEvent from context (provided by CommentSyncProvider during collaboration)
+  const { emitEvent } = useCommentSyncContext();
   const queryClient = useQueryClient();
   const queryKey = sceneId
     ? queryKeys.commentThreads.list(sceneId)
@@ -160,6 +169,9 @@ export function useCommentMutations(
       queryClient.setQueryData<CommentThread[]>(queryKey, (prev) =>
         prev ? [...prev, newThread] : [newThread],
       );
+
+      // Broadcast to collaborators
+      emitEvent?.({ type: "thread-created", thread: newThread });
     },
   });
 
@@ -188,6 +200,10 @@ export function useCommentMutations(
       if (context?.previous) {
         queryClient.setQueryData(queryKey, context.previous);
       }
+    },
+    onSuccess: (_data, threadId) => {
+      // Broadcast to collaborators
+      emitEvent?.({ type: "thread-deleted", threadId });
     },
     onSettled: () => {
       // Refetch to ensure consistency
@@ -238,6 +254,15 @@ export function useCommentMutations(
           prev?.map((t) => (t.id === updatedThread.id ? updatedThread : t)) ??
           [],
       );
+
+      // Broadcast to collaborators
+      emitEvent?.({
+        type: "thread-resolved",
+        threadId: updatedThread.id,
+        resolved: updatedThread.resolved,
+        resolvedAt: updatedThread.resolvedAt,
+        resolvedBy: updatedThread.resolvedBy,
+      });
     },
     onSettled: () => {
       // Invalidate to refetch fresh data
@@ -280,6 +305,10 @@ export function useCommentMutations(
         queryClient.setQueryData(queryKey, context.previous);
       }
     },
+    onSuccess: (_data, { threadId, x, y }) => {
+      // Broadcast to collaborators
+      emitEvent?.({ type: "thread-moved", threadId, x, y });
+    },
   });
 
   // -------------------------------------------------------------------------
@@ -309,6 +338,9 @@ export function useCommentMutations(
               : t,
           ) ?? [],
       );
+
+      // Broadcast to collaborators
+      emitEvent?.({ type: "comment-added", threadId, comment: newComment });
     },
   });
 
@@ -339,6 +371,15 @@ export function useCommentMutations(
               : t,
           ) ?? [],
       );
+
+      // Broadcast to collaborators
+      emitEvent?.({
+        type: "comment-updated",
+        commentId: updatedComment.id,
+        threadId: updatedComment.threadId,
+        content: updatedComment.content,
+        editedAt: updatedComment.editedAt || new Date().toISOString(),
+      });
     },
   });
 
@@ -373,6 +414,10 @@ export function useCommentMutations(
       if (context?.previous) {
         queryClient.setQueryData(queryKey, context.previous);
       }
+    },
+    onSuccess: (_data, { threadId, commentId }) => {
+      // Broadcast to collaborators
+      emitEvent?.({ type: "comment-deleted", threadId, commentId });
     },
   });
 

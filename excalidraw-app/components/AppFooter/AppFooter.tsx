@@ -117,3 +117,4 @@ export const AppFooter = React.memo(
     );
   },
 );
+

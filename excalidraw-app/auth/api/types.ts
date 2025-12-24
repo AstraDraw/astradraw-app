@@ -278,3 +278,33 @@ export interface ThreadFilters {
   sort: "date" | "unread";
   search: string;
 }
+
+// ============================================================================
+// Comment System WebSocket Events (for real-time sync)
+// ============================================================================
+
+/**
+ * WebSocket event types for comment real-time sync.
+ * These events are broadcast to all collaborators in a room when
+ * comment threads or comments are created, modified, or deleted.
+ */
+export type CommentEvent =
+  | { type: "thread-created"; thread: CommentThread }
+  | {
+      type: "thread-resolved";
+      threadId: string;
+      resolved: boolean;
+      resolvedAt?: string;
+      resolvedBy?: UserSummary;
+    }
+  | { type: "thread-deleted"; threadId: string }
+  | { type: "thread-moved"; threadId: string; x: number; y: number }
+  | { type: "comment-added"; threadId: string; comment: Comment }
+  | {
+      type: "comment-updated";
+      commentId: string;
+      threadId: string;
+      content: string;
+      editedAt: string;
+    }
+  | { type: "comment-deleted"; threadId: string; commentId: string };

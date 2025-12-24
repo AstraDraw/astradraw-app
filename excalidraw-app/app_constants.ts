@@ -18,6 +18,7 @@ export const WS_EVENTS = {
   SERVER: "server-broadcast",
   USER_FOLLOW_CHANGE: "user-follow",
   USER_FOLLOW_ROOM_CHANGE: "user-follow-room-change",
+  COMMENT_EVENT: "comment:event",
 } as const;
 
 export enum WS_SUBTYPES {

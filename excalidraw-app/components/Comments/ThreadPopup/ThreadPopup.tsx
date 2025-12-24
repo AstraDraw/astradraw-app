@@ -7,7 +7,7 @@
 
 import { useRef, useEffect, useCallback, useState } from "react";
 import { sceneCoordsToViewportCoords } from "@excalidraw/common";
-import { t } from "@excalidraw/excalidraw/i18n";
+import { t, type TranslationKeys } from "@excalidraw/excalidraw/i18n";
 
 import type {
   AppState,
@@ -271,7 +271,7 @@ export function ThreadPopup({
       {thread.resolved && (
         <div className={styles.resolvedBanner}>
           <span className={styles.checkIcon}>✓</span>
-          {t("comments.threadResolved")}
+          {t("comments.threadResolved" as unknown as TranslationKeys)}
         </div>
       )}
     </div>

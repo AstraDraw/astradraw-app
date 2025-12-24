@@ -67,3 +67,9 @@ export type { CommentsSidebarHeaderProps } from "./CommentsSidebarHeader";
 
 export { ThreadListItem } from "./ThreadListItem";
 export type { ThreadListItemProps } from "./ThreadListItem";
+
+// Real-time sync context
+export {
+  CommentSyncProvider,
+  useCommentSyncContext,
+} from "./CommentSyncContext";
