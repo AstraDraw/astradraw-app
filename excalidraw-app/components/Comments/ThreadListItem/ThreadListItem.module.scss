@@ -5,7 +5,8 @@
 
 .item {
   display: flex;
-  gap: 12px;
+  flex-direction: column;
+  gap: 4px;
   padding: 12px;
   border-bottom: 1px solid var(--color-border-outline-variant, #e8e8e8);
   cursor: pointer;
@@ -34,40 +35,64 @@
 }
 
 // =============================================================================
-// Avatar
+// Top Row - Participant avatars
 // =============================================================================
 
-.avatarContainer {
+.participants {
+  display: flex;
+  align-items: center;
+  gap: -8px; // Negative gap for overlap
+  margin-bottom: 6px;
+}
+
+.participantAvatar {
   position: relative;
   flex-shrink: 0;
+  margin-right: -8px; // Overlap avatars
+
+  &:last-child {
+    margin-right: 0;
+  }
 }
 
-.avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 1px solid var(--color-border-outline-variant, #e0e0e0);
-}
-
-.resolvedBadge {
-  position: absolute;
-  bottom: -2px;
-  right: -2px;
-  width: 14px;
-  height: 14px;
+.moreParticipants {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-success, #22c55e);
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
+  background: var(--color-surface-high, #e8e8e8);
+  color: var(--color-on-surface-variant, #6b6b6b);
+  font-size: 11px;
+  font-weight: 600;
   border: 2px solid var(--color-surface-lowest, #fff);
+}
 
-  svg {
-    width: 8px;
-    height: 8px;
-    color: white;
-  }
+// =============================================================================
+// Avatar
+// =============================================================================
+
+.avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--color-surface-lowest, #fff);
+}
+
+.avatarFallback {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-primary-light, #e8e7f8);
+  color: var(--color-primary, #6965db);
+  font-size: 11px;
+  font-weight: 600;
+  border: 2px solid var(--color-surface-lowest, #fff);
 }
 
 // =============================================================================
@@ -75,18 +100,25 @@
 // =============================================================================
 
 .content {
-  flex: 1;
-  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .header {
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: space-between;
+  gap: 8px;
   font-size: 12px;
+}
+
+.headerInfo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
 }
 
 .author {
@@ -161,10 +193,10 @@
 }
 
 .actionButtonActive {
-  color: var(--color-success, #22c55e);
+  color: var(--color-primary, #6965db);
 
   &:hover {
-    color: var(--color-success, #22c55e);
+    color: var(--color-primary, #6965db);
   }
 }
 
@@ -230,8 +262,20 @@
     background: var(--color-surface-high, #2a2a2a);
   }
 
-  .resolvedBadge {
+  .avatar,
+  .avatarFallback {
     border-color: var(--color-surface-high, #2a2a2a);
+  }
+
+  .avatarFallback {
+    background: var(--color-primary-darker, #4a47a3);
+    color: var(--color-primary-light, #e8e7f8);
+  }
+
+  .moreParticipants {
+    background: var(--color-surface-mid, #333);
+    border-color: var(--color-surface-high, #2a2a2a);
+    color: var(--color-text-secondary, #9b9b9b);
   }
 
   .highlight {

@@ -27,6 +27,8 @@ export interface CommentInputProps {
   workspaceId: string | undefined;
   /** Placeholder text */
   placeholder?: string;
+  /** Auto-focus input on mount */
+  autoFocus?: boolean;
 }
 
 export function CommentInput({
@@ -34,6 +36,7 @@ export function CommentInput({
   isSubmitting = false,
   workspaceId,
   placeholder = "Reply, @mention someone...",
+  autoFocus = false,
 }: CommentInputProps) {
   const [content, setContent] = useState("");
   const [mentions, setMentions] = useState<string[]>([]);
@@ -98,6 +101,7 @@ export function CommentInput({
             placeholder={placeholder}
             workspaceId={workspaceId}
             disabled={isSubmitting}
+            autoFocus={autoFocus}
             onSubmit={handleSubmit}
           />
         </div>

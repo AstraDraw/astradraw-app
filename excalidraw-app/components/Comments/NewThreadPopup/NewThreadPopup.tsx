@@ -155,6 +155,7 @@ export function NewThreadPopup({
           isSubmitting={isCreatingThread}
           workspaceId={workspaceId}
           placeholder={t("comments.writeComment")}
+          autoFocus
         />
       </div>
     </div>

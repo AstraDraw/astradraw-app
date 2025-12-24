@@ -1635,6 +1635,7 @@ const ExcalidrawWrapper = () => {
             canvasActions: {
               toggleTheme: true,
               export: {
+                saveFileToDisk: isAuthenticated,
                 onExportToBackend,
                 renderCustomUI: excalidrawAPI
                   ? (elements, appState, files) => {

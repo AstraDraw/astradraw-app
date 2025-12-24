@@ -64,8 +64,16 @@ const updateTooltip = (
   tooltip: HTMLDivElement,
   label: string,
   long: boolean,
+  compact?: boolean,
 ) => {
   tooltip.classList.add("excalidraw-tooltip--visible");
+  
+  if (compact) {
+    tooltip.classList.add("excalidraw-tooltip--compact");
+  } else {
+    tooltip.classList.remove("excalidraw-tooltip--compact");
+  }
+  
   tooltip.style.minWidth = long ? "50ch" : "10ch";
   tooltip.style.maxWidth = long ? "50ch" : "15ch";
 
@@ -79,6 +87,7 @@ type TooltipProps = {
   children: React.ReactNode;
   label: string;
   long?: boolean;
+  compact?: boolean;
   style?: React.CSSProperties;
   disabled?: boolean;
 };
@@ -87,6 +96,7 @@ export const Tooltip = ({
   children,
   label,
   long = false,
+  compact = false,
   style,
   disabled,
 }: TooltipProps) => {
@@ -106,6 +116,7 @@ export const Tooltip = ({
           getTooltipDiv(),
           label,
           long,
+          compact,
         )
       }
       onPointerLeave={() =>

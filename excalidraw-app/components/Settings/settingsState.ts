@@ -199,10 +199,19 @@ export const navigateToCollectionAtom = atom(
 
 /**
  * Atom for navigating back to canvas mode
- * Note: This only changes app mode, URL is set by scene loading
+ * If a scene is currently loaded, navigates to that scene's URL
+ * Otherwise just switches to canvas mode
  */
 export const navigateToCanvasAtom = atom(null, (get, set) => {
+  const currentSceneId = get(currentSceneIdAtom);
+  const workspaceSlug = get(currentWorkspaceSlugAtom);
+
   set(appModeAtom, "canvas");
+
+  // If we have a current scene, navigate to its URL
+  if (currentSceneId && workspaceSlug) {
+    navigateTo(buildSceneUrl(workspaceSlug, currentSceneId));
+  }
 });
 
 /**

@@ -211,7 +211,9 @@ export function InlineEmojiPicker({
               [styles.categoryActive]:
                 selectedGroup === group.slug && !searchQuery,
             })}
-            onClick={() => {
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
               setSelectedGroup(group.slug);
               setSearchQuery("");
             }}
@@ -231,6 +233,7 @@ export function InlineEmojiPicker({
           placeholder={t("emojiPicker.search")}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
+          onMouseDown={(e) => e.stopPropagation()}
           onKeyDown={(e) => e.stopPropagation()}
           onKeyUp={(e) => e.stopPropagation()}
         />
@@ -243,56 +246,30 @@ export function InlineEmojiPicker({
             <div className={styles.spinner} />
           </div>
         ) : (
-          <>
-            {/* Frequently used (only when not searching) */}
+          <div className={styles.section}>
             {!searchQuery && (
-              <div className={styles.section}>
-                <h4 className={styles.sectionTitle}>
-                  {t("emojiPicker.frequentlyUsed")}
-                </h4>
-                <div className={styles.grid}>
-                  {popularEmojis.map((item) => (
-                    <button
-                      key={item.slug}
-                      type="button"
-                      className={styles.emoji}
-                      onClick={() => handleEmojiSelect(item.emoji)}
-                      title={item.name}
-                    >
-                      {item.emoji}
-                    </button>
-                  ))}
-                </div>
+              <h4 className={styles.sectionTitle}>
+                {EMOJI_GROUPS.find((g) => g.slug === selectedGroup)?.name || ""}
+              </h4>
+            )}
+            {searchQuery && searchResults.length === 0 ? (
+              <div className={styles.empty}>{t("emojiPicker.noResults")}</div>
+            ) : (
+              <div className={styles.grid}>
+                {displayEmojis.map((item) => (
+                  <button
+                    key={item.slug}
+                    type="button"
+                    className={styles.emoji}
+                    onClick={() => handleEmojiSelect(item.emoji)}
+                    title={item.name}
+                  >
+                    {item.emoji}
+                  </button>
+                ))}
               </div>
             )}
-
-            {/* Main emoji grid */}
-            <div className={styles.section}>
-              {!searchQuery && (
-                <h4 className={styles.sectionTitle}>
-                  {EMOJI_GROUPS.find((g) => g.slug === selectedGroup)?.name ||
-                    ""}
-                </h4>
-              )}
-              {searchQuery && searchResults.length === 0 ? (
-                <div className={styles.empty}>{t("emojiPicker.noResults")}</div>
-              ) : (
-                <div className={styles.grid}>
-                  {displayEmojis.map((item) => (
-                    <button
-                      key={item.slug}
-                      type="button"
-                      className={styles.emoji}
-                      onClick={() => handleEmojiSelect(item.emoji)}
-                      title={item.name}
-                    >
-                      {item.emoji}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </>
+          </div>
         )}
       </div>
     </div>

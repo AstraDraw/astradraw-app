@@ -124,6 +124,32 @@ const findPartsForData = (data: any, parts: string[]) => {
   return data;
 };
 
+/**
+ * Get plural suffix for a given language and count
+ * Based on Unicode CLDR plural rules
+ */
+const getPluralSuffix = (langCode: string, count: number): string => {
+  // Russian plural rules
+  if (langCode === "ru-RU" || langCode === "uk-UA") {
+    const mod10 = count % 10;
+    const mod100 = count % 100;
+    
+    if (mod10 === 1 && mod100 !== 11) {
+      return ""; // one: 1, 21, 31, 41, 51, 61, 71, 81, 101, 121, ...
+    }
+    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) {
+      return "_few"; // few: 2-4, 22-24, 32-34, ...
+    }
+    return "_many"; // many: 0, 5-20, 25-30, 35-40, ...
+  }
+  
+  // English and most other languages
+  if (count === 1) {
+    return ""; // one
+  }
+  return "_other"; // other
+};
+
 export const t = (
   path: NestedKeyOf<typeof fallbackLangData>,
   replacement?: { [key: string]: string | number } | null,
@@ -137,10 +163,27 @@ export const t = (
   }
 
   const parts = path.split(".");
-  let translation =
-    findPartsForData(currentLangData, parts) ||
-    findPartsForData(fallbackLangData, parts) ||
-    fallback;
+  
+  // Handle pluralization if count is provided
+  let translation: string | undefined;
+  if (replacement && typeof replacement.count === "number") {
+    const pluralSuffix = getPluralSuffix(currentLang.code, replacement.count);
+    const pluralPath = `${path}${pluralSuffix}`;
+    const pluralParts = pluralPath.split(".");
+    
+    // Try plural form first
+    translation = findPartsForData(currentLangData, pluralParts) ||
+                  findPartsForData(fallbackLangData, pluralParts);
+  }
+  
+  // Fall back to base key
+  if (!translation) {
+    translation =
+      findPartsForData(currentLangData, parts) ||
+      findPartsForData(fallbackLangData, parts) ||
+      fallback;
+  }
+  
   if (translation === undefined) {
     const errorMessage = `Can't find translation for ${path}`;
     // in production, don't blow up the app on a missing translation key

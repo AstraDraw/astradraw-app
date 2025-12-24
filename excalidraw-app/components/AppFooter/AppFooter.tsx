@@ -2,6 +2,7 @@ import { Footer, FooterLeftExtra } from "@excalidraw/excalidraw/index";
 import {
   presentationIcon,
   videoIcon,
+  commentsIcon,
 } from "@excalidraw/excalidraw/components/icons";
 import { Tooltip } from "@excalidraw/excalidraw/components/Tooltip";
 import { t } from "@excalidraw/excalidraw/i18n";
@@ -67,11 +68,34 @@ export const AppFooter = React.memo(
       }
     };
 
+    const handleToggleCommentsSidebar = () => {
+      if (!excalidrawAPI) {
+        return;
+      }
+
+      const appState = excalidrawAPI.getAppState();
+      const sidebarIsOpen =
+        appState.openSidebar?.name === "default" &&
+        appState.openSidebar?.tab === "comments";
+
+      if (sidebarIsOpen) {
+        // Sidebar is open to comments - close it
+        excalidrawAPI.updateScene({
+          appState: { openSidebar: null },
+        });
+      } else {
+        // Sidebar is closed or on different tab - open to comments tab
+        excalidrawAPI.updateScene({
+          appState: { openSidebar: { name: "default", tab: "comments" } },
+        });
+      }
+    };
+
     return (
       <>
         {/* Presentation and Talktrack toggle buttons - positioned after undo/redo in footer left */}
         <FooterLeftExtra>
-          <Tooltip label={`${t("presentation.title")} (⌘])`}>
+          <Tooltip label={t("presentation.title")} compact>
             <button
               className={styles.sidebarButton}
               onClick={handleTogglePresentationSidebar}
@@ -85,7 +109,7 @@ export const AppFooter = React.memo(
             </button>
           </Tooltip>
 
-          <Tooltip label={`${t("talktrack.title")} (⌘])`}>
+          <Tooltip label={t("talktrack.title")} compact>
             <button
               className={styles.sidebarButton}
               onClick={handleToggleTalktrackSidebar}
@@ -95,6 +119,20 @@ export const AppFooter = React.memo(
             >
               <div className={styles.toolIconWrapper} aria-hidden="true">
                 {videoIcon}
+              </div>
+            </button>
+          </Tooltip>
+
+          <Tooltip label={t("buttons.comments")} compact>
+            <button
+              className={styles.sidebarButton}
+              onClick={handleToggleCommentsSidebar}
+              onPointerDown={(e) => e.stopPropagation()}
+              type="button"
+              aria-label={t("buttons.comments")}
+            >
+              <div className={styles.toolIconWrapper} aria-hidden="true">
+                {commentsIcon}
               </div>
             </button>
           </Tooltip>

@@ -8,6 +8,7 @@ import {
   actionClearCanvas,
   actionLoadScene,
   actionSaveToActiveFile,
+  actionSaveFileToDisk,
   actionShortcuts,
   actionToggleSearchMenu,
   actionToggleTheme,
@@ -324,16 +325,27 @@ ChangeCanvasBackground.displayName = "ChangeCanvasBackground";
 export const Export = () => {
   const { t } = useI18n();
   const setAppState = useExcalidrawSetAppState();
+  const actionManager = useExcalidrawActionManager();
+  const appProps = useAppProps();
+  const exportOpts = appProps.UIOptions.canvasActions.export;
+  
+  // If saveFileToDisk is enabled, save directly to disk instead of showing dialog
+  const saveFileToDisk = typeof exportOpts === "object" && exportOpts.saveFileToDisk;
+  
   return (
     <DropdownMenuItem
       icon={ExportIcon}
       onSelect={() => {
-        setAppState({ openDialog: { name: "jsonExport" } });
+        if (saveFileToDisk) {
+          actionManager.executeAction(actionSaveFileToDisk, "ui");
+        } else {
+          setAppState({ openDialog: { name: "jsonExport" } });
+        }
       }}
       data-testid="json-export-button"
-      aria-label={t("buttons.export")}
+      aria-label={saveFileToDisk ? t("exportDialog.disk_button") : t("buttons.export")}
     >
-      {t("buttons.export")}
+      {saveFileToDisk ? t("exportDialog.disk_button") : t("buttons.export")}
     </DropdownMenuItem>
   );
 };

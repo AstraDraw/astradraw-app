@@ -6,7 +6,7 @@ import { useCommentMutations } from "../../../hooks/useCommentThreads";
 
 import styles from "./ThreadListItem.module.scss";
 
-import type { CommentThread } from "../../../auth/api/types";
+import type { CommentThread, UserSummary } from "../../../auth/api/types";
 
 // ============================================================================
 // Types
@@ -125,6 +125,22 @@ function formatRelativeTime(dateString: string): string {
 }
 
 /**
+ * Get user initials from name or email
+ */
+function getInitials(name: string, email: string): string {
+  if (name && name.trim()) {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  }
+  // Fallback to email if name is not set
+  return email[0].toUpperCase();
+}
+
+/**
  * Highlight search query matches in text
  */
 function highlightText(
@@ -170,6 +186,23 @@ export const ThreadListItem: React.FC<ThreadListItemProps> = ({
   // Get first comment for preview
   const firstComment = thread.comments[0];
   const replyCount = thread.commentCount - 1;
+
+  // Get unique participants (thread creator + all comment authors)
+  const participants = useMemo(() => {
+    const uniqueUsers = new Map<string, UserSummary>();
+    
+    // Add thread creator
+    uniqueUsers.set(thread.createdBy.id, thread.createdBy);
+    
+    // Add all comment authors
+    thread.comments.forEach((comment) => {
+      if (!uniqueUsers.has(comment.createdBy.id)) {
+        uniqueUsers.set(comment.createdBy.id, comment.createdBy);
+      }
+    });
+    
+    return Array.from(uniqueUsers.values());
+  }, [thread.createdBy, thread.comments]);
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -252,29 +285,97 @@ export const ThreadListItem: React.FC<ThreadListItemProps> = ({
         }
       }}
     >
-      {/* Avatar */}
-      <div className={styles.avatarContainer}>
-        <img
-          src={thread.createdBy.avatar || "/default-avatar.png"}
-          alt={thread.createdBy.name}
-          className={styles.avatar}
-        />
-        {thread.resolved && (
-          <div className={styles.resolvedBadge}>
-            <CheckIcon filled />
+      {/* Top row: Participant avatars */}
+      <div className={styles.participants}>
+        {participants.slice(0, 5).map((user) => (
+          <div key={user.id} className={styles.participantAvatar}>
+            {user.avatar ? (
+              <img
+                src={user.avatar}
+                alt={user.name}
+                className={styles.avatar}
+              />
+            ) : (
+              <div className={styles.avatarFallback}>
+                {getInitials(user.name, user.email)}
+              </div>
+            )}
           </div>
+        ))}
+        {participants.length > 5 && (
+          <div className={styles.moreParticipants}>+{participants.length - 5}</div>
         )}
       </div>
 
       {/* Content */}
       <div className={styles.content}>
-        {/* Header row */}
+        {/* Header row with actions */}
         <div className={styles.header}>
-          <span className={styles.author}>{highlightedAuthor}</span>
-          <span className={styles.dot}>•</span>
-          <span className={styles.time}>
-            {formatRelativeTime(thread.updatedAt)}
-          </span>
+          <div className={styles.headerInfo}>
+            <span className={styles.author}>{highlightedAuthor}</span>
+            <span className={styles.dot}>•</span>
+            <span className={styles.time}>
+              {formatRelativeTime(thread.updatedAt)}
+            </span>
+          </div>
+
+          {/* Hover actions */}
+          <div className={styles.actions}>
+            <div className={styles.menuContainer}>
+              <button
+                type="button"
+                className={styles.actionButton}
+                onClick={handleMenuClick}
+                title={t("comments.moreOptions")}
+              >
+                <MoreIcon />
+              </button>
+
+              {isMenuOpen && (
+                <div className={styles.menu}>
+                  <button
+                    type="button"
+                    className={styles.menuItem}
+                    onClick={handleResolve}
+                  >
+                    <CheckIcon />
+                    <span>
+                      {thread.resolved
+                        ? t("comments.reopen")
+                        : t("comments.resolve")}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.menuItem}
+                    onClick={handleCopyLink}
+                  >
+                    <LinkIcon />
+                    <span>{t("comments.copyLink")}</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.menuItem} ${styles.menuItemDanger}`}
+                    onClick={handleDelete}
+                  >
+                    <TrashIcon />
+                    <span>{t("comments.deleteThread")}</span>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <button
+              type="button"
+              className={`${styles.actionButton} ${
+                thread.resolved ? styles.actionButtonActive : ""
+              }`}
+              onClick={handleResolve}
+              title={thread.resolved ? t("comments.reopen") : t("comments.resolve")}
+            >
+              <CheckIcon filled={thread.resolved} />
+            </button>
+          </div>
         </div>
 
         {/* Preview text */}
@@ -283,69 +384,9 @@ export const ThreadListItem: React.FC<ThreadListItemProps> = ({
         {/* Reply count */}
         {replyCount > 0 && (
           <div className={styles.replyCount}>
-            {replyCount === 1
-              ? t("comments.reply", { count: 1 })
-              : t("comments.replies", { count: replyCount })}
+            {t("comments.reply", { count: replyCount })}
           </div>
         )}
-      </div>
-
-      {/* Hover actions */}
-      <div className={styles.actions}>
-        <button
-          type="button"
-          className={`${styles.actionButton} ${
-            thread.resolved ? styles.actionButtonActive : ""
-          }`}
-          onClick={handleResolve}
-          title={thread.resolved ? t("comments.reopen") : t("comments.resolve")}
-        >
-          <CheckIcon filled={thread.resolved} />
-        </button>
-
-        <div className={styles.menuContainer}>
-          <button
-            type="button"
-            className={styles.actionButton}
-            onClick={handleMenuClick}
-            title={t("comments.moreOptions")}
-          >
-            <MoreIcon />
-          </button>
-
-          {isMenuOpen && (
-            <div className={styles.menu}>
-              <button
-                type="button"
-                className={styles.menuItem}
-                onClick={handleResolve}
-              >
-                <CheckIcon />
-                <span>
-                  {thread.resolved
-                    ? t("comments.reopen")
-                    : t("comments.resolve")}
-                </span>
-              </button>
-              <button
-                type="button"
-                className={styles.menuItem}
-                onClick={handleCopyLink}
-              >
-                <LinkIcon />
-                <span>{t("comments.copyLink")}</span>
-              </button>
-              <button
-                type="button"
-                className={`${styles.menuItem} ${styles.menuItemDanger}`}
-                onClick={handleDelete}
-              >
-                <TrashIcon />
-                <span>{t("comments.deleteThread")}</span>
-              </button>
-            </div>
-          )}
-        </div>
       </div>
     </div>
   );

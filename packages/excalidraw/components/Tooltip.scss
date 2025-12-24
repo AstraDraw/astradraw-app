@@ -27,6 +27,15 @@
   &.excalidraw-tooltip--visible {
     display: block;
   }
+  
+  // Compact style for footer buttons (no wrap, smaller font, auto width)
+  &.excalidraw-tooltip--compact {
+    white-space: nowrap;
+    font-size: 12px;
+    padding: 8px 12px;
+    max-width: max-content !important;
+    min-width: auto !important;
+  }
 }
 
 // wraps the element we want to apply the tooltip to

@@ -1,10 +1,11 @@
 /**
- * MentionInput - Textarea with @mention autocomplete
+ * MentionInput - Rich text input with @mention autocomplete
  *
  * Features:
  * - Type @ to trigger user autocomplete
  * - Click @ button to trigger autocomplete
- * - Stores mentions as @[Name](userId) format in text
+ * - Displays mentions as styled chips (highlighted)
+ * - Stores mentions as @[Name](userId) format internally
  * - Returns mentions array of user IDs
  */
 
@@ -25,7 +26,7 @@ import styles from "./MentionInput.module.scss";
 import type { MentionableUser } from "../../../hooks/useWorkspaceMembers";
 
 export interface MentionInputProps {
-  /** Current input value */
+  /** Current input value (raw format with @[Name](id)) */
   value: string;
   /** Called when value changes */
   onChange: (value: string, mentions: string[]) => void;
@@ -61,6 +62,44 @@ function extractMentions(text: string): string[] {
   return [...new Set(mentions)]; // Deduplicate
 }
 
+/**
+ * Convert raw value to display HTML with styled mention chips
+ */
+function rawToDisplay(raw: string): string {
+  // Replace @[Name](id) with styled span
+  return raw.replace(
+    /@\[([^\]]+)\]\(([^)]+)\)/g,
+    '<span class="mention-chip" data-user-id="$2" contenteditable="false">$1</span>',
+  );
+}
+
+/**
+ * Convert display HTML back to raw format
+ */
+function displayToRaw(container: HTMLElement): string {
+  let result = "";
+
+  container.childNodes.forEach((node) => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      result += node.textContent || "";
+    } else if (node.nodeType === Node.ELEMENT_NODE) {
+      const el = node as HTMLElement;
+      if (el.classList.contains("mention-chip")) {
+        const userId = el.getAttribute("data-user-id");
+        const name = el.textContent;
+        result += `@[${name}](${userId})`;
+      } else if (el.tagName === "BR") {
+        result += "\n";
+      } else {
+        // Recursively handle nested elements
+        result += displayToRaw(el);
+      }
+    }
+  });
+
+  return result;
+}
+
 export const MentionInput = forwardRef<MentionInputHandle, MentionInputProps>(
   (
     {
@@ -74,15 +113,19 @@ export const MentionInput = forwardRef<MentionInputHandle, MentionInputProps>(
     },
     ref,
   ) => {
-    const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const editorRef = useRef<HTMLDivElement>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     const [showDropdown, setShowDropdown] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedIndex, setSelectedIndex] = useState(0);
-    const [mentionStartIndex, setMentionStartIndex] = useState<number | null>(
-      null,
-    );
+    const [dropdownPosition, setDropdownPosition] = useState<{
+      top: number;
+      left: number;
+    } | null>(null);
+
+    // Track if we're in mention mode (after typing @)
+    const mentionModeRef = useRef(false);
 
     const { members, isLoading } = useWorkspaceMembers({
       workspaceId,
@@ -98,136 +141,162 @@ export const MentionInput = forwardRef<MentionInputHandle, MentionInputProps>(
 
     // Expose methods to parent
     useImperativeHandle(ref, () => ({
-      focus: () => textareaRef.current?.focus(),
+      focus: () => editorRef.current?.focus(),
       insertMention: (user: MentionableUser) => {
         insertMentionAtCursor(user);
       },
     }));
 
-    // Insert mention at current cursor position
+    // Insert mention chip at current cursor position
     const insertMentionAtCursor = useCallback(
       (user: MentionableUser) => {
-        const textarea = textareaRef.current;
-        if (!textarea) {
+        const editor = editorRef.current;
+        if (!editor) {
           return;
         }
 
-        const start = mentionStartIndex ?? textarea.selectionStart;
-        const beforeMention = value.slice(0, start);
-        const afterMention = value.slice(textarea.selectionStart);
+        const selection = window.getSelection();
+        if (!selection || selection.rangeCount === 0) {
+          return;
+        }
 
-        // Format: @[Name](userId)
-        const mention = `@[${user.name}](${user.id}) `;
-        const newValue = beforeMention + mention + afterMention;
-        const newCursorPos = beforeMention.length + mention.length;
+        const range = selection.getRangeAt(0);
 
-        onChange(newValue, extractMentions(newValue));
+        // If in mention mode, delete the @ and search text
+        if (mentionModeRef.current) {
+          // Find and remove the @ trigger and search text
+          const textNode = range.startContainer;
+          if (textNode.nodeType === Node.TEXT_NODE) {
+            const text = textNode.textContent || "";
+            const cursorPos = range.startOffset;
+
+            // Find the @ before cursor
+            let atPos = -1;
+            for (let i = cursorPos - 1; i >= 0; i--) {
+              if (text[i] === "@") {
+                atPos = i;
+                break;
+              }
+            }
+
+            if (atPos >= 0) {
+              // Delete from @ to cursor
+              const beforeAt = text.slice(0, atPos);
+              const afterCursor = text.slice(cursorPos);
+              textNode.textContent = beforeAt + afterCursor;
+
+              // Set cursor position after the deletion
+              range.setStart(textNode, atPos);
+              range.setEnd(textNode, atPos);
+            }
+          }
+        }
+
+        // Create mention chip
+        const chip = document.createElement("span");
+        chip.className = "mention-chip";
+        chip.setAttribute("data-user-id", user.id);
+        chip.setAttribute("contenteditable", "false");
+        chip.textContent = user.name;
+
+        // Insert chip
+        range.insertNode(chip);
+
+        // Add a space after the chip and move cursor there
+        const space = document.createTextNode("\u00A0"); // Non-breaking space
+        chip.after(space);
+
+        // Move cursor after the space
+        range.setStartAfter(space);
+        range.setEndAfter(space);
+        selection.removeAllRanges();
+        selection.addRange(range);
 
         // Reset dropdown state
         setShowDropdown(false);
         setSearchQuery("");
-        setMentionStartIndex(null);
         setSelectedIndex(0);
+        mentionModeRef.current = false;
 
-        // Restore focus and cursor position
-        setTimeout(() => {
-          textarea.focus();
-          textarea.setSelectionRange(newCursorPos, newCursorPos);
-        }, 0);
+        // Trigger onChange with new raw value
+        const newRaw = displayToRaw(editor);
+        onChange(newRaw, extractMentions(newRaw));
+
+        // Focus editor
+        editor.focus();
       },
-      [value, onChange, mentionStartIndex],
+      [onChange],
     );
 
-    // Auto-resize textarea based on content
-    const autoResize = useCallback(() => {
-      const textarea = textareaRef.current;
-      if (!textarea) {
+    // Handle input in contenteditable
+    const handleInput = useCallback(() => {
+      const editor = editorRef.current;
+      if (!editor) {
         return;
       }
 
-      // Lock width to prevent horizontal expansion
-      const currentWidth = textarea.parentElement?.offsetWidth;
-      if (currentWidth) {
-        textarea.style.width = `${currentWidth}px`;
+      const selection = window.getSelection();
+      if (!selection || selection.rangeCount === 0) {
+        return;
       }
 
-      // Reset height to auto to get the correct scrollHeight
-      textarea.style.height = "auto";
-      // Set height to scrollHeight (content height)
-      const newHeight = Math.min(textarea.scrollHeight, 120); // max 120px
-      textarea.style.height = `${newHeight}px`;
-    }, []);
+      const range = selection.getRangeAt(0);
+      const textNode = range.startContainer;
 
-    // Auto-resize when value changes
-    useEffect(() => {
-      autoResize();
-    }, [value, autoResize]);
+      if (textNode.nodeType === Node.TEXT_NODE) {
+        const text = textNode.textContent || "";
+        const cursorPos = range.startOffset;
 
-    // Handle text input
-    const handleChange = useCallback(
-      (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        const newValue = e.target.value;
-        const cursorPos = e.target.selectionStart;
-
-        // Check if user just typed @
-        const lastChar = newValue[cursorPos - 1];
-        const charBefore = newValue[cursorPos - 2];
-
-        if (lastChar === "@" && (!charBefore || /\s/.test(charBefore))) {
-          // Start mention mode
-          setShowDropdown(true);
-          setMentionStartIndex(cursorPos - 1);
-          setSearchQuery("");
-          setSelectedIndex(0);
-        } else if (showDropdown && mentionStartIndex !== null) {
-          // Update search query while in mention mode
-          const query = newValue.slice(mentionStartIndex + 1, cursorPos);
-
-          // Close dropdown if user typed space or deleted the @
-          if (
-            query.includes(" ") ||
-            !newValue.includes("@", mentionStartIndex)
-          ) {
-            setShowDropdown(false);
-            setMentionStartIndex(null);
-            setSearchQuery("");
-          } else {
-            setSearchQuery(query);
-            setSelectedIndex(0);
+        // Check for @ trigger
+        let atPos = -1;
+        for (let i = cursorPos - 1; i >= 0; i--) {
+          const char = text[i];
+          if (char === "@") {
+            // Check if @ is at start or preceded by whitespace
+            if (i === 0 || /\s/.test(text[i - 1])) {
+              atPos = i;
+              break;
+            }
+          }
+          // Stop searching if we hit whitespace
+          if (/\s/.test(char)) {
+            break;
           }
         }
 
-        onChange(newValue, extractMentions(newValue));
-      },
-      [showDropdown, mentionStartIndex, onChange],
-    );
+        if (atPos >= 0) {
+          // We're in mention mode
+          const query = text.slice(atPos + 1, cursorPos);
+          mentionModeRef.current = true;
+          setSearchQuery(query);
+          setShowDropdown(true);
+          setSelectedIndex(0);
+        } else if (mentionModeRef.current) {
+          // Exit mention mode
+          mentionModeRef.current = false;
+          setShowDropdown(false);
+          setSearchQuery("");
+        }
+      }
+
+      // Update raw value
+      const newRaw = displayToRaw(editor);
+      onChange(newRaw, extractMentions(newRaw));
+    }, [onChange]);
 
     // Handle keyboard navigation
     const handleKeyDown = useCallback(
-      (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-        // Allow text editing shortcuts to work (Ctrl+A, Ctrl+C, etc.)
-        // Stop propagation but don't prevent default for these
-        const isTextEditingShortcut =
-          (e.metaKey || e.ctrlKey) &&
-          (e.key === "a" || // Select all
-            e.key === "A" ||
-            e.key === "c" || // Copy
-            e.key === "C" ||
-            e.key === "x" || // Cut
-            e.key === "X" ||
-            e.key === "v" || // Paste
-            e.key === "V" ||
-            e.key === "z" || // Undo
-            e.key === "Z" ||
-            e.key === "y" || // Redo
-            e.key === "Y");
-
-        // Always stop propagation to prevent canvas shortcuts
+      (e: React.KeyboardEvent<HTMLDivElement>) => {
+        // Stop propagation to prevent canvas shortcuts
         e.stopPropagation();
 
-        // But allow default behavior for text editing shortcuts
+        // Allow text editing shortcuts
+        const isTextEditingShortcut =
+          (e.metaKey || e.ctrlKey) &&
+          ["a", "c", "x", "v", "z", "y"].includes(e.key.toLowerCase());
+
         if (isTextEditingShortcut) {
-          return; // Let browser handle it
+          return;
         }
 
         if (showDropdown && filteredMembers.length > 0) {
@@ -252,7 +321,7 @@ export const MentionInput = forwardRef<MentionInputHandle, MentionInputProps>(
             case "Escape":
               e.preventDefault();
               setShowDropdown(false);
-              setMentionStartIndex(null);
+              mentionModeRef.current = false;
               return;
           }
         }
@@ -261,11 +330,6 @@ export const MentionInput = forwardRef<MentionInputHandle, MentionInputProps>(
         if (e.key === "Enter" && !e.shiftKey && !showDropdown) {
           e.preventDefault();
           onSubmit?.();
-        }
-
-        // Close dropdown on Escape
-        if (e.key === "Escape" && !showDropdown) {
-          // Let parent handle escape
         }
       },
       [
@@ -285,37 +349,19 @@ export const MentionInput = forwardRef<MentionInputHandle, MentionInputProps>(
       [insertMentionAtCursor],
     );
 
-    // Handle @ button click
-    // TODO: Add @ button to UI to trigger mentions
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const handleAtButtonClick = useCallback(() => {
-      const textarea = textareaRef.current;
-      if (!textarea) {
+    // Calculate dropdown position when it opens
+    useEffect(() => {
+      if (!showDropdown || !editorRef.current) {
+        setDropdownPosition(null);
         return;
       }
 
-      // Insert @ at cursor and trigger dropdown
-      const cursorPos = textarea.selectionStart;
-      const beforeCursor = value.slice(0, cursorPos);
-      const afterCursor = value.slice(cursorPos);
-
-      // Add space before @ if needed
-      const needsSpace = beforeCursor.length > 0 && !/\s$/.test(beforeCursor);
-      const newValue = beforeCursor + (needsSpace ? " @" : "@") + afterCursor;
-      const newCursorPos = cursorPos + (needsSpace ? 2 : 1);
-
-      onChange(newValue, extractMentions(newValue));
-      setShowDropdown(true);
-      setMentionStartIndex(newCursorPos - 1);
-      setSearchQuery("");
-      setSelectedIndex(0);
-
-      // Focus and position cursor
-      setTimeout(() => {
-        textarea.focus();
-        textarea.setSelectionRange(newCursorPos, newCursorPos);
-      }, 0);
-    }, [value, onChange]);
+      const rect = editorRef.current.getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.top - 4,
+        left: rect.left,
+      });
+    }, [showDropdown]);
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -327,11 +373,11 @@ export const MentionInput = forwardRef<MentionInputHandle, MentionInputProps>(
         if (
           dropdownRef.current &&
           !dropdownRef.current.contains(e.target as Node) &&
-          textareaRef.current &&
-          !textareaRef.current.contains(e.target as Node)
+          editorRef.current &&
+          !editorRef.current.contains(e.target as Node)
         ) {
           setShowDropdown(false);
-          setMentionStartIndex(null);
+          mentionModeRef.current = false;
         }
       };
 
@@ -354,24 +400,127 @@ export const MentionInput = forwardRef<MentionInputHandle, MentionInputProps>(
       }
     }, [selectedIndex, showDropdown]);
 
+    // Sync external value changes to editor
+    useEffect(() => {
+      const editor = editorRef.current;
+      if (!editor) {
+        return;
+      }
+
+      // Only update if the raw value is different
+      const currentRaw = displayToRaw(editor);
+      if (currentRaw !== value) {
+        editor.innerHTML = rawToDisplay(value) || "";
+      }
+    }, [value]);
+
+  // Auto-focus on mount and set cursor at start
+  useEffect(() => {
+    if (autoFocus && editorRef.current) {
+      const editor = editorRef.current;
+      
+      // Clear any browser-inserted content (like <br> tags) and set empty text
+      if (!editor.textContent || editor.textContent === '\u200B') {
+        editor.innerHTML = '';
+        const textNode = document.createTextNode('');
+        editor.appendChild(textNode);
+      }
+
+      editor.focus();
+
+      // Set cursor at the beginning - use multiple attempts to override browser behavior
+      const setCursorToStart = () => {
+        const selection = window.getSelection();
+        const firstNode = editor.firstChild;
+        
+        if (selection && firstNode) {
+          const range = document.createRange();
+          // If it's a text node, set cursor at position 0
+          if (firstNode.nodeType === Node.TEXT_NODE) {
+            range.setStart(firstNode, 0);
+            range.setEnd(firstNode, 0);
+          } else {
+            // If not a text node, set cursor at start of editor
+            range.setStart(editor, 0);
+            range.setEnd(editor, 0);
+          }
+          selection.removeAllRanges();
+          selection.addRange(range);
+        }
+      };
+
+      // Try immediately
+      setCursorToStart();
+      
+      // Try again after browser has finished its default behavior
+      setTimeout(setCursorToStart, 0);
+      requestAnimationFrame(() => {
+        setTimeout(setCursorToStart, 10);
+      });
+    }
+  }, [autoFocus]);
+
+    // Check if empty for placeholder
+    const isEmpty = !value || value.trim() === "";
+
+  // Handle focus to position cursor at start when empty
+  const handleFocus = useCallback(() => {
+    const editor = editorRef.current;
+    if (!editor) {
+      return;
+    }
+
+    // Check if editor is truly empty (no text content or only whitespace)
+    const textContent = editor.textContent || "";
+    if (textContent.trim() !== "") {
+      return; // Only handle empty editor
+    }
+
+    // Ensure there's a text node for cursor positioning
+    if (!editor.firstChild || editor.firstChild.nodeType !== Node.TEXT_NODE) {
+      editor.textContent = "";
+    }
+
+    // Use requestAnimationFrame to ensure DOM is ready
+    requestAnimationFrame(() => {
+      const selection = window.getSelection();
+      if (selection && editor.firstChild) {
+        const range = document.createRange();
+        range.setStart(editor.firstChild, 0);
+        range.setEnd(editor.firstChild, 0);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+    });
+  }, []);
+
     return (
       <div className={styles.container}>
-        <textarea
-          ref={textareaRef}
-          className={styles.textarea}
-          value={value}
-          onChange={handleChange}
+        <div
+          ref={editorRef}
+          className={`${styles.editor} ${isEmpty ? styles.empty : ""}`}
+          contentEditable={!disabled}
+          onInput={handleInput}
           onKeyDown={handleKeyDown}
           onKeyUp={(e) => e.stopPropagation()}
-          placeholder={placeholder}
-          disabled={disabled}
-          autoFocus={autoFocus}
-          rows={1}
+          onFocus={handleFocus}
+          data-placeholder={placeholder}
+          role="textbox"
+          aria-multiline="true"
+          aria-disabled={disabled}
         />
 
-        {/* Dropdown */}
-        {showDropdown && (
-          <div ref={dropdownRef} className={styles.dropdown}>
+        {/* Dropdown - uses fixed positioning to escape overflow:hidden */}
+        {showDropdown && dropdownPosition && (
+          <div
+            ref={dropdownRef}
+            className={styles.dropdown}
+            style={{
+              top: dropdownPosition.top,
+              left: dropdownPosition.left,
+              transform: "translateY(-100%)",
+            }}
+          >
             {isLoading ? (
               <div className={styles.loading}>
                 {t("comments.loadingMembers")}
