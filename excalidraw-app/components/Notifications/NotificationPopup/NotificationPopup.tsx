@@ -8,6 +8,7 @@ import {
   useNotifications,
   useNotificationMutations,
 } from "../../../hooks/useNotifications";
+import { buildNotificationsUrl, navigateTo } from "../../../router";
 import { closeNotificationPopupAtom } from "../notificationsState";
 
 import { NotificationSkeletonList } from "../Skeletons";
@@ -102,9 +103,7 @@ export const NotificationPopup: React.FC<NotificationPopupProps> = ({
   const handleViewAll = () => {
     // Navigate to notifications page
     if (workspaceSlug) {
-      window.location.href = `/workspace/${encodeURIComponent(
-        workspaceSlug,
-      )}/notifications`;
+      navigateTo(buildNotificationsUrl(workspaceSlug));
     }
     closePopup();
   };

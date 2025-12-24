@@ -5,6 +5,7 @@ import { t } from "@excalidraw/excalidraw/i18n";
 import { useAtom } from "../../../app-jotai";
 
 import { useUnreadCount } from "../../../hooks/useNotifications";
+import { buildNotificationsUrl, navigateTo } from "../../../router";
 import { isNotificationPopupOpenAtom } from "../notificationsState";
 import { NotificationBadge } from "../NotificationBadge";
 import { NotificationPopup } from "../NotificationPopup";
@@ -17,6 +18,8 @@ interface NotificationBellProps {
   workspaceSlug?: string;
   /** Whether notifications are enabled (user is authenticated) */
   enabled?: boolean;
+  /** Current app mode - determines click behavior */
+  appMode?: "canvas" | "dashboard";
   /** Callback when navigating to a notification */
   onNavigate?: (sceneId: string, threadId?: string, commentId?: string) => void;
 }
@@ -27,19 +30,27 @@ interface NotificationBellProps {
  * Features:
  * - Bell icon in sidebar footer
  * - Red badge showing unread count (max "5+")
- * - Click toggles notification popup
+ * - In canvas mode: Click toggles notification popup
+ * - In dashboard mode: Click navigates directly to notifications page
  * - Unread count polls every 60 seconds
  */
 export const NotificationBell: React.FC<NotificationBellProps> = ({
   workspaceSlug,
   enabled = true,
+  appMode = "canvas",
   onNavigate,
 }) => {
   const [isPopupOpen, setIsPopupOpen] = useAtom(isNotificationPopupOpenAtom);
   const { count } = useUnreadCount({ enabled });
 
   const handleClick = () => {
-    setIsPopupOpen(!isPopupOpen);
+    if (appMode === "dashboard" && workspaceSlug) {
+      // In dashboard mode, navigate directly to notifications page
+      navigateTo(buildNotificationsUrl(workspaceSlug));
+    } else {
+      // In canvas mode, toggle the popup
+      setIsPopupOpen(!isPopupOpen);
+    }
   };
 
   return (
@@ -49,14 +60,15 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
         onClick={handleClick}
         title={t("workspace.notifications")}
         aria-label={t("workspace.notifications")}
-        aria-expanded={isPopupOpen}
-        aria-haspopup="true"
+        aria-expanded={appMode === "canvas" ? isPopupOpen : undefined}
+        aria-haspopup={appMode === "canvas" ? "true" : undefined}
       >
         {bellIcon}
         <NotificationBadge count={count} />
       </button>
 
-      {isPopupOpen && (
+      {/* Only show popup in canvas mode */}
+      {appMode === "canvas" && isPopupOpen && (
         <NotificationPopup
           workspaceSlug={workspaceSlug}
           onNavigate={onNavigate}

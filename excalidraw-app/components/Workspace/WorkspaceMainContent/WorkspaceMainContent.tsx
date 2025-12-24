@@ -16,6 +16,7 @@ import { PreferencesPage } from "../../Settings/PreferencesPage";
 import { WorkspaceSettingsPage } from "../../Settings/WorkspaceSettingsPage";
 import { MembersPage } from "../../Settings/MembersPage";
 import { TeamsCollectionsPage } from "../../Settings/TeamsCollectionsPage";
+import { NotificationsPage } from "../../Notifications/NotificationsPage";
 
 import { DashboardView } from "../DashboardView";
 import { CollectionView } from "../CollectionView";
@@ -89,6 +90,8 @@ export const WorkspaceMainContent: React.FC<WorkspaceMainContentProps> = ({
             isAdmin={isAdmin}
           />
         );
+      case "notifications":
+        return <NotificationsPage />;
       default:
         return <DashboardView onNewScene={onNewScene} />;
     }

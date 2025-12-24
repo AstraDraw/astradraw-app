@@ -9,6 +9,28 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.78] - 2025-12-24
+
+### Added
+
+- **Notification System - Phase 5: Notifications Page**
+  - `components/Notifications/NotificationsPage`: Full page view with timeline and infinite scroll
+  - `components/Notifications/NotificationTimelineItem`: Single notification in timeline view with avatar, type icon, message
+  - `components/Notifications/UnreadBadge`: Pulsing "Unread" badge with animation
+  - `/workspace/{slug}/notifications` route for full notifications page
+  - `navigateToNotificationsAtom` for programmatic navigation to notifications
+  - `buildNotificationsUrl()` URL builder in router.ts
+  - Native IntersectionObserver for infinite scroll (no additional dependencies)
+  - Click-through navigation: clicking notification opens scene with comment thread focused
+
+### Changed
+
+- `router.ts`: Added "notifications" route type, pattern, and helper functions
+- `settingsState.ts`: Added "notifications" to DashboardView type
+- `useUrlRouting.ts`: Added notifications case to route handler
+- `WorkspaceMainContent.tsx`: Added notifications case to render switch
+- `NotificationPopup.tsx`: Uses `buildNotificationsUrl` for "View all" navigation
+
 ## [0.18.0-beta0.77] - 2025-12-24
 
 ### Added

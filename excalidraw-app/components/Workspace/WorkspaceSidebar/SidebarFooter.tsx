@@ -10,6 +10,8 @@ interface SidebarFooterProps {
   user: User;
   /** Current workspace slug for notification URLs */
   workspaceSlug?: string;
+  /** Current app mode - determines notification bell behavior */
+  appMode?: "canvas" | "dashboard";
   onProfileClick: () => void;
   /** Callback when navigating to a notification */
   onNotificationNavigate?: (
@@ -34,6 +36,7 @@ const getInitials = (name: string | null, email: string): string => {
 export const SidebarFooter: React.FC<SidebarFooterProps> = ({
   user,
   workspaceSlug,
+  appMode = "canvas",
   onProfileClick,
   onNotificationNavigate,
 }) => {
@@ -60,6 +63,7 @@ export const SidebarFooter: React.FC<SidebarFooterProps> = ({
         <NotificationBell
           workspaceSlug={workspaceSlug}
           enabled={true}
+          appMode={appMode}
           onNavigate={onNotificationNavigate}
         />
       </div>

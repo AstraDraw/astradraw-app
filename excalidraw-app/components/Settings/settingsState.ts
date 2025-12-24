@@ -7,6 +7,7 @@ import {
   buildSettingsUrl,
   buildMembersUrl,
   buildTeamsUrl,
+  buildNotificationsUrl,
   buildProfileUrl,
   buildPreferencesUrl,
   navigateTo,
@@ -35,6 +36,7 @@ export type SidebarMode = "board" | "full";
  * - "workspace": Workspace settings (admin only)
  * - "members": Team members management (admin only)
  * - "teams-collections": Teams & collections management (admin only)
+ * - "notifications": User notifications page
  */
 export type DashboardView =
   | "home"
@@ -43,7 +45,8 @@ export type DashboardView =
   | "preferences"
   | "workspace"
   | "members"
-  | "teams-collections";
+  | "teams-collections"
+  | "notifications";
 
 /**
  * Current app mode atom
@@ -286,6 +289,21 @@ export const navigateToTeamsCollectionsAtom = atom(null, (get, set) => {
 
   if (workspaceSlug) {
     navigateTo(buildTeamsUrl(workspaceSlug));
+  }
+});
+
+/**
+ * Atom for navigating to notifications page
+ * Updates URL to /workspace/{slug}/notifications
+ */
+export const navigateToNotificationsAtom = atom(null, (get, set) => {
+  const workspaceSlug = get(currentWorkspaceSlugAtom);
+  set(appModeAtom, "dashboard");
+  set(dashboardViewAtom, "notifications");
+  set(workspaceSidebarOpenAtom, true);
+
+  if (workspaceSlug) {
+    navigateTo(buildNotificationsUrl(workspaceSlug));
   }
 });
 

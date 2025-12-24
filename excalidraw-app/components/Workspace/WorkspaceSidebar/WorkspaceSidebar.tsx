@@ -421,6 +421,7 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
         <SidebarFooter
           user={user}
           workspaceSlug={currentWorkspaceSlug || undefined}
+          appMode={sidebarMode === "full" ? "dashboard" : "canvas"}
           onProfileClick={() => navigateToProfile()}
         />
       )}

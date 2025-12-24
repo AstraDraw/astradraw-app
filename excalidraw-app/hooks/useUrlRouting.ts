@@ -33,6 +33,7 @@ export interface UseUrlRoutingOptions {
       | "workspace"
       | "members"
       | "teams-collections"
+      | "notifications"
       | "profile"
       | "preferences",
   ) => void;
@@ -110,6 +111,12 @@ export function useUrlRouting({
         case "teams":
           setCurrentWorkspaceSlug(route.workspaceSlug);
           setDashboardView("teams-collections");
+          setAppMode("dashboard");
+          break;
+
+        case "notifications":
+          setCurrentWorkspaceSlug(route.workspaceSlug);
+          setDashboardView("notifications");
           setAppMode("dashboard");
           break;
 

@@ -23,6 +23,7 @@ export type RouteType =
   | { type: "settings"; workspaceSlug: string }
   | { type: "members"; workspaceSlug: string }
   | { type: "teams"; workspaceSlug: string }
+  | { type: "notifications"; workspaceSlug: string }
   | { type: "profile" }
   | { type: "preferences" }
   | { type: "invite"; code: string }
@@ -43,6 +44,8 @@ const WORKSPACE_SCENE_PATTERN = /^\/workspace\/([^/]+)\/scene\/([^/#]+)/;
 const WORKSPACE_SETTINGS_PATTERN = /^\/workspace\/([^/]+)\/settings\/?$/;
 const WORKSPACE_MEMBERS_PATTERN = /^\/workspace\/([^/]+)\/members\/?$/;
 const WORKSPACE_TEAMS_PATTERN = /^\/workspace\/([^/]+)\/teams\/?$/;
+const WORKSPACE_NOTIFICATIONS_PATTERN =
+  /^\/workspace\/([^/]+)\/notifications\/?$/;
 
 // Other routes
 const PROFILE_PATTERN = /^\/profile\/?$/;
@@ -155,6 +158,12 @@ export function parseUrl(url: string = window.location.href): RouteType {
     return { type: "teams", workspaceSlug: teamsMatch[1] };
   }
 
+  // Workspace notifications
+  const notificationsMatch = pathname.match(WORKSPACE_NOTIFICATIONS_PATTERN);
+  if (notificationsMatch) {
+    return { type: "notifications", workspaceSlug: notificationsMatch[1] };
+  }
+
   // Default: home/root
   return { type: "home" };
 }
@@ -225,6 +234,13 @@ export function buildMembersUrl(workspaceSlug: string): string {
  */
 export function buildTeamsUrl(workspaceSlug: string): string {
   return `/workspace/${encodeURIComponent(workspaceSlug)}/teams`;
+}
+
+/**
+ * Build URL for notifications page
+ */
+export function buildNotificationsUrl(workspaceSlug: string): string {
+  return `/workspace/${encodeURIComponent(workspaceSlug)}/notifications`;
 }
 
 /**
@@ -315,7 +331,8 @@ export function isWorkspaceRoute(route: RouteType): boolean {
     route.type === "scene" ||
     route.type === "settings" ||
     route.type === "members" ||
-    route.type === "teams"
+    route.type === "teams" ||
+    route.type === "notifications"
   );
 }
 
@@ -330,7 +347,8 @@ export function getWorkspaceSlug(route: RouteType): string | null {
     route.type === "scene" ||
     route.type === "settings" ||
     route.type === "members" ||
-    route.type === "teams"
+    route.type === "teams" ||
+    route.type === "notifications"
   ) {
     return route.workspaceSlug;
   }
@@ -348,6 +366,7 @@ export function isDashboardRoute(route: RouteType): boolean {
     route.type === "settings" ||
     route.type === "members" ||
     route.type === "teams" ||
+    route.type === "notifications" ||
     route.type === "profile"
   );
 }
