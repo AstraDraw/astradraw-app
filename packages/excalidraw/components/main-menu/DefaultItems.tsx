@@ -328,10 +328,11 @@ export const Export = () => {
   const actionManager = useExcalidrawActionManager();
   const appProps = useAppProps();
   const exportOpts = appProps.UIOptions.canvasActions.export;
-  
+
   // If saveFileToDisk is enabled, save directly to disk instead of showing dialog
-  const saveFileToDisk = typeof exportOpts === "object" && exportOpts.saveFileToDisk;
-  
+  const saveFileToDisk =
+    typeof exportOpts === "object" && exportOpts.saveFileToDisk;
+
   return (
     <DropdownMenuItem
       icon={ExportIcon}
@@ -343,7 +344,9 @@ export const Export = () => {
         }
       }}
       data-testid="json-export-button"
-      aria-label={saveFileToDisk ? t("exportDialog.disk_button") : t("buttons.export")}
+      aria-label={
+        saveFileToDisk ? t("exportDialog.disk_button") : t("buttons.export")
+      }
     >
       {saveFileToDisk ? t("exportDialog.disk_button") : t("buttons.export")}
     </DropdownMenuItem>

@@ -67,13 +67,13 @@ const updateTooltip = (
   compact?: boolean,
 ) => {
   tooltip.classList.add("excalidraw-tooltip--visible");
-  
+
   if (compact) {
     tooltip.classList.add("excalidraw-tooltip--compact");
   } else {
     tooltip.classList.remove("excalidraw-tooltip--compact");
   }
-  
+
   tooltip.style.minWidth = long ? "50ch" : "10ch";
   tooltip.style.maxWidth = long ? "50ch" : "15ch";
 

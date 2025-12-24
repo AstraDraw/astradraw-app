@@ -113,8 +113,3 @@ export const AstradrawLogo = ({
 
 // Also export the icon for use in other places (like menu items)
 export const AstradrawIcon = LogoIcon;
-
-
-
-
-

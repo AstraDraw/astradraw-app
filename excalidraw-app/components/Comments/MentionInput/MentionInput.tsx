@@ -414,85 +414,85 @@ export const MentionInput = forwardRef<MentionInputHandle, MentionInputProps>(
       }
     }, [value]);
 
-  // Auto-focus on mount and set cursor at start
-  useEffect(() => {
-    if (autoFocus && editorRef.current) {
-      const editor = editorRef.current;
-      
-      // Clear any browser-inserted content (like <br> tags) and set empty text
-      if (!editor.textContent || editor.textContent === '\u200B') {
-        editor.innerHTML = '';
-        const textNode = document.createTextNode('');
-        editor.appendChild(textNode);
-      }
+    // Auto-focus on mount and set cursor at start
+    useEffect(() => {
+      if (autoFocus && editorRef.current) {
+        const editor = editorRef.current;
 
-      editor.focus();
-
-      // Set cursor at the beginning - use multiple attempts to override browser behavior
-      const setCursorToStart = () => {
-        const selection = window.getSelection();
-        const firstNode = editor.firstChild;
-        
-        if (selection && firstNode) {
-          const range = document.createRange();
-          // If it's a text node, set cursor at position 0
-          if (firstNode.nodeType === Node.TEXT_NODE) {
-            range.setStart(firstNode, 0);
-            range.setEnd(firstNode, 0);
-          } else {
-            // If not a text node, set cursor at start of editor
-            range.setStart(editor, 0);
-            range.setEnd(editor, 0);
-          }
-          selection.removeAllRanges();
-          selection.addRange(range);
+        // Clear any browser-inserted content (like <br> tags) and set empty text
+        if (!editor.textContent || editor.textContent === "\u200B") {
+          editor.innerHTML = "";
+          const textNode = document.createTextNode("");
+          editor.appendChild(textNode);
         }
-      };
 
-      // Try immediately
-      setCursorToStart();
-      
-      // Try again after browser has finished its default behavior
-      setTimeout(setCursorToStart, 0);
-      requestAnimationFrame(() => {
-        setTimeout(setCursorToStart, 10);
-      });
-    }
-  }, [autoFocus]);
+        editor.focus();
+
+        // Set cursor at the beginning - use multiple attempts to override browser behavior
+        const setCursorToStart = () => {
+          const selection = window.getSelection();
+          const firstNode = editor.firstChild;
+
+          if (selection && firstNode) {
+            const range = document.createRange();
+            // If it's a text node, set cursor at position 0
+            if (firstNode.nodeType === Node.TEXT_NODE) {
+              range.setStart(firstNode, 0);
+              range.setEnd(firstNode, 0);
+            } else {
+              // If not a text node, set cursor at start of editor
+              range.setStart(editor, 0);
+              range.setEnd(editor, 0);
+            }
+            selection.removeAllRanges();
+            selection.addRange(range);
+          }
+        };
+
+        // Try immediately
+        setCursorToStart();
+
+        // Try again after browser has finished its default behavior
+        setTimeout(setCursorToStart, 0);
+        requestAnimationFrame(() => {
+          setTimeout(setCursorToStart, 10);
+        });
+      }
+    }, [autoFocus]);
 
     // Check if empty for placeholder
     const isEmpty = !value || value.trim() === "";
 
-  // Handle focus to position cursor at start when empty
-  const handleFocus = useCallback(() => {
-    const editor = editorRef.current;
-    if (!editor) {
-      return;
-    }
-
-    // Check if editor is truly empty (no text content or only whitespace)
-    const textContent = editor.textContent || "";
-    if (textContent.trim() !== "") {
-      return; // Only handle empty editor
-    }
-
-    // Ensure there's a text node for cursor positioning
-    if (!editor.firstChild || editor.firstChild.nodeType !== Node.TEXT_NODE) {
-      editor.textContent = "";
-    }
-
-    // Use requestAnimationFrame to ensure DOM is ready
-    requestAnimationFrame(() => {
-      const selection = window.getSelection();
-      if (selection && editor.firstChild) {
-        const range = document.createRange();
-        range.setStart(editor.firstChild, 0);
-        range.setEnd(editor.firstChild, 0);
-        selection.removeAllRanges();
-        selection.addRange(range);
+    // Handle focus to position cursor at start when empty
+    const handleFocus = useCallback(() => {
+      const editor = editorRef.current;
+      if (!editor) {
+        return;
       }
-    });
-  }, []);
+
+      // Check if editor is truly empty (no text content or only whitespace)
+      const textContent = editor.textContent || "";
+      if (textContent.trim() !== "") {
+        return; // Only handle empty editor
+      }
+
+      // Ensure there's a text node for cursor positioning
+      if (!editor.firstChild || editor.firstChild.nodeType !== Node.TEXT_NODE) {
+        editor.textContent = "";
+      }
+
+      // Use requestAnimationFrame to ensure DOM is ready
+      requestAnimationFrame(() => {
+        const selection = window.getSelection();
+        if (selection && editor.firstChild) {
+          const range = document.createRange();
+          range.setStart(editor.firstChild, 0);
+          range.setEnd(editor.firstChild, 0);
+          selection.removeAllRanges();
+          selection.addRange(range);
+        }
+      });
+    }, []);
 
     return (
       <div className={styles.container}>

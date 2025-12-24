@@ -395,7 +395,15 @@ export const activeCollectionAtom = atom<CollectionData | null>((get) => {
 });
 
 /**
- * Action atom to clear workspace data (e.g., on logout)
+ * Logout signal - incremented when user logs out
+ * Components that need to react to logout (e.g., reset scene) should subscribe to this
+ */
+export const logoutSignalAtom = atom(0);
+
+/**
+ * Action atom to clear workspace data and signal logout
+ * This clears all workspace state and increments the logout signal
+ * Components like App.tsx should subscribe to logoutSignalAtom to reset the canvas
  */
 export const clearWorkspaceDataAtom = atom(null, (get, set) => {
   set(workspacesAtom, []);
@@ -403,6 +411,11 @@ export const clearWorkspaceDataAtom = atom(null, (get, set) => {
   set(collectionsAtom, []);
   set(activeCollectionIdAtom, null);
   set(currentWorkspaceSlugAtom, null);
+  set(currentSceneIdAtom, null);
+  set(currentSceneTitleAtom, "Untitled");
+  set(isAutoCollabSceneAtom, false);
+  // Signal logout so App.tsx can reset the canvas
+  set(logoutSignalAtom, (prev) => prev + 1);
 });
 
 // ============================================================================

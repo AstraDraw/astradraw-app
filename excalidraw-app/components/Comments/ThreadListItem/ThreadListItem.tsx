@@ -190,17 +190,17 @@ export const ThreadListItem: React.FC<ThreadListItemProps> = ({
   // Get unique participants (thread creator + all comment authors)
   const participants = useMemo(() => {
     const uniqueUsers = new Map<string, UserSummary>();
-    
+
     // Add thread creator
     uniqueUsers.set(thread.createdBy.id, thread.createdBy);
-    
+
     // Add all comment authors
     thread.comments.forEach((comment) => {
       if (!uniqueUsers.has(comment.createdBy.id)) {
         uniqueUsers.set(comment.createdBy.id, comment.createdBy);
       }
     });
-    
+
     return Array.from(uniqueUsers.values());
   }, [thread.createdBy, thread.comments]);
 
@@ -303,7 +303,9 @@ export const ThreadListItem: React.FC<ThreadListItemProps> = ({
           </div>
         ))}
         {participants.length > 5 && (
-          <div className={styles.moreParticipants}>+{participants.length - 5}</div>
+          <div className={styles.moreParticipants}>
+            +{participants.length - 5}
+          </div>
         )}
       </div>
 
@@ -371,7 +373,9 @@ export const ThreadListItem: React.FC<ThreadListItemProps> = ({
                 thread.resolved ? styles.actionButtonActive : ""
               }`}
               onClick={handleResolve}
-              title={thread.resolved ? t("comments.reopen") : t("comments.resolve")}
+              title={
+                thread.resolved ? t("comments.reopen") : t("comments.resolve")
+              }
             >
               <CheckIcon filled={thread.resolved} />
             </button>

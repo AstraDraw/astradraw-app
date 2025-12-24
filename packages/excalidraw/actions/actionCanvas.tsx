@@ -240,11 +240,7 @@ export const actionResetZoom = register({
     };
   },
   PanelComponent: ({ updateData, appState }) => (
-    <Tooltip
-      label={t("buttons.resetZoom")}
-      compact
-      style={{ height: "100%" }}
-    >
+    <Tooltip label={t("buttons.resetZoom")} compact style={{ height: "100%" }}>
       <ToolButton
         type="button"
         className="reset-zoom-button zoom-button"

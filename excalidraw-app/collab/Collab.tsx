@@ -448,7 +448,7 @@ class Collab extends PureComponent<CollabProps, CollabState> {
       // before the async save completes
       await this.saveCollabRoomToStorage(getSyncableElements(elements));
     }
-    
+
     // Reset the flag for next collaboration session
     this.roomDataLoaded = false;
 
@@ -584,7 +584,19 @@ class Collab extends PureComponent<CollabProps, CollabState> {
     }
 
     if (this.portal.socket) {
-      return null;
+      // Switching rooms - clean up old room first
+      // This handles the case where user switches scenes in workspace mode
+      console.log("[Collab] Switching rooms - cleaning up previous session");
+
+      // IMPORTANT: Cancel ALL pending operations to prevent them from
+      // saving to the wrong room after we switch.
+      // The elements were already captured and saved by stopCollaboration()
+      // in useSceneLoader before this point.
+      this.queueBroadcastAllElements.cancel();
+      this.queueSaveToStorage.cancel();
+
+      // Now safe to destroy old socket
+      this.destroySocketClient();
     }
 
     let roomId;
@@ -649,12 +661,14 @@ class Collab extends PureComponent<CollabProps, CollabState> {
       return null;
     }
 
-    if (existingRoomLinkData && !isAutoCollab) {
-      // when joining existing room via link, don't merge it with current scene data
+    if (existingRoomLinkData) {
+      // When joining an existing room (via link OR auto-collab), clear the canvas first.
+      // This prevents data contamination where elements from the previous scene
+      // get reconciled into the new scene's room storage.
+      // The actual scene data will be loaded from room storage via fallbackInitializationHandler.
       this.excalidrawAPI.resetScene();
-    } else if (!isAutoCollab) {
+    } else {
       // For NEW rooms only: keep current elements and save to room storage
-      // (Auto-collab scenes load data from room storage, don't save current empty canvas)
       const elements = this.excalidrawAPI.getSceneElements().map((element) => {
         if (isImageElement(element) && element.status === "saved") {
           return newElementWith(element, { status: "pending" });
@@ -672,8 +686,6 @@ class Collab extends PureComponent<CollabProps, CollabState> {
 
       this.saveCollabRoomToStorage(getSyncableElements(elements));
     }
-    // For isAutoCollab: don't save current canvas (which may be empty),
-    // data will be loaded from room storage via fallbackInitializationHandler
 
     // fallback in case you're not alone in the room but still don't receive
     // initial SCENE_INIT message
@@ -1078,6 +1090,11 @@ class Collab extends PureComponent<CollabProps, CollabState> {
   };
 
   syncElements = (elements: readonly OrderedExcalidrawElement[]) => {
+    // Only sync if the portal is fully initialized with a valid room
+    // This prevents syncing during room transitions
+    if (!this.portal.isOpen()) {
+      return;
+    }
     this.broadcastElements(elements);
     this.queueSaveToStorage();
   };

@@ -27,6 +27,11 @@ import {
   searchQueryAtom,
   workspaceSidebarOpenAtom,
   closeWorkspaceSidebarAtom,
+  activeCollectionIdAtom,
+  currentSceneIdAtom,
+  currentSceneTitleAtom,
+  isAutoCollabSceneAtom,
+  currentWorkspaceSlugAtom,
 } from "../../Settings/settingsState";
 
 import { CopyMoveDialog } from "../CopyMoveDialog";
@@ -96,6 +101,13 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
   const navigateToTeamsCollections = useSetAtom(navigateToTeamsCollectionsAtom);
   const navigateToScene = useSetAtom(navigateToSceneAtom);
   const [searchQuery, setSearchQuery] = useAtom(searchQueryAtom);
+
+  // State atoms for clearing on workspace switch
+  const setActiveCollectionId = useSetAtom(activeCollectionIdAtom);
+  const setCurrentSceneId = useSetAtom(currentSceneIdAtom);
+  const setCurrentSceneTitle = useSetAtom(currentSceneTitleAtom);
+  const setIsAutoCollabScene = useSetAtom(isAutoCollabSceneAtom);
+  const setCurrentWorkspaceSlug = useSetAtom(currentWorkspaceSlugAtom);
 
   const authAvailable = oidcConfigured || localAuthEnabled;
 
@@ -221,6 +233,38 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
     closeSidebar();
   }, [navigateToCanvas, closeSidebar]);
 
+  // Handle workspace switch - clears scene state and navigates to new workspace dashboard
+  const handleSwitchWorkspace = useCallback(
+    (workspace: Workspace) => {
+      // Clear current scene state to prevent stale data
+      setCurrentSceneId(null);
+      setCurrentSceneTitle("Untitled");
+      setIsAutoCollabScene(false);
+
+      // Clear active collection - will be set to private by useCollections
+      setActiveCollectionId(null);
+
+      // Update workspace slug for URL routing
+      setCurrentWorkspaceSlug(workspace.slug);
+
+      // Switch to the new workspace (updates currentWorkspaceAtom)
+      switchWorkspace(workspace);
+
+      // Navigate to the new workspace's dashboard
+      // This will update the URL and show the dashboard view
+      navigateToDashboard();
+    },
+    [
+      switchWorkspace,
+      setCurrentSceneId,
+      setCurrentSceneTitle,
+      setIsAutoCollabScene,
+      setActiveCollectionId,
+      setCurrentWorkspaceSlug,
+      navigateToDashboard,
+    ],
+  );
+
   const handleCreateCollection = useCallback(async () => {
     const collection = await createCollection({
       name: newCollectionName,
@@ -339,7 +383,7 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
       <SidebarHeader
         isAuthenticated={isAuthenticated}
         user={user}
-        onSwitchWorkspace={switchWorkspace}
+        onSwitchWorkspace={handleSwitchWorkspace}
         onCreateWorkspaceClick={() => setShowCreateWorkspace(true)}
         onClose={handleClose}
       />
@@ -393,6 +437,7 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
               <FullModeNav
                 currentView={dashboardView}
                 isAdmin={isAdmin}
+                isPersonalWorkspace={currentWorkspace?.type === "PERSONAL"}
                 isCollectionsLoading={isCollectionsLoading}
                 onDashboardClick={() => navigateToDashboard()}
                 onProfileClick={() => navigateToProfile()}

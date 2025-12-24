@@ -99,6 +99,7 @@ const preferencesIcon = (
 interface FullModeNavProps {
   currentView: DashboardView;
   isAdmin: boolean;
+  isPersonalWorkspace?: boolean;
   isCollectionsLoading?: boolean;
   onDashboardClick: () => void;
   onProfileClick: () => void;
@@ -118,6 +119,7 @@ interface FullModeNavProps {
 export const FullModeNav: React.FC<FullModeNavProps> = ({
   currentView,
   isAdmin,
+  isPersonalWorkspace = false,
   isCollectionsLoading = false,
   onDashboardClick,
   onProfileClick,
@@ -213,28 +215,35 @@ export const FullModeNav: React.FC<FullModeNavProps> = ({
                 {t("workspace.workspaceSettings")}
               </span>
             </button>
-            <button
-              className={`${styles.navItem} ${
-                currentView === "members" ? styles.navItemActive : ""
-              }`}
-              onClick={onMembersClick}
-            >
-              <span className={styles.navIcon}>{usersIcon}</span>
-              <span className={styles.navLabel}>
-                {t("workspace.teamMembers")}
-              </span>
-            </button>
-            <button
-              className={`${styles.navItem} ${
-                currentView === "teams-collections" ? styles.navItemActive : ""
-              }`}
-              onClick={onTeamsCollectionsClick}
-            >
-              <span className={styles.navIcon}>{teamsIcon}</span>
-              <span className={styles.navLabel}>
-                {t("settings.teamsCollections")}
-              </span>
-            </button>
+            {/* Hide team-related settings for personal workspaces */}
+            {!isPersonalWorkspace && (
+              <>
+                <button
+                  className={`${styles.navItem} ${
+                    currentView === "members" ? styles.navItemActive : ""
+                  }`}
+                  onClick={onMembersClick}
+                >
+                  <span className={styles.navIcon}>{usersIcon}</span>
+                  <span className={styles.navLabel}>
+                    {t("workspace.teamMembers")}
+                  </span>
+                </button>
+                <button
+                  className={`${styles.navItem} ${
+                    currentView === "teams-collections"
+                      ? styles.navItemActive
+                      : ""
+                  }`}
+                  onClick={onTeamsCollectionsClick}
+                >
+                  <span className={styles.navIcon}>{teamsIcon}</span>
+                  <span className={styles.navLabel}>
+                    {t("settings.teamsCollections")}
+                  </span>
+                </button>
+              </>
+            )}
           </>
         )}
       </nav>
@@ -391,8 +400,3 @@ export const FullModeNav: React.FC<FullModeNavProps> = ({
 };
 
 export default FullModeNav;
-
-
-
-
-

@@ -32,7 +32,9 @@ declare global {
 }
 
 function isDebugEnabled(): boolean {
-  return typeof window !== "undefined" && window.__ASTRADRAW_DEBUG_UI__ === true;
+  return (
+    typeof window !== "undefined" && window.__ASTRADRAW_DEBUG_UI__ === true
+  );
 }
 
 export function useUIDebugLogger(
@@ -68,13 +70,17 @@ export function useUIDebugLogger(
       };
 
       // Also check DOM state
-      const excalidrawContainer = document.querySelector(".excalidraw") as HTMLElement;
-      const excalidrawApp = document.querySelector(".excalidraw-app") as HTMLElement;
-      
+      const excalidrawContainer = document.querySelector(
+        ".excalidraw",
+      ) as HTMLElement;
+      const excalidrawApp = document.querySelector(
+        ".excalidraw-app",
+      ) as HTMLElement;
+
       if (excalidrawContainer) {
         const containerRect = excalidrawContainer.getBoundingClientRect();
         const containerStyle = window.getComputedStyle(excalidrawContainer);
-        
+
         // Log if container is shifted off-screen
         if (containerRect.left < -10 || containerRect.top < -10) {
           console.log(
@@ -97,7 +103,7 @@ export function useUIDebugLogger(
       if (excalidrawApp) {
         const appRect = excalidrawApp.getBoundingClientRect();
         const appStyle = window.getComputedStyle(excalidrawApp);
-        
+
         if (appRect.left < -10 || appRect.top < -10) {
           console.log(
             `%c[AstraDraw UI Debug] App container shifted!`,
@@ -132,7 +138,9 @@ export function useUIDebugLogger(
         }
         if (Math.abs(lastState.zoom - currentState.zoom) > 0.01) {
           changes.push(
-            `zoom: ${lastState.zoom.toFixed(2)} → ${currentState.zoom.toFixed(2)}`,
+            `zoom: ${lastState.zoom.toFixed(2)} → ${currentState.zoom.toFixed(
+              2,
+            )}`,
           );
         }
         if (
@@ -140,7 +148,13 @@ export function useUIDebugLogger(
           Math.abs(lastState.scrollY - currentState.scrollY) > 10
         ) {
           changes.push(
-            `scroll: (${lastState.scrollX.toFixed(0)},${lastState.scrollY.toFixed(0)}) → (${currentState.scrollX.toFixed(0)},${currentState.scrollY.toFixed(0)})`,
+            `scroll: (${lastState.scrollX.toFixed(
+              0,
+            )},${lastState.scrollY.toFixed(
+              0,
+            )}) → (${currentState.scrollX.toFixed(
+              0,
+            )},${currentState.scrollY.toFixed(0)})`,
           );
         }
         if (
@@ -248,7 +262,11 @@ export function useVisibilityDebugLogger(): void {
             const visibility = window.getComputedStyle(target).visibility;
             const opacity = window.getComputedStyle(target).opacity;
 
-            if (display === "none" || visibility === "hidden" || opacity === "0") {
+            if (
+              display === "none" ||
+              visibility === "hidden" ||
+              opacity === "0"
+            ) {
               console.log(
                 `%c[AstraDraw UI Debug] Element hidden:`,
                 "color: #e74c3c; font-weight: bold",
@@ -289,4 +307,3 @@ export function useVisibilityDebugLogger(): void {
     };
   }, []);
 }
-

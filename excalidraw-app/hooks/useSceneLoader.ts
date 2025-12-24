@@ -107,6 +107,10 @@ export function useSceneLoader({
     ((workspaceSlug: string, sceneId: string) => Promise<void>) | null
   >(null);
 
+  // Loading lock to prevent multiple simultaneous scene loads
+  const isLoadingRef = useRef<boolean>(false);
+  const pendingSceneRef = useRef<string | null>(null);
+
   // Helper to decode base64 to blob
   const decodeBase64ToBlob = useCallback((base64: string) => {
     const binary = atob(base64);
@@ -140,6 +144,29 @@ export function useSceneLoader({
         initialStatePromise,
       } = options;
 
+      // Prevent multiple simultaneous scene loads
+      // If already loading, store the pending scene ID and skip this load
+      // The pending scene will be loaded after the current one completes
+      if (isLoadingRef.current && !isInitialLoad) {
+        console.log(
+          "[useSceneLoader] Already loading, queuing scene:",
+          sceneId,
+        );
+        pendingSceneRef.current = sceneId;
+        return;
+      }
+
+      // Skip if trying to load the same scene that's already loaded
+      if (currentSceneIdRef.current === sceneId && !isInitialLoad) {
+        console.log(
+          "[useSceneLoader] Scene already loaded, skipping:",
+          sceneId,
+        );
+        return;
+      }
+
+      isLoadingRef.current = true;
+
       // Leave current collaboration room before switching scenes
       // IMPORTANT: Capture elements BEFORE stopping collaboration, as scene may be cleared
       // Don't await - let save happen in background to avoid blocking UI
@@ -149,6 +176,16 @@ export function useSceneLoader({
         // Fire and forget - save happens in background
         collabAPI.stopCollaboration(false, elementsToSave).catch((err) => {
           console.error("[useSceneLoader] Error stopping collaboration:", err);
+        });
+      }
+
+      // Show loading state immediately when switching scenes (not on initial load)
+      // This prevents user interaction and shows a loading indicator instead of stale content
+      // Using isLoading: true disables drawing tools and hides the welcome screen
+      if (!isInitialLoad) {
+        excalidrawAPI.updateScene({
+          elements: [], // Clear elements to prevent stale content
+          appState: { isLoading: true },
         });
       }
 
@@ -168,10 +205,15 @@ export function useSceneLoader({
         // Set the active collection from the scene's collection
         // This ensures the sidebar shows the correct collection when navigating to a scene URL
         if (setActiveCollectionId) {
-          console.log("[useSceneLoader] Setting activeCollectionId to:", loaded.scene.collectionId);
+          console.log(
+            "[useSceneLoader] Setting activeCollectionId to:",
+            loaded.scene.collectionId,
+          );
           setActiveCollectionId(loaded.scene.collectionId);
         } else {
-          console.log("[useSceneLoader] WARNING: setActiveCollectionId is not provided!");
+          console.log(
+            "[useSceneLoader] WARNING: setActiveCollectionId is not provided!",
+          );
         }
 
         // Check if this is a collaboration scene (shared collection)
@@ -202,12 +244,18 @@ export function useSceneLoader({
           if (sceneData?.elements) {
             excalidrawAPI.updateScene({
               elements: sceneData.elements,
+              appState: { isLoading: false }, // Re-enable drawing after load
               captureUpdate: CaptureUpdateAction.IMMEDIATELY,
             });
             // Scroll to content if requested
             if (sceneData.scrollToContent) {
               excalidrawAPI.scrollToContent();
             }
+          } else {
+            // No elements returned, but still need to clear loading state
+            excalidrawAPI.updateScene({
+              appState: { isLoading: false },
+            });
           }
 
           // Set scene ID for thumbnail generation during collaboration saves
@@ -239,6 +287,7 @@ export function useSceneLoader({
               appState: {
                 ...restored.appState,
                 collaborators: new Map(),
+                isLoading: false, // Re-enable drawing after load
               },
             };
 
@@ -250,7 +299,9 @@ export function useSceneLoader({
 
             // Load files separately
             if (sceneWithCollaborators.files) {
-              excalidrawAPI.addFiles(Object.values(sceneWithCollaborators.files));
+              excalidrawAPI.addFiles(
+                Object.values(sceneWithCollaborators.files),
+              );
             }
 
             // Initialize autosave with loaded data to prevent false "unsaved" status
@@ -277,8 +328,15 @@ export function useSceneLoader({
                 files: sceneWithCollaborators.files || {},
               });
             }
-          } else if (isInitialLoad && initialStatePromise) {
-            initialStatePromise.resolve(null);
+          } else {
+            // No scene data to restore (empty scene), but still need to clear loading state
+            excalidrawAPI.updateScene({
+              elements: [],
+              appState: { isLoading: false },
+            });
+            if (isInitialLoad && initialStatePromise) {
+              initialStatePromise.resolve(null);
+            }
           }
 
           // Not an auto-collab scene - clear any previous scene ID
@@ -294,8 +352,26 @@ export function useSceneLoader({
         onError(
           error instanceof Error ? error.message : "Failed to load scene",
         );
+        // Clear loading state on error so user can interact with canvas
+        excalidrawAPI.updateScene({
+          appState: { isLoading: false },
+        });
         if (isInitialLoad && initialStatePromise) {
           initialStatePromise.resolve(null);
+        }
+      } finally {
+        // Release loading lock
+        isLoadingRef.current = false;
+
+        // If there's a pending scene that was queued during loading, load it now
+        const pendingScene = pendingSceneRef.current;
+        if (pendingScene && pendingScene !== sceneId) {
+          pendingSceneRef.current = null;
+          console.log("[useSceneLoader] Loading pending scene:", pendingScene);
+          // Use setTimeout to avoid stack overflow and allow UI to update
+          setTimeout(() => {
+            loadSceneRef.current?.(workspaceSlug, pendingScene);
+          }, 0);
         }
       }
     },

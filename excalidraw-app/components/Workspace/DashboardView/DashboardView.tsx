@@ -173,27 +173,31 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNewScene }) => {
         />
       </section>
 
-      {/* Team members section (placeholder) */}
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>{t("workspace.teamMembersAt")}</h2>
-        <div className={styles.teamEmpty}>
-          <div className={styles.teamEmptyIllustration}>
-            {/* Paper airplane doodle */}
-            <svg
-              viewBox="0 0 200 120"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeDasharray="4 4"
-            >
-              <path d="M20 80 Q60 40 100 60 Q140 80 180 40" />
-              <path d="M170 35 L180 40 L175 50" />
-            </svg>
+      {/* Team members section (placeholder) - only for shared workspaces */}
+      {workspace?.type !== "PERSONAL" && (
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>
+            {t("workspace.teamMembersAt")}
+          </h2>
+          <div className={styles.teamEmpty}>
+            <div className={styles.teamEmptyIllustration}>
+              {/* Paper airplane doodle */}
+              <svg
+                viewBox="0 0 200 120"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeDasharray="4 4"
+              >
+                <path d="M20 80 Q60 40 100 60 Q140 80 180 40" />
+                <path d="M170 35 L180 40 L175 50" />
+              </svg>
+            </div>
+            <p className={styles.teamEmptyText}>{t("workspace.noOneActive")}</p>
           </div>
-          <p className={styles.teamEmptyText}>{t("workspace.noOneActive")}</p>
-        </div>
-      </section>
+        </section>
+      )}
     </div>
   );
 };

@@ -7,6 +7,7 @@ import React, {
 } from "react";
 
 import { appJotaiStore, authUserAtom } from "../app-jotai";
+import { clearWorkspaceDataAtom } from "../components/Settings/settingsState";
 
 import {
   getAuthStatus,
@@ -164,6 +165,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = useCallback(() => {
     logoutApi();
     setUser(null);
+    // Clear all workspace data and signal logout
+    // This triggers logoutSignalAtom which App.tsx subscribes to for canvas reset
+    appJotaiStore.set(clearWorkspaceDataAtom);
   }, []);
 
   const value: AuthContextType = {

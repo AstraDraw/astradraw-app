@@ -94,7 +94,7 @@ export function useWorkspaces({
         // Check if we have a workspace slug from URL (set before workspaces loaded)
         if (currentWorkspaceSlugFromAtom) {
           const workspaceFromUrl = fetchedWorkspaces.find(
-            (w) => w.slug === currentWorkspaceSlugFromAtom
+            (w) => w.slug === currentWorkspaceSlugFromAtom,
           );
           if (workspaceFromUrl) {
             setCurrentWorkspaceAtom(workspaceFromUrl as WorkspaceData);

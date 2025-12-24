@@ -43,6 +43,7 @@ export {
   privateCollectionAtom,
   activeCollectionAtom,
   clearWorkspaceDataAtom,
+  logoutSignalAtom,
   type AppMode,
   type SidebarMode,
   type DashboardView,

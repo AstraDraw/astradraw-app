@@ -140,7 +140,10 @@ export function useCollections({
 
       const privateCol = collections.find((c) => c.isPrivate);
       if (privateCol) {
-        console.log("[useCollections] Setting default to Private:", privateCol.id);
+        console.log(
+          "[useCollections] Setting default to Private:",
+          privateCol.id,
+        );
         hasSetDefaultCollectionRef.current = true;
         setActiveCollectionId(privateCol.id);
       }

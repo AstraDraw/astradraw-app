@@ -380,22 +380,19 @@ function HitTarget({
   const DRAG_THRESHOLD = 5;
   const CLICK_THRESHOLD = 200;
 
-  const handlePointerDown = useCallback(
-    (e: React.PointerEvent) => {
-      e.stopPropagation();
-      e.preventDefault();
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
 
-      (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
 
-      dragStartRef.current = {
-        x: e.clientX,
-        y: e.clientY,
-        time: Date.now(),
-      };
-      hasDragStartedRef.current = false;
-    },
-    [],
-  );
+    dragStartRef.current = {
+      x: e.clientX,
+      y: e.clientY,
+      time: Date.now(),
+    };
+    hasDragStartedRef.current = false;
+  }, []);
 
   const handlePointerMove = useCallback(
     (e: React.PointerEvent) => {

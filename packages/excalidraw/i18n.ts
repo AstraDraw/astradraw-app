@@ -133,7 +133,7 @@ const getPluralSuffix = (langCode: string, count: number): string => {
   if (langCode === "ru-RU" || langCode === "uk-UA") {
     const mod10 = count % 10;
     const mod100 = count % 100;
-    
+
     if (mod10 === 1 && mod100 !== 11) {
       return ""; // one: 1, 21, 31, 41, 51, 61, 71, 81, 101, 121, ...
     }
@@ -142,7 +142,7 @@ const getPluralSuffix = (langCode: string, count: number): string => {
     }
     return "_many"; // many: 0, 5-20, 25-30, 35-40, ...
   }
-  
+
   // English and most other languages
   if (count === 1) {
     return ""; // one
@@ -163,19 +163,20 @@ export const t = (
   }
 
   const parts = path.split(".");
-  
+
   // Handle pluralization if count is provided
   let translation: string | undefined;
   if (replacement && typeof replacement.count === "number") {
     const pluralSuffix = getPluralSuffix(currentLang.code, replacement.count);
     const pluralPath = `${path}${pluralSuffix}`;
     const pluralParts = pluralPath.split(".");
-    
+
     // Try plural form first
-    translation = findPartsForData(currentLangData, pluralParts) ||
-                  findPartsForData(fallbackLangData, pluralParts);
+    translation =
+      findPartsForData(currentLangData, pluralParts) ||
+      findPartsForData(fallbackLangData, pluralParts);
   }
-  
+
   // Fall back to base key
   if (!translation) {
     translation =
@@ -183,7 +184,7 @@ export const t = (
       findPartsForData(fallbackLangData, parts) ||
       fallback;
   }
-  
+
   if (translation === undefined) {
     const errorMessage = `Can't find translation for ${path}`;
     // in production, don't blow up the app on a missing translation key

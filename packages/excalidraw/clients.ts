@@ -262,7 +262,10 @@ export const renderRemoteCursors = ({
 };
 
 // Cache for loaded avatar images
-const avatarImageCache = new Map<string, HTMLImageElement | "loading" | "error">();
+const avatarImageCache = new Map<
+  string,
+  HTMLImageElement | "loading" | "error"
+>();
 
 /**
  * Loads an avatar image and caches it.
@@ -329,10 +332,7 @@ export const renderCommentMarkers = ({
     const y = (marker.y + appState.scrollY) * appState.zoom.value;
 
     // Calculate pin dimensions based on number of participants
-    const participantCount = Math.min(
-      marker.participants.length,
-      MAX_AVATARS,
-    );
+    const participantCount = Math.min(marker.participants.length, MAX_AVATARS);
     const avatarsWidth =
       AVATAR_SIZE + (participantCount - 1) * (AVATAR_SIZE - AVATAR_OVERLAP);
     const pinWidth = avatarsWidth + PADDING * 2;
@@ -354,11 +354,7 @@ export const renderCommentMarkers = ({
     const isDark = appState.theme === THEME.DARK;
 
     // Pin colors (matches CSS: bg-surface-low-for-dropdown)
-    const pinBgColor = isSelected
-      ? "#6965db"
-      : isDark
-        ? "#3d3d42"
-        : "#f8f9fa";
+    const pinBgColor = isSelected ? "#6965db" : isDark ? "#3d3d42" : "#f8f9fa";
 
     // The marker coordinate (x, y) is where the pin TIP (bottom-left corner) should be
     // CSS: border-radius: 66px 67px 67px 0 (tl, tr, br, bl) - bl is sharp
@@ -382,7 +378,13 @@ export const renderCommentMarkers = ({
 
     // Draw pin shape - teardrop with asymmetric border-radius
     context.beginPath();
-    drawTeardropPin(context, -pinWidth / 2, -pinHeight / 2, pinWidth, pinHeight);
+    drawTeardropPin(
+      context,
+      -pinWidth / 2,
+      -pinHeight / 2,
+      pinWidth,
+      pinHeight,
+    );
     context.fillStyle = pinBgColor;
     context.fill();
 

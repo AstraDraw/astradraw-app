@@ -53,8 +53,3 @@ export const WelcomeScreenBackground = () => {
     </div>
   );
 };
-
-
-
-
-

@@ -161,6 +161,7 @@ import {
   dashboardViewAtom,
   isPrivateCollectionAtom,
   isAutoCollabSceneAtom,
+  logoutSignalAtom,
   quickSearchOpenAtom,
   workspaceSidebarOpenAtom,
   openWorkspaceSidebarAtom,
@@ -462,6 +463,9 @@ const ExcalidrawWrapper = () => {
   const setIsAutoCollabScene = useSetAtom(isAutoCollabSceneAtom);
   const isAutoCollabScene = useAtomValue(isAutoCollabSceneAtom);
 
+  // Logout signal - used to reset the canvas when user logs out
+  const logoutSignal = useAtomValue(logoutSignalAtom);
+
   // Quick Search modal state
   const setQuickSearchOpen = useSetAtom(quickSearchOpenAtom);
 
@@ -701,6 +705,26 @@ const ExcalidrawWrapper = () => {
     }
     wasAuthenticated.current = isAuthenticated;
   }, [isAuthenticated, openWorkspaceSidebar]);
+
+  // Reset canvas when user logs out
+  // This prevents private scene content from being visible on the anonymous screen
+  const logoutSignalRef = useRef(logoutSignal);
+  useEffect(() => {
+    // Skip initial render (logoutSignal starts at 0)
+    if (logoutSignal > 0 && logoutSignal !== logoutSignalRef.current) {
+      logoutSignalRef.current = logoutSignal;
+      // Reset the canvas to clear any private content
+      if (excalidrawAPI) {
+        excalidrawAPI.resetScene();
+        // Navigate to root URL
+        window.history.pushState({}, "", "/");
+      }
+      // Stop any active collaboration
+      if (collabAPI?.isCollaborating()) {
+        collabAPI.stopCollaboration(false);
+      }
+    }
+  }, [logoutSignal, excalidrawAPI, collabAPI]);
 
   // Close sidebar in legacy mode
   useEffect(() => {
@@ -957,7 +981,7 @@ const ExcalidrawWrapper = () => {
 
           if (isInitialLoad) {
             initialStatePromiseRef.current.promise.resolve(
-              sceneData || { elements: [], appState: {}, files: {} }
+              sceneData || { elements: [], appState: {}, files: {} },
             );
           }
         } else {
@@ -985,7 +1009,9 @@ const ExcalidrawWrapper = () => {
             });
 
             if (sceneWithCollaborators.files) {
-              excalidrawAPI.addFiles(Object.values(sceneWithCollaborators.files));
+              excalidrawAPI.addFiles(
+                Object.values(sceneWithCollaborators.files),
+              );
             }
 
             // Initialize autosave with loaded data
@@ -1463,11 +1489,7 @@ const ExcalidrawWrapper = () => {
 
         // Initialize collaboration for scenes in shared workspaces
         // The scene already has roomId/roomKey created by backend, we just need to join
-        if (
-          collabAPI &&
-          currentWorkspace?.type === "SHARED" &&
-          scene.roomId
-        ) {
+        if (collabAPI && currentWorkspace?.type === "SHARED" && scene.roomId) {
           try {
             // Stop existing collaboration session first (if any)
             // This is necessary because startCollaboration() returns early if socket exists
@@ -1475,10 +1497,10 @@ const ExcalidrawWrapper = () => {
               // Pass empty elements since we're switching to a new empty scene
               await collabAPI.stopCollaboration(false, []);
             }
-            
+
             // Get room credentials from backend
             const { roomId, roomKey } = await startCollaboration(scene.id);
-            
+
             await collabAPI.startCollaboration({
               roomId,
               roomKey,
@@ -1487,7 +1509,10 @@ const ExcalidrawWrapper = () => {
             collabAPI.setSceneId(scene.id);
             setIsAutoCollabScene(true);
           } catch (collabError) {
-            console.error("Failed to start collaboration for new scene:", collabError);
+            console.error(
+              "Failed to start collaboration for new scene:",
+              collabError,
+            );
             // Scene is still created, just without collaboration
           }
         }
@@ -1809,11 +1834,18 @@ const ExcalidrawWrapper = () => {
           autoFocus={appMode === "canvas"}
           theme={editorTheme}
           renderTopRightUI={(isMobile) => {
+            // Hide save status for:
+            // - Unauthenticated users
+            // - No scene loaded
+            // - Legacy mode (anonymous collaboration)
+            // - Active collaboration session
+            // - Auto-collab scenes (shared collection scenes that are always in collab mode)
             const showSaveStatus =
               isAuthenticated &&
               currentSceneId &&
               !isLegacyMode &&
-              !isCollaborating;
+              !isCollaborating &&
+              !isAutoCollabScene;
 
             if (isMobile) {
               if (!showSaveStatus) {
