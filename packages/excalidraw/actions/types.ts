@@ -148,7 +148,6 @@ export type ActionName =
   | "nextSlide"
   | "prevSlide"
   | "exitPresentation"
-  | "togglePresentationLaser"
   | "togglePresentationTheme"
   | "goToSlide";
 

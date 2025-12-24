@@ -9,12 +9,31 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 - `{upstream}` = Excalidraw version this is based on
 - `{astradraw}` = Astradraw-specific feature version
 
+## [0.18.0-beta0.81] - 2025-12-24
+
+### Added
+
+- **Presentation Mode Improvements (like original Excalidraw)**
+  - Implicit laser pointer: Any pointer/mouse click draws laser trail in presentation mode
+  - No need to select laser tool - just click and draw
+  - Blocked pan/zoom in presentation mode:
+    - Mouse wheel scroll
+    - Touch pinch zoom
+    - Safari gesture zoom
+    - Space+drag panning
+
+### Removed
+
+- Laser toggle button from presentation controls (no longer needed)
+- `isLaserActive` state from `PresentationModeState` (laser is now implicit)
+- `actionTogglePresentationLaser` action (no longer needed)
+
 ## [0.18.0-beta0.80] - 2025-12-24
 
 ### Added
 
 - **Fork Architecture Refactoring - Phase 2: Presentation Mode Actions**
-  - Created `packages/excalidraw/actions/actionPresentation.ts` with 7 presentation actions
+  - Created `packages/excalidraw/actions/actionPresentation.ts` with 6 presentation actions
   - Added `PresentationModeState` interface to `packages/excalidraw/types.ts`
   - Added `presentationMode` to `AppState` with storage config (transient, not persisted)
   - Keyboard shortcuts now handled by action system:
@@ -22,7 +41,6 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
     - `ArrowRight/ArrowDown/Space`: Next slide
     - `ArrowLeft/ArrowUp`: Previous slide
     - `Escape`: Exit presentation
-    - `L`: Toggle laser pointer
     - `T`: Toggle theme (light/dark)
   - Added action labels to `en.json` and `ru-RU.json` locale files
 

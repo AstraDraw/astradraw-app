@@ -29,15 +29,33 @@
   flex-shrink: 0;
   font-family: var(--ui-font);
 
-  // Slide in/out animation with border transition
+  // When closed: completely hidden (no white line visible)
+  // Using visibility + opacity allows transition on open, but hides completely when closed
+  visibility: hidden;
+  opacity: 0;
   margin-left: -300px;
-  transition: margin-left 0.2s ease-out, border-color 0.2s ease-out;
+  transition:
+    margin-left 0.2s ease-out,
+    border-color 0.2s ease-out,
+    visibility 0s 0.2s,
+    opacity 0.2s ease-out;
+
+  // Note: Presentation mode hiding is done in index.scss using attribute selector
+  // because CSS Modules mangles class names
 }
 
 .open {
   margin-left: 0;
+  visibility: visible;
+  opacity: 1;
   // Border becomes visible when sidebar is open
   border-right-color: var(--default-border-color, #e5e5e5);
+  // Reset transition delay for visibility when opening
+  transition:
+    margin-left 0.2s ease-out,
+    border-color 0.2s ease-out,
+    visibility 0s 0s,
+    opacity 0.2s ease-out;
 }
 
 // ============================================

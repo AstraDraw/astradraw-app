@@ -5308,6 +5308,11 @@ class App extends React.Component<AppProps, AppState> {
   private onGestureChange = withBatchedUpdates((event: GestureEvent) => {
     event.preventDefault();
 
+    // Block gesture zoom in presentation mode
+    if (this.state.presentationMode?.active) {
+      return;
+    }
+
     // onGestureChange only has zoom factor but not the center.
     // If we're on iPad or iPhone, then we recognize multi-touch and will
     // zoom in at the right location in the touchmove handler
@@ -6209,11 +6214,13 @@ class App extends React.Component<AppProps, AppState> {
     }
 
     const initialScale = gesture.initialScale;
+    // Block touch pinch pan/zoom in presentation mode
     if (
       gesture.pointers.size === 2 &&
       gesture.lastCenter &&
       initialScale &&
-      gesture.initialDistance
+      gesture.initialDistance &&
+      !this.state.presentationMode?.active
     ) {
       const center = getCenter(gesture.pointers);
       const deltaX = center.x - gesture.lastCenter.x;
@@ -7302,7 +7309,11 @@ class App extends React.Component<AppProps, AppState> {
         pointerDownState,
         this.state.activeTool.type,
       );
-    } else if (this.state.activeTool.type === "laser") {
+    } else if (
+      this.state.activeTool.type === "laser" ||
+      this.state.presentationMode?.active
+    ) {
+      // In presentation mode, always draw laser trail on pointer down (implicit laser)
       this.laserTrails.startPath(
         pointerDownState.lastCoords.x,
         pointerDownState.lastCoords.y,
@@ -7345,7 +7356,12 @@ class App extends React.Component<AppProps, AppState> {
       onPointerUp(_event || event.nativeEvent),
     );
 
-    if (!this.state.viewModeEnabled || this.state.activeTool.type === "laser") {
+    if (
+      !this.state.viewModeEnabled ||
+      this.state.activeTool.type === "laser" ||
+      this.state.presentationMode?.active
+    ) {
+      // In presentation mode, we need pointer events for implicit laser
       window.addEventListener(EVENT.POINTER_MOVE, onPointerMove);
       window.addEventListener(EVENT.POINTER_UP, onPointerUp);
       window.addEventListener(EVENT.KEYDOWN, onKeyDown);
@@ -7483,6 +7499,11 @@ class App extends React.Component<AppProps, AppState> {
   public handleCanvasPanUsingWheelOrSpaceDrag = (
     event: React.PointerEvent<HTMLElement> | MouseEvent,
   ): boolean => {
+    // Block panning in presentation mode
+    if (this.state.presentationMode?.active) {
+      return false;
+    }
+
     if (
       !(
         gesture.pointers.size <= 1 &&
@@ -8961,7 +8982,11 @@ class App extends React.Component<AppProps, AppState> {
         return;
       }
 
-      if (this.state.activeTool.type === "laser") {
+      if (
+        this.state.activeTool.type === "laser" ||
+        this.state.presentationMode?.active
+      ) {
+        // In presentation mode, always draw laser trail on pointer move (implicit laser)
         this.laserTrails.addPointToPath(pointerCoords.x, pointerCoords.y);
       }
 
@@ -10653,7 +10678,8 @@ class App extends React.Component<AppProps, AppState> {
         bindOrUnbindBindingElements(linearElements, this.scene, this.state);
       }
 
-      if (activeTool.type === "laser") {
+      if (activeTool.type === "laser" || this.state.presentationMode?.active) {
+        // In presentation mode, always end laser trail on pointer up (implicit laser)
         this.laserTrails.endPath();
         return;
       }
@@ -11928,6 +11954,11 @@ class App extends React.Component<AppProps, AppState> {
       }
 
       event.preventDefault();
+
+      // Block pan/zoom in presentation mode
+      if (this.state.presentationMode?.active) {
+        return;
+      }
 
       if (isPanning) {
         return;

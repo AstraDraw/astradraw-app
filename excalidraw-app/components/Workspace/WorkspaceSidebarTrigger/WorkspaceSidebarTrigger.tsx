@@ -1,6 +1,6 @@
 import React, { useEffect, useCallback } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
-import { useTunnels } from "@excalidraw/excalidraw";
+import { useTunnels, useUIAppState } from "@excalidraw/excalidraw";
 
 import { useAtomValue, useSetAtom } from "../../../app-jotai";
 import { useAuth } from "../../../auth";
@@ -24,6 +24,10 @@ const sidebarIcon = (
 export const WorkspaceSidebarTrigger: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const { WorkspaceTriggerTunnel } = useTunnels();
+  const appState = useUIAppState();
+
+  // Hide trigger in presentation mode
+  const isPresentationMode = appState.presentationMode?.active ?? false;
 
   // Sidebar state from Jotai atoms
   const isOpen = useAtomValue(workspaceSidebarOpenAtom);
@@ -64,6 +68,11 @@ export const WorkspaceSidebarTrigger: React.FC = () => {
   ]
     .filter(Boolean)
     .join(" ");
+
+  // Don't render in presentation mode
+  if (isPresentationMode) {
+    return null;
+  }
 
   // Render through tunnel to place before hamburger menu
   return (

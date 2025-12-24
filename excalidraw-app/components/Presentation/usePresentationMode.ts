@@ -16,7 +16,6 @@ export const slidesAtom = atom<ExcalidrawFrameLikeElement[]>([]);
 // These sync with AppState.presentationMode
 export const presentationModeAtom = atom(false);
 export const currentSlideAtom = atom(0);
-export const isLaserActiveAtom = atom(false);
 
 // Atom for custom slide order (frame IDs in presentation order)
 export const slideOrderAtom = atom<string[]>([]);
@@ -41,7 +40,6 @@ export const usePresentationMode = ({
   // Derived state from AppState
   const isPresentationMode = presentationMode?.active ?? false;
   const currentSlide = presentationMode?.currentSlide ?? 0;
-  const isLaserActive = presentationMode?.isLaserActive ?? false;
   const slideIds = presentationMode?.slides ?? [];
 
   // Local state for slide elements (needed for PresentationPanel)
@@ -138,28 +136,6 @@ export const usePresentationMode = ({
     }
   }, [presentationMode, goToSlide]);
 
-  // Toggle laser pointer
-  const toggleLaser = useCallback(() => {
-    if (!excalidrawAPI || !presentationMode?.active) {
-      return;
-    }
-
-    const newIsLaserActive = !presentationMode.isLaserActive;
-
-    excalidrawAPI.updateScene({
-      appState: {
-        presentationMode: {
-          ...presentationMode,
-          isLaserActive: newIsLaserActive,
-        },
-      },
-    });
-
-    excalidrawAPI.setActiveTool({
-      type: newIsLaserActive ? "laser" : "selection",
-    });
-  }, [excalidrawAPI, presentationMode]);
-
   // Toggle theme during presentation
   const toggleTheme = useCallback(() => {
     if (!excalidrawAPI) {
@@ -228,7 +204,6 @@ export const usePresentationMode = ({
           slides: slideIds,
           originalTheme: currentAppState.theme,
           originalFrameRendering: { ...currentAppState.frameRendering },
-          isLaserActive: true,
         },
         viewModeEnabled: true,
         zenModeEnabled: true,
@@ -240,10 +215,8 @@ export const usePresentationMode = ({
       },
     });
 
-    // Set laser tool as default and navigate to first slide
+    // Navigate to first slide (laser is now implicit - any pointer draws laser trail)
     setTimeout(() => {
-      excalidrawAPI.setActiveTool({ type: "laser" });
-
       if (frames[0]) {
         excalidrawAPI.scrollToContent(frames[0], {
           fitToViewport: true,
@@ -342,14 +315,12 @@ export const usePresentationMode = ({
     currentSlide,
     slides,
     setSlides,
-    isLaserActive,
     totalSlides: slideIds.length || slides.length,
     startPresentation,
     endPresentation,
     nextSlide,
     prevSlide,
     goToSlide,
-    toggleLaser,
     toggleTheme,
     toggleFullscreen,
     getFrames,

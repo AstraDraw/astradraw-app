@@ -99,7 +99,6 @@ export const actionStartPresentation = register({
       slides: slideIds,
       originalTheme: appState.theme,
       originalFrameRendering: { ...appState.frameRendering },
-      isLaserActive: true,
     };
 
     return {
@@ -115,9 +114,9 @@ export const actionStartPresentation = register({
           outline: false,
           name: false,
         },
-        // Set laser tool as default
+        // Use selection tool - laser is now implicit (any pointer draws laser trail)
         activeTool: updateActiveTool(appState, {
-          type: "laser",
+          type: "selection",
         }),
       },
       captureUpdate: CaptureUpdateAction.EVENTUALLY,
@@ -328,58 +327,6 @@ export const actionExitPresentation = register({
       return false;
     }
     return event.key === "Escape";
-  },
-});
-
-/**
- * Toggle laser pointer tool during presentation.
- */
-export const actionTogglePresentationLaser = register({
-  name: "togglePresentationLaser",
-  label: "labels.toggleLaser",
-  keywords: ["laser", "pointer", "presentation"],
-  trackEvent: { category: "canvas" },
-  viewMode: true,
-  perform: (elements, appState) => {
-    const presentationMode = appState.presentationMode;
-    if (!presentationMode?.active) {
-      return {
-        elements,
-        appState,
-        captureUpdate: CaptureUpdateAction.EVENTUALLY,
-      };
-    }
-
-    const isLaserActive = presentationMode.isLaserActive ?? false;
-    const newToolType = isLaserActive ? "selection" : "laser";
-
-    return {
-      elements,
-      appState: {
-        ...appState,
-        presentationMode: {
-          ...presentationMode,
-          isLaserActive: !isLaserActive,
-        },
-        activeTool: updateActiveTool(appState, {
-          type: newToolType,
-        }),
-      },
-      captureUpdate: CaptureUpdateAction.EVENTUALLY,
-    };
-  },
-  checked: (appState) => appState.presentationMode?.isLaserActive ?? false,
-  predicate: (_, appState) => !!appState.presentationMode?.active,
-  keyTest: (event, appState) => {
-    if (!appState.presentationMode?.active) {
-      return false;
-    }
-    return (
-      !event.ctrlKey &&
-      !event.metaKey &&
-      !event.altKey &&
-      event.key.toLowerCase() === "l"
-    );
   },
 });
 

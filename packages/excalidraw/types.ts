@@ -558,8 +558,7 @@ export interface PresentationModeState {
     outline: boolean;
     clip: boolean;
   };
-  /** Whether laser pointer tool is active during presentation */
-  isLaserActive?: boolean;
+  // Note: Laser is now implicit in presentation mode - any pointer draws laser trail
 }
 
 export type SearchMatch = {

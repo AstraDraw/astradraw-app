@@ -16,10 +16,8 @@ export const PresentationMode: React.FC<PresentationModeProps> = ({
     isPresentationMode,
     currentSlide,
     totalSlides,
-    isLaserActive,
     nextSlide,
     prevSlide,
-    toggleLaser,
     toggleTheme,
     toggleFullscreen,
     endPresentation,
@@ -33,10 +31,8 @@ export const PresentationMode: React.FC<PresentationModeProps> = ({
     <PresentationControls
       currentSlide={currentSlide}
       totalSlides={totalSlides}
-      isLaserActive={isLaserActive}
       onPrevSlide={prevSlide}
       onNextSlide={nextSlide}
-      onToggleLaser={toggleLaser}
       onToggleTheme={toggleTheme}
       onToggleFullscreen={toggleFullscreen}
       onEndPresentation={endPresentation}

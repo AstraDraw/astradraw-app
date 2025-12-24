@@ -2,7 +2,6 @@ import clsx from "clsx";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
-  laserPointerToolIcon,
   MoonIcon,
   SunIcon,
   fullscreenIcon,
@@ -15,10 +14,8 @@ import styles from "./PresentationControls.module.scss";
 interface PresentationControlsProps {
   currentSlide: number;
   totalSlides: number;
-  isLaserActive: boolean;
   onPrevSlide: () => void;
   onNextSlide: () => void;
-  onToggleLaser: () => void;
   onToggleTheme: () => void;
   onToggleFullscreen: () => void;
   onEndPresentation: () => void;
@@ -29,10 +26,8 @@ const FADE_DELAY = 3000;
 export const PresentationControls: React.FC<PresentationControlsProps> = ({
   currentSlide,
   totalSlides,
-  isLaserActive,
   onPrevSlide,
   onNextSlide,
-  onToggleLaser,
   onToggleTheme,
   onToggleFullscreen,
   onEndPresentation,
@@ -138,18 +133,6 @@ export const PresentationControls: React.FC<PresentationControlsProps> = ({
         </button>
 
         <div className={styles.divider} />
-
-        {/* Laser pointer */}
-        <button
-          className={clsx(styles.button, {
-            [styles.buttonActive]: isLaserActive,
-          })}
-          onClick={onToggleLaser}
-          title={`${t("presentation.toggleLaser")} (L)`}
-          aria-label={t("presentation.toggleLaser")}
-        >
-          {laserPointerToolIcon}
-        </button>
 
         {/* Theme toggle */}
         <button

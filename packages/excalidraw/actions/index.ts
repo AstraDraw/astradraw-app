@@ -96,7 +96,6 @@ export {
   actionNextSlide,
   actionPrevSlide,
   actionExitPresentation,
-  actionTogglePresentationLaser,
   actionTogglePresentationTheme,
   actionGoToSlide,
 } from "./actionPresentation";

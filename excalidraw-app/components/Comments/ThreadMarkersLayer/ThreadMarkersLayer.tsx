@@ -171,7 +171,8 @@ export function ThreadMarkersLayer({
     }));
   }, [threads, appState]);
 
-  if (!appState || markersWithPositions.length === 0) {
+  // Hide markers in presentation mode
+  if (!appState || markersWithPositions.length === 0 || appState.presentationMode?.active) {
     return null;
   }
 

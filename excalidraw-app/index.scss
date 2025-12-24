@@ -156,6 +156,21 @@ body.excalidraw-presentation-mode {
   .layer-ui__wrapper__footer-right {
     display: none !important;
   }
+
+  // Remove any borders/outlines from main containers to prevent lines showing
+  .excalidraw,
+  .excalidraw-app,
+  .excalidraw-app__main {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
+  // Hide workspace sidebar completely (CSS Modules generates _sidebar_* class names)
+  [class^="_sidebar_"],
+  [class*=" _sidebar_"] {
+    display: none !important;
+  }
 }
 
 // Workspace sidebar layout - pushes content like Excalidraw Plus
