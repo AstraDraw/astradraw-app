@@ -6,7 +6,7 @@
 
 Self-hosted Excalidraw frontend with user workspaces, video recordings, presentation mode, custom pens, and real-time collaboration.
 
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![Docker](https://img.shields.io/badge/docker-ghcr.io-blue)](https://github.com/AstraDraw/astradraw-app/pkgs/container/astradraw-app)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![Docker](https://img.shields.io/badge/docker-hub.docker.com-blue)](https://hub.docker.com/r/astradraw/app)
 
 ## Features
 
@@ -41,7 +41,7 @@ docker run -d \
   -e VITE_APP_WS_SERVER_URL=wss://your-domain.com \
   -e VITE_APP_BACKEND_V2_GET_URL=https://your-domain.com/api/v2/scenes/ \
   -e VITE_APP_BACKEND_V2_POST_URL=https://your-domain.com/api/v2/scenes/ \
-  ghcr.io/AstraDraw/astradraw-app:latest
+  astradraw/app:latest
 ```
 
 ### Local Development
