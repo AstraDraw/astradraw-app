@@ -1,10 +1,12 @@
 # AstraDraw App (Frontend)
 
+> **Note:** Please file all issues in the [main AstraDraw repository](https://github.com/AstraDraw/astradraw/issues). This repository is for code contributions only.
+
 > **Built on [Excalidraw](https://github.com/excalidraw/excalidraw)** - An open source virtual hand-drawn style whiteboard.
 
 Self-hosted Excalidraw frontend with user workspaces, video recordings, presentation mode, custom pens, and real-time collaboration.
 
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![Docker](https://img.shields.io/badge/docker-ghcr.io-blue)](https://github.com/astrateam-net/astradraw-app/pkgs/container/astradraw-app)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![Docker](https://img.shields.io/badge/docker-ghcr.io-blue)](https://github.com/AstraDraw/astradraw-app/pkgs/container/astradraw-app)
 
 ## Features
 
@@ -39,7 +41,7 @@ docker run -d \
   -e VITE_APP_WS_SERVER_URL=wss://your-domain.com \
   -e VITE_APP_BACKEND_V2_GET_URL=https://your-domain.com/api/v2/scenes/ \
   -e VITE_APP_BACKEND_V2_POST_URL=https://your-domain.com/api/v2/scenes/ \
-  ghcr.io/astrateam-net/astradraw-app:latest
+  ghcr.io/AstraDraw/astradraw-app:latest
 ```
 
 ### Local Development
@@ -82,21 +84,21 @@ This is the frontend component of the AstraDraw suite:
 
 | Repository | Purpose |
 | --- | --- |
-| **[astradraw](https://github.com/astrateam-net/astradraw)** | Main repo - deployment, docs, orchestration |
+| **[astradraw](https://github.com/AstraDraw/astradraw)** | Main repo - deployment, docs, orchestration |
 | **astradraw-app** (this repo) | Frontend application |
-| **[astradraw-api](https://github.com/astrateam-net/astradraw-api)** | Backend API (auth, workspace, storage) |
-| **[astradraw-room](https://github.com/astrateam-net/astradraw-room)** | WebSocket collaboration server |
+| **[astradraw-api](https://github.com/AstraDraw/astradraw-api)** | Backend API (auth, workspace, storage) |
+| **[astradraw-room](https://github.com/AstraDraw/astradraw-room)** | WebSocket collaboration server |
 
 ## Documentation
 
-Full documentation is in the main [astradraw](https://github.com/astrateam-net/astradraw) repository:
+Full documentation is in the main [astradraw](https://github.com/AstraDraw/astradraw) repository:
 
 | Topic | Link |
 | --- | --- |
-| Getting Started | [docs/getting-started/](https://github.com/astrateam-net/astradraw/tree/main/docs/getting-started) |
-| Architecture | [docs/architecture/](https://github.com/astrateam-net/astradraw/tree/main/docs/architecture) |
-| Features | [docs/features/](https://github.com/astrateam-net/astradraw/tree/main/docs/features) |
-| Deployment | [docs/deployment/](https://github.com/astrateam-net/astradraw/tree/main/docs/deployment) |
+| Getting Started | [docs/getting-started/](https://github.com/AstraDraw/astradraw/tree/main/docs/getting-started) |
+| Architecture | [docs/architecture/](https://github.com/AstraDraw/astradraw/tree/main/docs/architecture) |
+| Features | [docs/features/](https://github.com/AstraDraw/astradraw/tree/main/docs/features) |
+| Deployment | [docs/deployment/](https://github.com/AstraDraw/astradraw/tree/main/docs/deployment) |
 
 ## Project Structure
 
