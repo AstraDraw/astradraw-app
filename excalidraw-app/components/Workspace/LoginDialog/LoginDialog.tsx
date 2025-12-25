@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useId } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 
 import { useAuth } from "../../../auth";
@@ -31,6 +31,7 @@ export const LoginDialog: React.FC<LoginDialogProps> = ({
     localAuthEnabled,
     registrationEnabled,
   } = useAuth();
+  const formId = useId();
   const [mode, setMode] = useState<DialogMode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -150,9 +151,10 @@ export const LoginDialog: React.FC<LoginDialogProps> = ({
             >
               {isSignUp && (
                 <div className={styles.field}>
-                  <label htmlFor="name">{t("workspace.name")}</label>
+                  <label htmlFor={`${formId}-name`}>{t("workspace.name")}</label>
                   <input
-                    id="name"
+                    id={`${formId}-name`}
+                    name="name"
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
@@ -164,9 +166,10 @@ export const LoginDialog: React.FC<LoginDialogProps> = ({
               )}
 
               <div className={styles.field}>
-                <label htmlFor="email">{t("workspace.email")}</label>
+                <label htmlFor={`${formId}-email`}>{t("workspace.email")}</label>
                 <input
-                  id="email"
+                  id={`${formId}-email`}
+                  name="email"
                   type={isSignUp ? "email" : "text"}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -179,9 +182,10 @@ export const LoginDialog: React.FC<LoginDialogProps> = ({
               </div>
 
               <div className={styles.field}>
-                <label htmlFor="password">{t("workspace.password")}</label>
+                <label htmlFor={`${formId}-password`}>{t("workspace.password")}</label>
                 <input
-                  id="password"
+                  id={`${formId}-password`}
+                  name="password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -194,11 +198,12 @@ export const LoginDialog: React.FC<LoginDialogProps> = ({
 
               {isSignUp && (
                 <div className={styles.field}>
-                  <label htmlFor="confirmPassword">
+                  <label htmlFor={`${formId}-confirmPassword`}>
                     {t("workspace.confirmPassword")}
                   </label>
                   <input
-                    id="confirmPassword"
+                    id={`${formId}-confirmPassword`}
+                    name="confirmPassword"
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}

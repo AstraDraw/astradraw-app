@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useId } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 
 import { showSuccess, showError } from "../../../utils/toast";
@@ -23,6 +23,7 @@ export const WorkspaceSettingsPage: React.FC<WorkspaceSettingsPageProps> = ({
   onUpdateWorkspace,
   onUploadWorkspaceAvatar,
 }) => {
+  const nameInputId = useId();
   const [name, setName] = useState(workspace?.name || "");
   const [isEditingName, setIsEditingName] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -168,6 +169,8 @@ export const WorkspaceSettingsPage: React.FC<WorkspaceSettingsPageProps> = ({
             {isEditingName ? (
               <div className={styles.editField}>
                 <input
+                  id={nameInputId}
+                  name="workspaceName"
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}

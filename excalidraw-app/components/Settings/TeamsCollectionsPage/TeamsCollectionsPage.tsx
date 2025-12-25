@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useId } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 
 import { useAtomValue } from "../../../app-jotai";
@@ -76,6 +76,7 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   // Team dialog state
+  const teamDialogNameId = useId();
   const [showTeamDialog, setShowTeamDialog] = useState(false);
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
   const [teamName, setTeamName] = useState("");
@@ -518,6 +519,8 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
                           />
                           {editingTeamId === team.id ? (
                             <input
+                              id={`team-name-${team.id}`}
+                              name={`teamName-${team.id}`}
                               type="text"
                               defaultValue={team.name}
                               onKeyDown={(e) => {
@@ -635,6 +638,8 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
                           </span>
                           {editingCollectionId === collection.id ? (
                             <input
+                              id={`collection-name-${collection.id}`}
+                              name={`collectionName-${collection.id}`}
                               type="text"
                               defaultValue={collection.name}
                               onKeyDown={(e) => {
@@ -774,6 +779,8 @@ export const TeamsCollectionsPage: React.FC<TeamsCollectionsPageProps> = ({
                 <div className={styles.formGroup}>
                   <label>{t("settings.teamNameLabel")}</label>
                   <input
+                    id={teamDialogNameId}
+                    name="teamName"
                     type="text"
                     value={teamName}
                     onChange={(e) => setTeamName(e.target.value)}

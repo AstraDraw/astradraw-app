@@ -2617,7 +2617,7 @@ class App extends React.Component<AppProps, AppState> {
     this.setState({ isBindingEnabled: true });
   });
 
-  private onUnload = () => {
+  private onPageHide = () => {
     this.onBlur();
   };
 
@@ -3079,7 +3079,7 @@ class App extends React.Component<AppProps, AppState> {
       }),
       addEventListener(document, EVENT.CUT, this.onCut, { passive: false }),
       addEventListener(window, EVENT.RESIZE, this.onResize, false),
-      addEventListener(window, EVENT.UNLOAD, this.onUnload, false),
+      addEventListener(window, EVENT.PAGEHIDE, this.onPageHide, false),
       addEventListener(window, EVENT.BLUR, this.onBlur, false),
       addEventListener(
         this.excalidrawContainerRef.current,

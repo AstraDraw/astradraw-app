@@ -260,7 +260,7 @@ class Collab extends PureComponent<CollabProps, CollabState> {
     window.addEventListener(EVENT.BEFORE_UNLOAD, this.beforeUnload);
     window.addEventListener("online", this.onOfflineStatusToggle);
     window.addEventListener("offline", this.onOfflineStatusToggle);
-    window.addEventListener(EVENT.UNLOAD, this.onUnload);
+    window.addEventListener(EVENT.PAGEHIDE, this.onPageHide);
 
     const unsubOnUserFollow = this.excalidrawAPI.onUserFollow((payload) => {
       this.portal.socket && this.portal.broadcastUserFollowed(payload);
@@ -315,7 +315,7 @@ class Collab extends PureComponent<CollabProps, CollabState> {
     window.removeEventListener("online", this.onOfflineStatusToggle);
     window.removeEventListener("offline", this.onOfflineStatusToggle);
     window.removeEventListener(EVENT.BEFORE_UNLOAD, this.beforeUnload);
-    window.removeEventListener(EVENT.UNLOAD, this.onUnload);
+    window.removeEventListener(EVENT.PAGEHIDE, this.onPageHide);
     window.removeEventListener(EVENT.POINTER_MOVE, this.onPointerMove);
     window.removeEventListener(
       EVENT.VISIBILITY_CHANGE,
@@ -338,7 +338,7 @@ class Collab extends PureComponent<CollabProps, CollabState> {
     appJotaiStore.set(isCollaboratingAtom, isCollaborating);
   };
 
-  private onUnload = () => {
+  private onPageHide = () => {
     this.destroySocketClient({ isUnload: true });
   };
 

@@ -122,7 +122,7 @@ const ALLOW_SAME_ORIGIN = new Set([
 ]);
 
 export const createSrcDoc = (body: string) => {
-  return `<html><body>${body}</body></html>`;
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body>${body}</body></html>`;
 };
 
 export const getEmbedLink = (

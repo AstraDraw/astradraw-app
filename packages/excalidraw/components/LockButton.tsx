@@ -1,3 +1,4 @@
+import { useId } from "react";
 import clsx from "clsx";
 
 import "./ToolIcon.scss";
@@ -22,8 +23,10 @@ const ICONS = {
 };
 
 export const LockButton = (props: LockIconProps) => {
+  const checkboxId = useId();
   return (
     <label
+      htmlFor={checkboxId}
       className={clsx(
         "ToolIcon ToolIcon__lock",
         `ToolIcon_size_${DEFAULT_SIZE}`,
@@ -34,9 +37,10 @@ export const LockButton = (props: LockIconProps) => {
       title={`${props.title} — Q`}
     >
       <input
+        id={checkboxId}
         className="ToolIcon_type_checkbox"
         type="checkbox"
-        name={props.name}
+        name={props.name || "toolbarLock"}
         onChange={props.onChange}
         checked={props.checked}
         aria-label={props.title}

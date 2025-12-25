@@ -4,6 +4,7 @@ import React, {
   useCallback,
   useMemo,
   useRef,
+  useId,
 } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 
@@ -96,6 +97,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
 
+  const searchInputId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
 
@@ -353,6 +355,8 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
         <div className={styles.inputWrapper}>
           <span className={styles.inputIcon}>{searchIcon}</span>
           <input
+            id={searchInputId}
+            name="quickSearch"
             ref={inputRef}
             type="text"
             className={styles.input}

@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useId } from "react";
 
 import { isPromiseLike } from "@excalidraw/common";
 
@@ -74,6 +74,7 @@ export const ToolButton = React.forwardRef(
     const innerRef = React.useRef(null);
     React.useImperativeHandle(ref, () => innerRef.current);
     const sizeCn = `ToolIcon_size_${size}`;
+    const fallbackId = useId();
 
     const [isLoading, setIsLoading] = useState(false);
 
@@ -169,6 +170,7 @@ export const ToolButton = React.forwardRef(
 
     return (
       <label
+        htmlFor={props.id ? `${excalId}-${props.id}` : fallbackId}
         className={clsx("ToolIcon", className)}
         title={props.title}
         onPointerDown={(event) => {
@@ -188,7 +190,7 @@ export const ToolButton = React.forwardRef(
           aria-label={props["aria-label"]}
           aria-keyshortcuts={props["aria-keyshortcuts"]}
           data-testid={props["data-testid"]}
-          id={`${excalId}-${props.id}`}
+          id={props.id ? `${excalId}-${props.id}` : fallbackId}
           onChange={() => {
             props.onChange?.({ pointerType: lastPointerTypeRef.current });
           }}
