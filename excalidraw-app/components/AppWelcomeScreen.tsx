@@ -3,10 +3,7 @@ import { useI18n } from "@excalidraw/excalidraw/i18n";
 import { WelcomeScreen } from "@excalidraw/excalidraw/index";
 import React, { useState } from "react";
 
-import { useSetAtom } from "../app-jotai";
 import { useAuth } from "../auth";
-
-import { openWorkspaceSidebarAtom } from "./Settings/settingsState";
 
 import { AstradrawLogo } from "./AstradrawLogo";
 import { WelcomeScreenBackground } from "./WelcomeScreenBackground";
@@ -15,11 +12,11 @@ import { LoginDialog } from "./Workspace/LoginDialog";
 export const AppWelcomeScreen: React.FC<{
   onCollabDialogOpen: () => any;
   isCollabEnabled: boolean;
+  onSignIn?: () => void;
 }> = React.memo((props) => {
   const { t } = useI18n();
   const { isAuthenticated, oidcConfigured, localAuthEnabled } = useAuth();
   const [showLoginDialog, setShowLoginDialog] = useState(false);
-  const openWorkspaceSidebar = useSetAtom(openWorkspaceSidebarAtom);
   const headingContent = t("welcomeScreen.app.center_heading");
 
   // Show sign in button only if auth is available and user is not authenticated
@@ -27,8 +24,8 @@ export const AppWelcomeScreen: React.FC<{
 
   const handleLoginSuccess = () => {
     setShowLoginDialog(false);
-    // Open workspace sidebar after login
-    openWorkspaceSidebar();
+    // Optionally open workspace sidebar after login
+    props.onSignIn?.();
   };
 
   return (

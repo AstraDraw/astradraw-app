@@ -142,6 +142,9 @@ export default defineConfig(({ mode }) => {
         workbox: {
           // Increase the limit to handle large bundles (default is 2MB)
           maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB
+          // Don't intercept API routes or socket.io with navigation fallback
+          // This ensures auth redirects (login, logout, callback) work correctly
+          navigateFallbackDenylist: [/^\/api\//, /^\/socket\.io\//],
           // don't precache fonts, locales and separate chunks
           globIgnores: [
             "fonts.css",

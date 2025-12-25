@@ -48,3 +48,4 @@ const CollabError = ({ collabError }: { collabError: ErrorIndicator }) => {
 CollabError.displayName = "CollabError";
 
 export default CollabError;
+
