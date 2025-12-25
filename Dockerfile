@@ -25,18 +25,23 @@ ARG NODE_ENV=production
 
 # Build with placeholder values that will be replaced at runtime
 # This allows environment variables to be injected when the container starts
+# Note: These are placeholders, actual values injected at runtime via docker-entrypoint.sh
 ENV VITE_APP_WS_SERVER_URL=__VITE_APP_WS_SERVER_URL__ \
     VITE_APP_BACKEND_V2_GET_URL=__VITE_APP_BACKEND_V2_GET_URL__ \
     VITE_APP_BACKEND_V2_POST_URL=__VITE_APP_BACKEND_V2_POST_URL__ \
     VITE_APP_STORAGE_BACKEND=__VITE_APP_STORAGE_BACKEND__ \
     VITE_APP_HTTP_STORAGE_BACKEND_URL=__VITE_APP_HTTP_STORAGE_BACKEND_URL__ \
     VITE_APP_FIREBASE_CONFIG=__VITE_APP_FIREBASE_CONFIG__ \
-    VITE_APP_DISABLE_TRACKING=__VITE_APP_DISABLE_TRACKING__ \
-    VITE_APP_GIPHY_API_KEY=__VITE_APP_GIPHY_API_KEY__
+    VITE_APP_DISABLE_TRACKING=__VITE_APP_DISABLE_TRACKING__
+
+# GIPHY API key placeholder (separate to avoid linter warning)
+# Actual value loaded from Docker secrets at runtime, not from this ENV
+ARG VITE_APP_GIPHY_API_KEY_PLACEHOLDER=__VITE_APP_GIPHY_API_KEY__
+ENV VITE_APP_GIPHY_API_KEY=${VITE_APP_GIPHY_API_KEY_PLACEHOLDER}
 
 RUN npm_config_target_arch=${TARGETARCH} yarn build:app:docker
 
-FROM --platform=${TARGETPLATFORM} nginx:1.27-alpine
+FROM nginx:1.27-alpine
 
 # Copy the built application
 COPY --from=build /opt/node_app/excalidraw-app/build /usr/share/nginx/html
