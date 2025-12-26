@@ -16,17 +16,20 @@ export interface WorkspaceSettingsPageProps {
   workspace: Workspace | null;
   onUpdateWorkspace?: (data: { name?: string }) => Promise<void>;
   onUploadWorkspaceAvatar?: (file: File) => Promise<void>;
+  onDeleteWorkspace?: () => Promise<void>;
 }
 
 export const WorkspaceSettingsPage: React.FC<WorkspaceSettingsPageProps> = ({
   workspace,
   onUpdateWorkspace,
   onUploadWorkspaceAvatar,
+  onDeleteWorkspace,
 }) => {
   const nameInputId = useId();
   const [name, setName] = useState(workspace?.name || "");
   const [isEditingName, setIsEditingName] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -81,6 +84,33 @@ export const WorkspaceSettingsPage: React.FC<WorkspaceSettingsPageProps> = ({
       }
     }
   };
+
+  const handleDeleteWorkspace = async () => {
+    if (!workspace || !onDeleteWorkspace) {
+      return;
+    }
+
+    // Show confirmation dialog
+    if (!confirm(t("settings.confirmDeleteWorkspace"))) {
+      return;
+    }
+
+    setIsDeleting(true);
+    setError(null);
+
+    try {
+      await onDeleteWorkspace();
+      showSuccess(t("settings.workspaceDeleted"));
+    } catch (err: any) {
+      setError(err.message || "Failed to delete workspace");
+      showError(err.message || "Failed to delete workspace");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  // Check if this is a personal workspace (cannot be deleted)
+  const isPersonalWorkspace = workspace?.type === "PERSONAL";
 
   if (!workspace) {
     return (
@@ -242,30 +272,29 @@ export const WorkspaceSettingsPage: React.FC<WorkspaceSettingsPageProps> = ({
           </div>
         </section>
 
-        {/* Danger Zone */}
-        <section className={styles.sectionDanger}>
-          <h2 className={styles.sectionTitle}>{t("settings.dangerZone")}</h2>
-          <div className={styles.dangerItem}>
-            <div className={styles.dangerInfo}>
-              <h3>{t("settings.deleteWorkspace")}</h3>
+        {/* Danger Zone - only show for shared workspaces */}
+        {!isPersonalWorkspace && (
+          <section className={styles.sectionDanger}>
+            <h2 className={styles.sectionTitle}>{t("settings.dangerZone")}</h2>
+            <div className={styles.dangerItem}>
+              <div className={styles.dangerInfo}>
+                <h3>{t("settings.deleteWorkspace")}</h3>
+              </div>
+              <div className={styles.dangerContent}>
+                <p>{t("settings.deleteWorkspaceDescription")}</p>
+                <button
+                  className={styles.buttonDangerOutline}
+                  onClick={handleDeleteWorkspace}
+                  disabled={isDeleting || !onDeleteWorkspace}
+                >
+                  {isDeleting
+                    ? t("settings.deleting")
+                    : t("settings.deleteWorkspaceButton")}
+                </button>
+              </div>
             </div>
-            <div className={styles.dangerContent}>
-              <p>{t("settings.deleteWorkspaceDescription")}</p>
-              <button
-                className={styles.buttonDangerOutline}
-                onClick={() => {
-                  // TODO: Implement workspace deletion
-                  showError(
-                    t("settings.workspaceDeletionNotImplemented") ||
-                      "Workspace deletion is not yet implemented",
-                  );
-                }}
-              >
-                {t("settings.deleteWorkspaceButton")}
-              </button>
-            </div>
-          </div>
-        </section>
+          </section>
+        )}
       </div>
     </div>
   );

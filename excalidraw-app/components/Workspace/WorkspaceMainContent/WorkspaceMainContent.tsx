@@ -29,6 +29,7 @@ export interface WorkspaceMainContentProps {
   onNewScene: (collectionId?: string) => void;
   onUpdateWorkspace?: (data: { name?: string }) => Promise<void>;
   onUploadWorkspaceAvatar?: (file: File) => Promise<void>;
+  onDeleteWorkspace?: () => Promise<void>;
   theme: Theme | "system";
   setTheme: (theme: Theme | "system") => void;
 }
@@ -38,6 +39,7 @@ export const WorkspaceMainContent: React.FC<WorkspaceMainContentProps> = ({
   onNewScene,
   onUpdateWorkspace,
   onUploadWorkspaceAvatar,
+  onDeleteWorkspace,
   theme,
   setTheme,
 }) => {
@@ -77,6 +79,7 @@ export const WorkspaceMainContent: React.FC<WorkspaceMainContentProps> = ({
             workspace={workspace}
             onUpdateWorkspace={onUpdateWorkspace}
             onUploadWorkspaceAvatar={onUploadWorkspaceAvatar}
+            onDeleteWorkspace={onDeleteWorkspace}
           />
         );
       case "members":

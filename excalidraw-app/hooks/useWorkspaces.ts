@@ -12,6 +12,7 @@ import { queryKeys } from "../lib/queryClient";
 import {
   listWorkspaces,
   createWorkspace as createWorkspaceApi,
+  deleteWorkspace as deleteWorkspaceApi,
   type Workspace,
   type WorkspaceType,
 } from "../auth/workspaceApi";
@@ -40,6 +41,7 @@ interface UseWorkspacesResult {
   loadWorkspaces: () => Promise<void>;
   switchWorkspace: (workspace: Workspace) => void;
   createWorkspace: (data: CreateWorkspaceData) => Promise<Workspace>;
+  deleteWorkspace: (workspaceId: string) => Promise<void>;
   setCurrentWorkspace: (workspace: Workspace | null) => void;
   generateSlug: (name: string) => string;
 }
@@ -175,6 +177,31 @@ export function useWorkspaces({
       .slice(0, 30);
   }, []);
 
+  // Delete workspace
+  const deleteWorkspace = useCallback(
+    async (workspaceId: string): Promise<void> => {
+      await deleteWorkspaceApi(workspaceId);
+
+      // Invalidate and refetch workspaces list
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.workspaces.all,
+      });
+
+      // Get updated workspaces and switch to first remaining one
+      const updatedWorkspaces = await queryClient.fetchQuery({
+        queryKey: queryKeys.workspaces.list(),
+        queryFn: listWorkspaces,
+      });
+
+      if (updatedWorkspaces.length > 0) {
+        setCurrentWorkspace(updatedWorkspaces[0]);
+      } else {
+        setCurrentWorkspace(null);
+      }
+    },
+    [queryClient, setCurrentWorkspace],
+  );
+
   // Sync with external workspace updates (e.g., when avatar/name is changed in settings)
   useEffect(() => {
     if (externalWorkspace && currentWorkspace) {
@@ -215,6 +242,7 @@ export function useWorkspaces({
     loadWorkspaces,
     switchWorkspace,
     createWorkspace,
+    deleteWorkspace,
     setCurrentWorkspace,
     generateSlug,
   };

@@ -199,6 +199,8 @@ import {
   updateSceneData,
   updateWorkspace,
   uploadWorkspaceAvatar,
+  deleteWorkspace,
+  listWorkspaces,
   startCollaboration,
 } from "./auth/workspaceApi";
 import { loadWorkspaceScene } from "./data/workspaceSceneLoader";
@@ -1611,6 +1613,37 @@ const ExcalidrawWrapper = () => {
     [currentWorkspace, setCurrentWorkspace],
   );
 
+  const handleDeleteWorkspace = useCallback(async () => {
+    if (!currentWorkspace) {
+      throw new Error("No workspace selected");
+    }
+
+    await deleteWorkspace(currentWorkspace.id);
+
+    // Invalidate and refetch workspaces list
+    await queryClient.invalidateQueries({
+      queryKey: queryKeys.workspaces.all,
+    });
+
+    // Get updated workspaces and switch to first remaining one
+    const updatedWorkspaces = await listWorkspaces();
+
+    if (updatedWorkspaces.length > 0) {
+      setCurrentWorkspace(updatedWorkspaces[0] as WorkspaceData);
+      setCurrentWorkspaceSlug(updatedWorkspaces[0].slug);
+      // Navigate to dashboard of new workspace
+      setDashboardView("home");
+    } else {
+      setCurrentWorkspace(null);
+    }
+  }, [
+    currentWorkspace,
+    queryClient,
+    setCurrentWorkspace,
+    setCurrentWorkspaceSlug,
+    setDashboardView,
+  ]);
+
   const handleSaveToWorkspace = useCallback(async () => {
     if (!excalidrawAPI) {
       return;
@@ -1806,6 +1839,7 @@ const ExcalidrawWrapper = () => {
               onNewScene={handleNewScene}
               onUpdateWorkspace={handleUpdateWorkspace}
               onUploadWorkspaceAvatar={handleUploadWorkspaceAvatar}
+              onDeleteWorkspace={handleDeleteWorkspace}
               theme={appTheme}
               setTheme={setAppTheme}
             />
