@@ -148,6 +148,7 @@ export function useSceneLoader({
       // If already loading, store the pending scene ID and skip this load
       // The pending scene will be loaded after the current one completes
       if (isLoadingRef.current && !isInitialLoad) {
+        // eslint-disable-next-line no-console
         console.log(
           "[useSceneLoader] Already loading, queuing scene:",
           sceneId,
@@ -158,6 +159,7 @@ export function useSceneLoader({
 
       // Skip if trying to load the same scene that's already loaded
       if (currentSceneIdRef.current === sceneId && !isInitialLoad) {
+        // eslint-disable-next-line no-console
         console.log(
           "[useSceneLoader] Scene already loaded, skipping:",
           sceneId,
@@ -191,6 +193,7 @@ export function useSceneLoader({
 
       try {
         const loaded = await loadWorkspaceScene(workspaceSlug, sceneId);
+        // eslint-disable-next-line no-console
         console.log("[useSceneLoader] Scene loaded:", {
           sceneId: loaded.scene.id,
           title: loaded.scene.title,
@@ -205,12 +208,14 @@ export function useSceneLoader({
         // Set the active collection from the scene's collection
         // This ensures the sidebar shows the correct collection when navigating to a scene URL
         if (setActiveCollectionId) {
+          // eslint-disable-next-line no-console
           console.log(
             "[useSceneLoader] Setting activeCollectionId to:",
             loaded.scene.collectionId,
           );
           setActiveCollectionId(loaded.scene.collectionId);
         } else {
+          // eslint-disable-next-line no-console
           console.log(
             "[useSceneLoader] WARNING: setActiveCollectionId is not provided!",
           );
@@ -367,6 +372,7 @@ export function useSceneLoader({
         const pendingScene = pendingSceneRef.current;
         if (pendingScene && pendingScene !== sceneId) {
           pendingSceneRef.current = null;
+          // eslint-disable-next-line no-console
           console.log("[useSceneLoader] Loading pending scene:", pendingScene);
           // Use setTimeout to avoid stack overflow and allow UI to update
           setTimeout(() => {

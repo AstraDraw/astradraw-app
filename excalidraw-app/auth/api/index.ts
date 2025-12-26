@@ -48,6 +48,10 @@ export type {
   NotificationType,
   Notification,
   NotificationsResponse,
+  // Global search types
+  GlobalSearchCollectionResult,
+  GlobalSearchSceneResult,
+  GlobalSearchResponse,
 } from "./types";
 
 // Scene API
@@ -153,3 +157,6 @@ export {
   markAsRead,
   markAllAsRead,
 } from "./notifications";
+
+// Search API
+export { globalSearch } from "./search";

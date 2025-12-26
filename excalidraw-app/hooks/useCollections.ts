@@ -117,6 +117,7 @@ export function useCollections({
   // Set default active collection to Private when collections are loaded
   // Skip if we're on a scene URL - let scene loading handle the collection selection
   useEffect(() => {
+    // eslint-disable-next-line no-console
     console.log("[useCollections] Default collection effect:", {
       collectionsLength: collections.length,
       activeCollectionId,
@@ -131,15 +132,18 @@ export function useCollections({
       // Don't set default collection if we're loading a scene from URL
       // The scene loader will set the correct collection from the scene data
       const route = parseUrl();
+      // eslint-disable-next-line no-console
       console.log("[useCollections] Parsed route:", route.type);
 
       if (route.type === "scene") {
+        // eslint-disable-next-line no-console
         console.log("[useCollections] Skipping default - scene URL detected");
         return;
       }
 
       const privateCol = collections.find((c) => c.isPrivate);
       if (privateCol) {
+        // eslint-disable-next-line no-console
         console.log(
           "[useCollections] Setting default to Private:",
           privateCol.id,

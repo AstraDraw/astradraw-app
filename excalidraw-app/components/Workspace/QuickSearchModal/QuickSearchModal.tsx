@@ -8,19 +8,24 @@ import React, {
 } from "react";
 import { t } from "@excalidraw/excalidraw/i18n";
 
-import { useAtom, useAtomValue, useSetAtom } from "../../../app-jotai";
+import { useAtom, useSetAtom, useAtomValue } from "../../../app-jotai";
 import {
-  listCollections,
-  listWorkspaceScenes,
-  type Collection,
-  type WorkspaceScene,
-  type Workspace,
+  globalSearch,
+  type GlobalSearchCollectionResult,
+  type GlobalSearchSceneResult,
+  type GlobalSearchResponse,
 } from "../../../auth/workspaceApi";
 import {
   quickSearchOpenAtom,
   navigateToCollectionAtom,
   navigateToSceneAtom,
   currentWorkspaceSlugAtom,
+  currentWorkspaceAtom,
+  workspacesAtom,
+  activeCollectionIdAtom,
+  currentSceneIdAtom,
+  currentSceneTitleAtom,
+  isAutoCollabSceneAtom,
 } from "../../Settings/settingsState";
 import {
   buildCollectionUrl,
@@ -68,32 +73,36 @@ interface SearchResultItem {
   isPrivate?: boolean;
   thumbnailUrl?: string | null;
   collectionName?: string;
-  authorName?: string;
+  workspaceSlug: string;
+  workspaceName: string;
   updatedAt: string;
 }
 
-interface QuickSearchModalProps {
-  workspace: Workspace | null;
-}
-
-// Cache for search data per workspace
-const searchDataCache = new Map<
-  string,
-  { collections: Collection[]; scenes: WorkspaceScene[]; timestamp: number }
->();
+// Global cache for search data (user-level, not workspace-level)
+let searchDataCache: {
+  data: GlobalSearchResponse;
+  timestamp: number;
+} | null = null;
 const CACHE_TTL = 30000; // 30 seconds
 
-export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
-  workspace,
-}) => {
+export const QuickSearchModal: React.FC = () => {
   const [isOpen, setIsOpen] = useAtom(quickSearchOpenAtom);
   const navigateToCollection = useSetAtom(navigateToCollectionAtom);
   const navigateToScene = useSetAtom(navigateToSceneAtom);
-  const workspaceSlug = useAtomValue(currentWorkspaceSlugAtom);
+  const setCurrentWorkspaceSlug = useSetAtom(currentWorkspaceSlugAtom);
+  const setCurrentWorkspace = useSetAtom(currentWorkspaceAtom);
+  const workspaces = useAtomValue(workspacesAtom);
+  const currentWorkspace = useAtomValue(currentWorkspaceAtom);
+  const setActiveCollectionId = useSetAtom(activeCollectionIdAtom);
+  const setCurrentSceneId = useSetAtom(currentSceneIdAtom);
+  const setCurrentSceneTitle = useSetAtom(currentSceneTitleAtom);
+  const setIsAutoCollabScene = useSetAtom(isAutoCollabSceneAtom);
 
   const [query, setQuery] = useState("");
-  const [collections, setCollections] = useState<Collection[]>([]);
-  const [scenes, setScenes] = useState<WorkspaceScene[]>([]);
+  const [collections, setCollections] = useState<
+    GlobalSearchCollectionResult[]
+  >([]);
+  const [scenes, setScenes] = useState<GlobalSearchSceneResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
 
@@ -103,34 +112,32 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
 
   // Load data when modal opens (with caching)
   useEffect(() => {
-    if (!isOpen || !workspace) {
+    if (!isOpen) {
       return;
     }
 
     const loadData = async () => {
       // Check cache first
-      const cached = searchDataCache.get(workspace.id);
-      if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-        setCollections(cached.collections);
-        setScenes(cached.scenes);
+      if (
+        searchDataCache &&
+        Date.now() - searchDataCache.timestamp < CACHE_TTL
+      ) {
+        setCollections(searchDataCache.data.collections);
+        setScenes(searchDataCache.data.scenes);
         return;
       }
 
       setIsLoading(true);
       try {
-        const [collectionsData, scenesData] = await Promise.all([
-          listCollections(workspace.id),
-          listWorkspaceScenes(workspace.id),
-        ]);
-        setCollections(collectionsData);
-        setScenes(scenesData);
+        const data = await globalSearch();
+        setCollections(data.collections);
+        setScenes(data.scenes);
 
         // Update cache
-        searchDataCache.set(workspace.id, {
-          collections: collectionsData,
-          scenes: scenesData,
+        searchDataCache = {
+          data,
           timestamp: Date.now(),
-        });
+        };
       } catch (err) {
         console.error("Failed to load search data:", err);
       } finally {
@@ -141,7 +148,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
     loadData();
     // Focus input when modal opens
     setTimeout(() => inputRef.current?.focus(), 50);
-  }, [isOpen, workspace]);
+  }, [isOpen]);
 
   // Reset query and selection when modal closes
   useEffect(() => {
@@ -157,10 +164,10 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
       return []; // Don't show anything without a query
     }
     const lowerQuery = query.toLowerCase();
-    return collections.filter((c) =>
-      (c.isPrivate ? t("workspace.private") : c.name)
-        .toLowerCase()
-        .includes(lowerQuery),
+    return collections.filter(
+      (c) =>
+        c.name.toLowerCase().includes(lowerQuery) ||
+        c.workspaceName.toLowerCase().includes(lowerQuery),
     );
   }, [collections, query]);
 
@@ -169,7 +176,11 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
       return []; // Don't show anything without a query
     }
     const lowerQuery = query.toLowerCase();
-    return scenes.filter((s) => s.title.toLowerCase().includes(lowerQuery));
+    return scenes.filter(
+      (s) =>
+        s.title.toLowerCase().includes(lowerQuery) ||
+        s.workspaceName.toLowerCase().includes(lowerQuery),
+    );
   }, [scenes, query]);
 
   // Build flat list of results for keyboard navigation
@@ -184,28 +195,31 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
         title: c.isPrivate ? t("workspace.private") : c.name,
         icon: c.icon,
         isPrivate: c.isPrivate,
+        workspaceSlug: c.workspaceSlug,
+        workspaceName: c.workspaceName,
         updatedAt: c.updatedAt,
       });
     });
 
     // Add scenes
     filteredScenes.forEach((s) => {
-      const collection = collections.find((c) => c.id === s.collectionId);
       results.push({
         type: "scene",
         id: s.id,
         title: s.title,
         thumbnailUrl: s.thumbnailUrl,
-        collectionName: collection?.isPrivate
+        collectionName: s.isPrivate
           ? t("workspace.private")
-          : collection?.name,
-        isPrivate: collection?.isPrivate,
+          : s.collectionName ?? undefined,
+        isPrivate: s.isPrivate,
+        workspaceSlug: s.workspaceSlug,
+        workspaceName: s.workspaceName,
         updatedAt: s.updatedAt,
       });
     });
 
     return results;
-  }, [filteredCollections, filteredScenes, collections]);
+  }, [filteredCollections, filteredScenes]);
 
   // Reset selection when results change, auto-select first result
   useEffect(() => {
@@ -227,39 +241,68 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
   // Handle item selection
   const handleSelect = useCallback(
     (item: SearchResultItem, openInNewTab: boolean = false) => {
-      if (!workspaceSlug) {
-        return;
-      }
+      const targetSlug = item.workspaceSlug;
+      const isSwitchingWorkspace = currentWorkspace?.slug !== targetSlug;
 
       if (openInNewTab) {
         // Open in new tab
         let url: string;
         if (item.type === "collection") {
           url = item.isPrivate
-            ? buildPrivateUrl(workspaceSlug)
-            : buildCollectionUrl(workspaceSlug, item.id);
+            ? buildPrivateUrl(targetSlug)
+            : buildCollectionUrl(targetSlug, item.id);
         } else {
-          url = buildSceneUrl(workspaceSlug, item.id);
+          url = buildSceneUrl(targetSlug, item.id);
         }
         window.open(url, "_blank");
-      } else if (item.type === "collection") {
-        // Navigate to collection in current tab
-        navigateToCollection({
-          collectionId: item.id,
-          isPrivate: item.isPrivate,
-        });
       } else {
-        // Navigate to scene in current tab
-        navigateToScene({
-          sceneId: item.id,
-          title: item.title,
-          workspaceSlug,
-        });
+        // If switching to a different workspace, we need to properly switch context
+        if (isSwitchingWorkspace) {
+          const targetWorkspace = workspaces.find((w) => w.slug === targetSlug);
+          if (targetWorkspace) {
+            // Clear current scene state before switching
+            setCurrentSceneId(null);
+            setCurrentSceneTitle("Untitled");
+            setIsAutoCollabScene(false);
+            setActiveCollectionId(null);
+
+            // Switch workspace (updates both atom and slug)
+            setCurrentWorkspace(targetWorkspace);
+            setCurrentWorkspaceSlug(targetSlug);
+          }
+        }
+
+        if (item.type === "collection") {
+          // Navigate to collection in current tab
+          navigateToCollection({
+            collectionId: item.id,
+            isPrivate: item.isPrivate,
+          });
+        } else {
+          // Navigate to scene in current tab
+          navigateToScene({
+            sceneId: item.id,
+            title: item.title,
+            workspaceSlug: targetSlug,
+          });
+        }
       }
 
       setIsOpen(false);
     },
-    [workspaceSlug, navigateToCollection, navigateToScene, setIsOpen],
+    [
+      navigateToCollection,
+      navigateToScene,
+      setIsOpen,
+      setCurrentWorkspaceSlug,
+      currentWorkspace?.slug,
+      workspaces,
+      setCurrentWorkspace,
+      setActiveCollectionId,
+      setCurrentSceneId,
+      setCurrentSceneTitle,
+      setIsAutoCollabScene,
+    ],
   );
 
   // Handle keyboard navigation - this is called from the input's onKeyDown
@@ -418,7 +461,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
                   </div>
                   {filteredCollections.map((collection, index) => (
                     <button
-                      key={collection.id}
+                      key={`${collection.workspaceId}-${collection.id}`}
                       data-index={index}
                       className={`${styles.item} ${
                         selectedIndex === index ? styles.itemSelected : ""
@@ -433,6 +476,8 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
                               : collection.name,
                             isPrivate: collection.isPrivate,
                             icon: collection.icon,
+                            workspaceSlug: collection.workspaceSlug,
+                            workspaceName: collection.workspaceName,
                             updatedAt: collection.updatedAt,
                           },
                           false,
@@ -459,6 +504,10 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
                         </span>
                         <span className={styles.itemMeta}>
                           {formatRelativeTime(collection.updatedAt)}
+                          {" • "}
+                          <span className={styles.itemWorkspace}>
+                            {collection.workspaceName}
+                          </span>
                         </span>
                       </div>
                     </button>
@@ -479,12 +528,9 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
                   </div>
                   {filteredScenes.map((scene, index) => {
                     const actualIndex = scenesStartIndex + index;
-                    const collection = collections.find(
-                      (c) => c.id === scene.collectionId,
-                    );
                     return (
                       <button
-                        key={scene.id}
+                        key={`${scene.workspaceId}-${scene.id}`}
                         data-index={actualIndex}
                         className={`${styles.item} ${
                           selectedIndex === actualIndex
@@ -498,10 +544,12 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
                               id: scene.id,
                               title: scene.title,
                               thumbnailUrl: scene.thumbnailUrl,
-                              collectionName: collection?.isPrivate
+                              collectionName: scene.isPrivate
                                 ? t("workspace.private")
-                                : collection?.name,
-                              isPrivate: collection?.isPrivate,
+                                : scene.collectionName ?? undefined,
+                              isPrivate: scene.isPrivate,
+                              workspaceSlug: scene.workspaceSlug,
+                              workspaceName: scene.workspaceName,
                               updatedAt: scene.updatedAt,
                             },
                             false,
@@ -522,20 +570,24 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
                           </span>
                           <span className={styles.itemMeta}>
                             {formatRelativeTime(scene.updatedAt)}
-                            {collection && (
+                            {scene.collectionName && (
                               <>
                                 {" • "}
                                 <span className={styles.itemCollection}>
                                   {t("workspace.inCollection")}{" "}
-                                  {collection.isPrivate
+                                  {scene.isPrivate
                                     ? t("workspace.private")
-                                    : collection.name}
+                                    : scene.collectionName}
                                 </span>
                               </>
                             )}
+                            {" • "}
+                            <span className={styles.itemWorkspace}>
+                              {scene.workspaceName}
+                            </span>
                           </span>
                         </div>
-                        {collection?.isPrivate && (
+                        {scene.isPrivate && (
                           <span className={styles.itemBadge}>{lockIcon}</span>
                         )}
                       </button>
@@ -552,4 +604,3 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
 };
 
 export default QuickSearchModal;
-

@@ -91,4 +91,3 @@ Version format: `v{upstream}-beta{astradraw}` (e.g., `v0.18.0-beta0.1`)
 ---
 
 **Note:** This is the internal development changelog. See CHANGELOG.md for the public release history.
-

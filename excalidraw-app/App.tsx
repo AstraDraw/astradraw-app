@@ -1780,9 +1780,7 @@ const ExcalidrawWrapper = () => {
       )}
 
       {/* Quick Search Modal */}
-      {!isLegacyMode && isAuthenticated && (
-        <QuickSearchModal workspace={currentWorkspace} />
-      )}
+      {!isLegacyMode && isAuthenticated && <QuickSearchModal />}
 
       {/* Dashboard Content */}
       {!isLegacyMode && (

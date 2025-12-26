@@ -13,7 +13,6 @@ import { t } from "@excalidraw/excalidraw/i18n";
 import {
   fetchEmojiData,
   searchEmojis,
-  getPopularEmojis,
   EMOJI_GROUPS,
   type TwemojiItem,
   type TwemojiGroup,
@@ -42,7 +41,6 @@ export function InlineEmojiPicker({
   const [emojiGroups, setEmojiGroups] = useState<TwemojiGroup[]>([]);
   const [searchResults, setSearchResults] = useState<TwemojiItem[]>([]);
   const [loading, setLoading] = useState(false);
-  const [popularEmojis] = useState<TwemojiItem[]>(getPopularEmojis());
   const [position, setPosition] = useState({ top: 0, left: 0 });
 
   const pickerRef = useRef<HTMLDivElement>(null);

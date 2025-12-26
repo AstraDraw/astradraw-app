@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * useUIDebugLogger - Debug hook to track UI state changes
  *

@@ -375,7 +375,7 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
         });
       }
     },
-    [currentWorkspace?.slug, currentWorkspace?.name, navigateToScene],
+    [currentWorkspace?.slug, navigateToScene],
   );
 
   return (

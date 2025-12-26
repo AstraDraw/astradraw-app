@@ -284,6 +284,11 @@
   color: var(--text-secondary-color, #6b6b6b);
 }
 
+.itemWorkspace {
+  color: var(--color-primary, #6965db);
+  font-weight: 500;
+}
+
 .itemBadge {
   display: flex;
   align-items: center;
@@ -392,4 +397,3 @@
     color: var(--icon-fill-color, #9b9b9b);
   }
 }
-

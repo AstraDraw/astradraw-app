@@ -586,6 +586,7 @@ class Collab extends PureComponent<CollabProps, CollabState> {
     if (this.portal.socket) {
       // Switching rooms - clean up old room first
       // This handles the case where user switches scenes in workspace mode
+      // eslint-disable-next-line no-console
       console.log("[Collab] Switching rooms - cleaning up previous session");
 
       // IMPORTANT: Cancel ALL pending operations to prevent them from
@@ -621,12 +622,6 @@ class Collab extends PureComponent<CollabProps, CollabState> {
 
     this.setIsCollaborating(true);
     LocalData.pauseSave("collaboration");
-
-    // Determine if this is auto-collaboration (workspace scene with pre-loaded data)
-    const isAutoCollab =
-      existingRoomLinkData &&
-      "isAutoCollab" in existingRoomLinkData &&
-      existingRoomLinkData.isAutoCollab;
 
     const { default: socketIOClient } = await import(
       /* webpackChunkName: "socketIoClient" */ "socket.io-client"

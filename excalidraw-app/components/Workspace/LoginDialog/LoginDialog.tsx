@@ -151,7 +151,9 @@ export const LoginDialog: React.FC<LoginDialogProps> = ({
             >
               {isSignUp && (
                 <div className={styles.field}>
-                  <label htmlFor={`${formId}-name`}>{t("workspace.name")}</label>
+                  <label htmlFor={`${formId}-name`}>
+                    {t("workspace.name")}
+                  </label>
                   <input
                     id={`${formId}-name`}
                     name="name"
@@ -166,7 +168,9 @@ export const LoginDialog: React.FC<LoginDialogProps> = ({
               )}
 
               <div className={styles.field}>
-                <label htmlFor={`${formId}-email`}>{t("workspace.email")}</label>
+                <label htmlFor={`${formId}-email`}>
+                  {t("workspace.email")}
+                </label>
                 <input
                   id={`${formId}-email`}
                   name="email"
@@ -182,7 +186,9 @@ export const LoginDialog: React.FC<LoginDialogProps> = ({
               </div>
 
               <div className={styles.field}>
-                <label htmlFor={`${formId}-password`}>{t("workspace.password")}</label>
+                <label htmlFor={`${formId}-password`}>
+                  {t("workspace.password")}
+                </label>
                 <input
                   id={`${formId}-password`}
                   name="password"
@@ -299,4 +305,3 @@ export const LoginDialog: React.FC<LoginDialogProps> = ({
 };
 
 export default LoginDialog;
-

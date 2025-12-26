@@ -354,3 +354,45 @@ export interface NotificationsResponse {
   /** Whether there are more notifications */
   hasMore: boolean;
 }
+
+// ============================================================================
+// Global Search Types
+// ============================================================================
+
+/**
+ * Collection result from global search
+ */
+export interface GlobalSearchCollectionResult {
+  id: string;
+  name: string;
+  icon: string | null;
+  isPrivate: boolean;
+  workspaceId: string;
+  workspaceName: string;
+  workspaceSlug: string;
+  updatedAt: string;
+}
+
+/**
+ * Scene result from global search
+ */
+export interface GlobalSearchSceneResult {
+  id: string;
+  title: string;
+  thumbnailUrl: string | null;
+  collectionId: string | null;
+  collectionName: string | null;
+  isPrivate: boolean;
+  workspaceId: string;
+  workspaceName: string;
+  workspaceSlug: string;
+  updatedAt: string;
+}
+
+/**
+ * Response from global search endpoint
+ */
+export interface GlobalSearchResponse {
+  collections: GlobalSearchCollectionResult[];
+  scenes: GlobalSearchSceneResult[];
+}

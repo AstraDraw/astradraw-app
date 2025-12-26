@@ -202,8 +202,9 @@
     <!-- 100% privacy friendly analytics -->
     <script>
       // Check if tracking is disabled via environment variable
-      var disableTracking = window.__ENV__ && window.__ENV__.VITE_APP_DISABLE_TRACKING === "true";
-      
+      var disableTracking =
+        window.__ENV__ && window.__ENV__.VITE_APP_DISABLE_TRACKING === "true";
+
       if (!disableTracking) {
         // need to load this script dynamically bcs. of iframe embed tracking
         var scriptEle = document.createElement("script");
