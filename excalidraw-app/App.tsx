@@ -642,17 +642,31 @@ const ExcalidrawWrapper = () => {
     const preventBrowserZoom = (event: WheelEvent) => {
       // ctrlKey is set during trackpad pinch-to-zoom on macOS
       if (event.ctrlKey || event.metaKey) {
-        // Check if target is inside excalidraw container but NOT on canvas
         const target = event.target as HTMLElement;
         const isOnCanvas = target instanceof HTMLCanvasElement;
-        const isInsideExcalidraw = target.closest(".excalidraw");
 
-        // If we're over UI elements (not canvas), prevent browser zoom
-        if (isInsideExcalidraw && !isOnCanvas) {
+        // Check if target is inside any AstraDraw UI element
+        const isInsideExcalidraw = target.closest(".excalidraw");
+        const isInsideExcalidrawApp = target.closest(".excalidraw-app");
+        const isInsideSidebar = target.closest(
+          "[data-testid='workspace-sidebar']",
+        );
+        const isInsideDashboard = target.closest(".excalidraw-app__dashboard");
+        const isInsideModal = target.closest("[role='dialog']");
+
+        // If we're over any UI elements (not canvas), prevent browser zoom
+        const isOverUI =
+          isInsideExcalidraw ||
+          isInsideExcalidrawApp ||
+          isInsideSidebar ||
+          isInsideDashboard ||
+          isInsideModal;
+
+        if (isOverUI && !isOnCanvas) {
           event.preventDefault();
 
-          // Optionally: forward zoom to canvas if excalidrawAPI is available
-          if (excalidrawAPI) {
+          // Forward zoom to canvas if excalidrawAPI is available and we're in canvas mode
+          if (excalidrawAPI && isInsideExcalidraw) {
             const appState = excalidrawAPI.getAppState();
             const delta = event.deltaY;
             const sign = Math.sign(delta);

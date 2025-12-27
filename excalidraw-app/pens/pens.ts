@@ -138,7 +138,7 @@ export const PENS: Record<PenType, PenStyle> = {
     strokeWidth: 2,
     roughness: 3,
     penOptions: {
-      highlighter: false,
+      highlighter: true, // Markers should be drawn behind other elements
       constantPressure: true,
       hasOutline: true,
       outlineWidth: 4,

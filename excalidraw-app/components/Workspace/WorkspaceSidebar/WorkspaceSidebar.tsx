@@ -402,7 +402,10 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
   );
 
   return (
-    <div className={`${styles.sidebar} ${isOpen ? styles.open : ""}`}>
+    <div
+      className={`${styles.sidebar} ${isOpen ? styles.open : ""}`}
+      data-testid="workspace-sidebar"
+    >
       <SidebarHeader
         isAuthenticated={isAuthenticated}
         user={user}

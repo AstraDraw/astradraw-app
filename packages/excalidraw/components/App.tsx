@@ -1620,7 +1620,7 @@ class App extends React.Component<AppProps, AppState> {
                       allowFullScreen={true}
                       sandbox={`${
                         src?.sandbox?.allowSameOrigin ? "allow-same-origin" : ""
-                      } allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation allow-downloads`}
+                      } allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation allow-downloads allow-top-navigation-by-user-activation`}
                     />
                   )}
                 </div>
@@ -1894,6 +1894,10 @@ class App extends React.Component<AppProps, AppState> {
 
     const firstSelectedElement = selectedElements[0];
 
+    // AstraDraw: Detect if current drawing is a highlighter pen (should render behind other elements)
+    const isHighlighterPenDrawing =
+      this.state.newElement?.customData?.strokeOptions?.highlighter;
+
     const showShapeSwitchPanel =
       editorJotaiStore.get(convertElementTypePopupAtom)?.type === "panel";
 
@@ -2093,6 +2097,29 @@ class App extends React.Component<AppProps, AppState> {
                             }}
                           />
                         )}
+                        {/* AstraDraw: Highlighter pen strokes render BEFORE StaticCanvas (behind other elements) */}
+                        {this.state.newElement && isHighlighterPenDrawing && (
+                          <NewElementCanvas
+                            appState={this.state}
+                            scale={window.devicePixelRatio}
+                            rc={this.rc}
+                            elementsMap={elementsMap}
+                            allElementsMap={allElementsMap}
+                            renderConfig={{
+                              imageCache: this.imageCache,
+                              isExporting: false,
+                              renderGrid: false,
+                              canvasBackgroundColor:
+                                this.state.viewBackgroundColor,
+                              embedsValidationStatus:
+                                this.embedsValidationStatus,
+                              elementsPendingErasure:
+                                this.elementsPendingErasure,
+                              pendingFlowchartNodes: null,
+                              isHighlighterPenDrawing: true,
+                            }}
+                          />
+                        )}
                         <StaticCanvas
                           canvas={this.canvas}
                           rc={this.rc}
@@ -2115,9 +2142,11 @@ class App extends React.Component<AppProps, AppState> {
                             elementsPendingErasure: this.elementsPendingErasure,
                             pendingFlowchartNodes:
                               this.flowChartCreator.pendingNodes,
+                            isHighlighterPenDrawing,
                           }}
                         />
-                        {this.state.newElement && (
+                        {/* AstraDraw: Normal strokes render AFTER StaticCanvas (on top of other elements) */}
+                        {this.state.newElement && !isHighlighterPenDrawing && (
                           <NewElementCanvas
                             appState={this.state}
                             scale={window.devicePixelRatio}
@@ -2135,6 +2164,7 @@ class App extends React.Component<AppProps, AppState> {
                               elementsPendingErasure:
                                 this.elementsPendingErasure,
                               pendingFlowchartNodes: null,
+                              isHighlighterPenDrawing: false,
                             }}
                           />
                         )}
@@ -8271,7 +8301,13 @@ class App extends React.Component<AppProps, AppState> {
         : [strokeOptions?.constantPressure ? 1 : event.pressure],
     });
 
-    this.scene.insertElement(element);
+    // AstraDraw: Highlighter/marker pens should be inserted at the back (behind other elements)
+    // so they don't cover text or other objects when drawing over them
+    if (strokeOptions?.highlighter) {
+      this.scene.insertElementAtIndex(element, 0);
+    } else {
+      this.scene.insertElement(element);
+    }
 
     this.setState((prevState) => {
       const nextSelectedElementIds = {
@@ -11899,7 +11935,7 @@ class App extends React.Component<AppProps, AppState> {
     }
 
     const zIndexActions: ContextMenuItems =
-      this.editorInterface.formFactor === "desktop"
+      this.editorInterface.formFactor !== "phone"
         ? [
             CONTEXT_MENU_SEPARATOR,
             actionSendBackward,

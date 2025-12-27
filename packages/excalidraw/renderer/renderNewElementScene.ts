@@ -29,11 +29,17 @@ const _renderNewElementScene = ({
       scale,
     );
 
+    // AstraDraw: Highlighter pen needs background color when rendering before StaticCanvas
+    const { isHighlighterPenDrawing = false } = renderConfig;
+
     const context = bootstrapCanvas({
       canvas,
       scale,
       normalizedWidth,
       normalizedHeight,
+      viewBackgroundColor: isHighlighterPenDrawing
+        ? appState.viewBackgroundColor
+        : "transparent",
     });
 
     context.save();

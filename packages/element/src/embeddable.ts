@@ -56,6 +56,37 @@ const RE_REDDIT =
 const RE_REDDIT_EMBED =
   /^<blockquote[\s\S]*?\shref=["'](https?:\/\/(?:www\.)?reddit\.com\/[^"']*)/i;
 
+// SharePoint/OneDrive sharing links
+// Format: https://{tenant}.sharepoint.com/:x:/g/personal/{user}/{id} (OneDrive for Business)
+// Format: https://{tenant}.sharepoint.com/:x:/r/sites/{site}/_layouts/15/Doc.aspx (SharePoint sites)
+// Format: https://onedrive.live.com/embed?... (personal OneDrive)
+// The :x:, :w:, :p:, :o:, :b:, :v:, :i: indicate file types (Excel, Word, PowerPoint, OneNote, PDF, Video, Image)
+const RE_SHAREPOINT =
+  /^https?:\/\/[a-zA-Z0-9_-]+(?:-my)?\.sharepoint\.com\/:[xwpobvi]:\/[grs]\//i;
+
+const RE_SHAREPOINT_SITES =
+  /^https?:\/\/[a-zA-Z0-9_-]+\.sharepoint\.com\/sites\//i;
+
+const RE_ONEDRIVE_LIVE = /^https?:\/\/(?:1drv\.ms|onedrive\.live\.com)\//i;
+
+// Google Docs, Sheets, Slides, and Drive
+// Format: https://docs.google.com/document/d/{id}/edit
+// Format: https://docs.google.com/spreadsheets/d/{id}/edit
+// Format: https://docs.google.com/presentation/d/{id}/edit
+// Format: https://drive.google.com/file/d/{id}/view
+const RE_GOOGLE_DOCS =
+  /^https?:\/\/docs\.google\.com\/(document|spreadsheets|presentation)\/d\/([a-zA-Z0-9_-]+)/;
+const RE_GOOGLE_DRIVE =
+  /^https?:\/\/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/;
+
+// Power BI
+// Format: https://app.powerbi.com/links/{id}?ctid=...
+// Format: https://app.powerbi.com/view?r={encodedConfig}
+// Format: https://app.powerbi.com/reportEmbed?reportId=...
+// Format: https://app.powerbi.com/groups/{groupId}/reports/{reportId}
+const RE_POWERBI =
+  /^https?:\/\/app\.powerbi\.com\/(links\/[a-zA-Z0-9_-]+|view\?|reportEmbed\?|groups\/[a-zA-Z0-9-]+\/reports\/[a-zA-Z0-9-]+)/i;
+
 const parseYouTubeTimestamp = (url: string): number => {
   let timeParam: string | null | undefined;
 
@@ -103,6 +134,15 @@ const ALLOWED_DOMAINS = new Set([
   "forms.microsoft.com",
   "kinescope.io",
   "*.kinescopecdn.net",
+  // SharePoint/OneDrive domains
+  "*.sharepoint.com",
+  "onedrive.live.com",
+  "1drv.ms",
+  // Google Docs/Sheets/Slides/Drive
+  "docs.google.com",
+  "drive.google.com",
+  // Power BI
+  "app.powerbi.com",
 ]);
 
 const ALLOW_SAME_ORIGIN = new Set([
@@ -119,6 +159,15 @@ const ALLOW_SAME_ORIGIN = new Set([
   "forms.microsoft.com",
   "kinescope.io",
   "*.kinescopecdn.net",
+  // SharePoint/OneDrive require same-origin for authentication
+  "*.sharepoint.com",
+  "onedrive.live.com",
+  "1drv.ms",
+  // Google Docs/Sheets/Slides/Drive require same-origin for auth
+  "docs.google.com",
+  "drive.google.com",
+  // Power BI requires same-origin for auth
+  "app.powerbi.com",
 ]);
 
 export const createSrcDoc = (body: string) => {
@@ -309,6 +358,131 @@ export const getEmbedLink = (
       sandbox: { allowSameOrigin },
     };
     embeddedLinkCache.set(link, ret);
+    return ret;
+  }
+
+  // SharePoint/OneDrive handling
+  // Supports sharing links like:
+  // - https://{tenant}-my.sharepoint.com/:x:/g/personal/{user}/{id}
+  // - https://{tenant}.sharepoint.com/:x:/r/sites/{site}/...
+  // - https://onedrive.live.com/...
+  // - https://1drv.ms/...
+  if (
+    RE_SHAREPOINT.test(link) ||
+    RE_SHAREPOINT_SITES.test(link) ||
+    RE_ONEDRIVE_LIVE.test(link)
+  ) {
+    // Determine aspect ratio based on file type indicator
+    // :x: = Excel (wider), :w: = Word (taller), :p: = PowerPoint (16:9), etc.
+    const fileTypeMatch = link.match(/\/:([xwpobvi]):\//i);
+    const fileType = fileTypeMatch?.[1]?.toLowerCase();
+
+    let embedAspectRatio = { w: 800, h: 600 }; // Default
+    if (fileType === "x") {
+      // Excel - wider for spreadsheets
+      embedAspectRatio = { w: 900, h: 600 };
+    } else if (fileType === "w") {
+      // Word - document ratio
+      embedAspectRatio = { w: 700, h: 900 };
+    } else if (fileType === "p") {
+      // PowerPoint - 16:9 presentation
+      embedAspectRatio = { w: 960, h: 540 };
+    } else if (fileType === "v") {
+      // Video - 16:9
+      embedAspectRatio = { w: 800, h: 450 };
+      type = "video";
+    }
+
+    // Convert sharing link to embed link by adding action=embedview
+    // SharePoint links already work in iframes, we just need to add the embed parameter
+    let embedLink = link;
+    if (!link.includes("action=")) {
+      embedLink += link.includes("?")
+        ? "&action=embedview"
+        : "?action=embedview";
+    }
+
+    // For Excel, enable interactivity
+    if (fileType === "x" && !link.includes("wdAllowInteractivity")) {
+      embedLink += "&wdAllowInteractivity=True";
+    }
+
+    const ret: IframeDataWithSandbox = {
+      link: embedLink,
+      intrinsicSize: embedAspectRatio,
+      type,
+      sandbox: { allowSameOrigin: true }, // SharePoint requires same-origin for auth
+    };
+    embeddedLinkCache.set(originalLink, ret);
+    return ret;
+  }
+
+  // Google Docs, Sheets, Slides handling
+  // Convert edit/view URLs to embed URLs
+  const googleDocsMatch = link.match(RE_GOOGLE_DOCS);
+  if (googleDocsMatch) {
+    const [, docType, docId] = googleDocsMatch;
+    let embedLink: string;
+    let embedAspectRatio = { w: 800, h: 600 };
+
+    switch (docType) {
+      case "document":
+        // Google Docs - use preview mode for embedding
+        embedLink = `https://docs.google.com/document/d/${docId}/preview`;
+        embedAspectRatio = { w: 700, h: 900 }; // Document ratio
+        break;
+      case "spreadsheets":
+        // Google Sheets - use pubhtml or preview
+        embedLink = `https://docs.google.com/spreadsheets/d/${docId}/preview`;
+        embedAspectRatio = { w: 900, h: 600 }; // Spreadsheet ratio
+        break;
+      case "presentation":
+        // Google Slides - use embed mode
+        embedLink = `https://docs.google.com/presentation/d/${docId}/embed?start=false&loop=false&delayms=3000`;
+        embedAspectRatio = { w: 960, h: 569 }; // 16:9 presentation
+        break;
+      default:
+        embedLink = link;
+    }
+
+    const ret: IframeDataWithSandbox = {
+      link: embedLink,
+      intrinsicSize: embedAspectRatio,
+      type: "generic",
+      sandbox: { allowSameOrigin: true },
+    };
+    embeddedLinkCache.set(originalLink, ret);
+    return ret;
+  }
+
+  // Google Drive file handling (PDFs, images, etc.)
+  const googleDriveMatch = link.match(RE_GOOGLE_DRIVE);
+  if (googleDriveMatch) {
+    const [, fileId] = googleDriveMatch;
+    // Use preview URL for Drive files
+    const embedLink = `https://drive.google.com/file/d/${fileId}/preview`;
+
+    const ret: IframeDataWithSandbox = {
+      link: embedLink,
+      intrinsicSize: { w: 800, h: 600 },
+      type: "generic",
+      sandbox: { allowSameOrigin: true },
+    };
+    embeddedLinkCache.set(originalLink, ret);
+    return ret;
+  }
+
+  // Power BI handling
+  // Power BI links work directly in iframes, just need to ensure proper parameters
+  if (RE_POWERBI.test(link)) {
+    // Power BI dashboards/reports use 16:9 aspect ratio
+    const ret: IframeDataWithSandbox = {
+      link,
+      intrinsicSize: { w: 1140, h: 541 }, // Power BI default embed size (roughly 16:9)
+      type: "generic",
+      sandbox: { allowSameOrigin: true }, // Required for Power BI auth
+    };
+    embeddedLinkCache.set(originalLink, ret);
     return ret;
   }
 

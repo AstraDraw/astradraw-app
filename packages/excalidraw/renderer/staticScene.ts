@@ -223,13 +223,19 @@ const _renderStaticScene = ({
     return;
   }
 
-  const { renderGrid = true, isExporting } = renderConfig;
+  const {
+    renderGrid = true,
+    isExporting,
+    isHighlighterPenDrawing = false,
+  } = renderConfig;
 
   const [normalizedWidth, normalizedHeight] = getNormalizedCanvasDimensions(
     canvas,
     scale,
   );
 
+  // AstraDraw: Use transparent background when highlighter pen is drawing
+  // (the NewElementCanvas renders before this with the actual background)
   const context = bootstrapCanvas({
     canvas,
     scale,
@@ -237,7 +243,9 @@ const _renderStaticScene = ({
     normalizedHeight,
     theme: appState.theme,
     isExporting,
-    viewBackgroundColor: appState.viewBackgroundColor,
+    viewBackgroundColor: isHighlighterPenDrawing
+      ? "transparent"
+      : appState.viewBackgroundColor,
   });
 
   // Apply zoom
