@@ -8241,7 +8241,12 @@ class App extends React.Component<AppProps, AppState> {
       y: gridY,
     });
 
-    const simulatePressure = event.pressure === 0.5;
+    // Custom pen stroke options (AstraDraw)
+    const strokeOptions = this.state.currentStrokeOptions;
+    // constantPressure means ignore hardware pressure - use simulated uniform pressure
+    const simulatePressure = strokeOptions?.constantPressure
+      ? false
+      : event.pressure === 0.5;
 
     const element = newFreeDrawElement({
       type: elementType,
@@ -8257,9 +8262,13 @@ class App extends React.Component<AppProps, AppState> {
       roundness: null,
       simulatePressure,
       locked: false,
+      // Store custom pen options in customData (AstraDraw)
+      ...(strokeOptions ? { customData: { strokeOptions } } : {}),
       frameId: topLayerFrame ? topLayerFrame.id : null,
       points: [pointFrom<LocalPoint>(0, 0)],
-      pressures: simulatePressure ? [] : [event.pressure],
+      pressures: simulatePressure
+        ? []
+        : [strokeOptions?.constantPressure ? 1 : event.pressure],
     });
 
     this.scene.insertElement(element);
@@ -9561,9 +9570,14 @@ class App extends React.Component<AppProps, AppState> {
             lastPoint && lastPoint[0] === dx && lastPoint[1] === dy;
 
           if (!discardPoint) {
+            // Use constant pressure (1) if pen has constantPressure enabled (AstraDraw)
+            const strokeOptions = this.state.currentStrokeOptions;
             const pressures = newElement.simulatePressure
               ? newElement.pressures
-              : [...newElement.pressures, event.pressure];
+              : [
+                  ...newElement.pressures,
+                  strokeOptions?.constantPressure ? 1 : event.pressure,
+                ];
 
             this.scene.mutateElement(
               newElement,
@@ -9996,9 +10010,14 @@ class App extends React.Component<AppProps, AppState> {
           dx += 0.0001;
         }
 
+        // Use constant pressure (1) if pen has constantPressure enabled (AstraDraw)
+        const strokeOptions = this.state.currentStrokeOptions;
         const pressures = newElement.simulatePressure
           ? []
-          : [...newElement.pressures, childEvent.pressure];
+          : [
+              ...newElement.pressures,
+              strokeOptions?.constantPressure ? 1 : childEvent.pressure,
+            ];
 
         this.scene.mutateElement(newElement, {
           points: [...points, pointFrom<LocalPoint>(dx, dy)],

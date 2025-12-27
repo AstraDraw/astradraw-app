@@ -321,15 +321,27 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
     setCreateWorkspaceError(null);
 
     try {
-      await createWorkspace({
+      const workspace = await createWorkspace({
         name: newWorkspaceName,
         slug: newWorkspaceSlug,
         type: newWorkspaceType,
       });
+
+      // Clear current scene state to prevent stale data (same as handleSwitchWorkspace)
+      setCurrentSceneId(null);
+      setCurrentSceneTitle("Untitled");
+      setIsAutoCollabScene(false);
+      setActiveCollectionId(null);
+      setCurrentWorkspaceSlug(workspace.slug);
+
+      // Reset form and close dialog
       setNewWorkspaceName("");
       setNewWorkspaceSlug("");
       setNewWorkspaceType("SHARED");
       setShowCreateWorkspace(false);
+
+      // Navigate to new workspace dashboard
+      navigateToDashboard();
     } catch (err) {
       if (err instanceof Error && err.message.includes("already taken")) {
         setCreateWorkspaceError(t("workspace.workspaceSlugTaken"));
@@ -341,7 +353,18 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
     } finally {
       setIsCreatingWorkspace(false);
     }
-  }, [createWorkspace, newWorkspaceName, newWorkspaceSlug, newWorkspaceType]);
+  }, [
+    createWorkspace,
+    newWorkspaceName,
+    newWorkspaceSlug,
+    newWorkspaceType,
+    setCurrentSceneId,
+    setCurrentSceneTitle,
+    setIsAutoCollabScene,
+    setActiveCollectionId,
+    setCurrentWorkspaceSlug,
+    navigateToDashboard,
+  ]);
 
   const openCopyMoveDialog = useCallback(
     (collection: Collection, mode: "copy" | "move") => {

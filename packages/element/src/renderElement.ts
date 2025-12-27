@@ -1,6 +1,8 @@
 import rough from "roughjs/bin/rough";
 import { getStroke } from "perfect-freehand";
 
+// Import easing functions for custom pen strokes (AstraDraw)
+
 import {
   type GlobalPoint,
   isRightAngleRads,
@@ -39,6 +41,8 @@ import type {
   RenderableElementsMap,
   InteractiveCanvasRenderConfig,
 } from "@excalidraw/excalidraw/scene/types";
+
+import easingsFunctions from "./easingFunctions";
 
 import { getElementAbsoluteCoords, getElementBounds } from "./bounds";
 import { getUncroppedImageElement } from "./cropElement";
@@ -437,7 +441,6 @@ const drawElementOnCanvas = (
     case "freedraw": {
       // Draw directly to canvas
       context.save();
-      context.fillStyle = element.strokeColor;
 
       const path = getFreeDrawPath2D(element) as Path2D;
       const fillShape = ShapeCache.get(element);
@@ -446,7 +449,21 @@ const drawElementOnCanvas = (
         rc.draw(fillShape);
       }
 
-      context.fillStyle = element.strokeColor;
+      // AstraDraw: Check for outline stroke options in customData
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const strokeOptions = (element.customData as any)?.strokeOptions;
+      if (strokeOptions?.hasOutline) {
+        // Draw outline first: strokeColor is outline, backgroundColor is fill
+        context.lineWidth =
+          element.strokeWidth * (strokeOptions.outlineWidth ?? 1);
+        context.strokeStyle = element.strokeColor;
+        context.lineCap = "round";
+        context.lineJoin = "round";
+        context.stroke(path);
+        context.fillStyle = element.backgroundColor;
+      } else {
+        context.fillStyle = element.strokeColor;
+      }
       context.fill(path);
 
       context.restore();
@@ -1099,42 +1116,6 @@ export function getFreedrawOutlineAsSegments(
   );
 }
 
-// Easing functions for custom pen strokes
-// https://easings.net/
-const EASING_FUNCTIONS: Record<string, (t: number) => number> = {
-  linear: (t) => t,
-  easeInQuad: (t) => t * t,
-  easeOutQuad: (t) => t * (2 - t),
-  easeInOutQuad: (t) => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t),
-  easeInCubic: (t) => t * t * t,
-  easeOutCubic: (t) => --t * t * t + 1,
-  easeInOutCubic: (t) =>
-    t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1,
-  easeInSine: (t) => 1 - Math.cos((t * Math.PI) / 2),
-  easeOutSine: (t) => Math.sin((t * Math.PI) / 2),
-  easeInOutSine: (t) => -(Math.cos(Math.PI * t) - 1) / 2,
-  easeInExpo: (t) => (t === 0 ? 0 : Math.pow(2, 10 * t - 10)),
-  easeOutExpo: (t) => (t === 1 ? 1 : 1 - Math.pow(2, -10 * t)),
-  easeInOutExpo: (t) =>
-    t === 0
-      ? 0
-      : t === 1
-      ? 1
-      : t < 0.5
-      ? Math.pow(2, 20 * t - 10) / 2
-      : (2 - Math.pow(2, -20 * t + 10)) / 2,
-  easeInCirc: (t) => 1 - Math.sqrt(1 - t * t),
-  easeOutCirc: (t) => Math.sqrt(1 - --t * t),
-  easeInOutCirc: (t) =>
-    t < 0.5
-      ? (1 - Math.sqrt(1 - 4 * t * t)) / 2
-      : (Math.sqrt(1 - Math.pow(-2 * t + 2, 2)) + 1) / 2,
-};
-
-const getEasingFunction = (easing: string): ((t: number) => number) => {
-  return EASING_FUNCTIONS[easing] || EASING_FUNCTIONS.easeOutSine;
-};
-
 export function getFreedrawOutlinePoints(element: ExcalidrawFreeDrawElement) {
   // If input points are empty (should they ever be?) return a dot
   const inputPoints = element.simulatePressure
@@ -1143,40 +1124,44 @@ export function getFreedrawOutlinePoints(element: ExcalidrawFreeDrawElement) {
     ? element.points.map(([x, y], i) => [x, y, element.pressures[i]])
     : [[0, 0, 0.5]];
 
-  const customOpts = element.customStrokeOptions;
+  // Read custom stroke options from customData (AstraDraw pen system)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const customOptions = (element.customData as any)?.strokeOptions?.options;
 
   // Use custom stroke options if available, otherwise use defaults
-  const options: StrokeOptions = {
-    simulatePressure: element.simulatePressure,
-    size: element.strokeWidth * 4.25,
-    thinning: customOpts?.thinning ?? 0.6,
-    smoothing: customOpts?.smoothing ?? 0.5,
-    streamline: customOpts?.streamline ?? 0.5,
-    easing: customOpts?.easing
-      ? getEasingFunction(customOpts.easing)
-      : (t) => Math.sin((t * Math.PI) / 2), // https://easings.net/#easeOutSine
-    last: true,
-    ...(customOpts?.start && {
-      start: {
-        cap: customOpts.start.cap,
-        taper:
-          typeof customOpts.start.taper === "boolean"
-            ? customOpts.start.taper
-            : customOpts.start.taper,
-        easing: getEasingFunction(customOpts.start.easing),
-      },
-    }),
-    ...(customOpts?.end && {
-      end: {
-        cap: customOpts.end.cap,
-        taper:
-          typeof customOpts.end.taper === "boolean"
-            ? customOpts.end.taper
-            : customOpts.end.taper,
-        easing: getEasingFunction(customOpts.end.easing),
-      },
-    }),
-  };
+  const options: StrokeOptions = customOptions
+    ? {
+        ...customOptions,
+        simulatePressure:
+          customOptions.simulatePressure ?? element.simulatePressure,
+        size: element.strokeWidth * 4.25, // Override size with stroke width
+        last: true,
+        easing: easingsFunctions[customOptions.easing] ?? ((t: number) => t),
+        ...(customOptions.start?.easing && {
+          start: {
+            ...customOptions.start,
+            easing:
+              easingsFunctions[customOptions.start.easing] ??
+              ((t: number) => t),
+          },
+        }),
+        ...(customOptions.end?.easing && {
+          end: {
+            ...customOptions.end,
+            easing:
+              easingsFunctions[customOptions.end.easing] ?? ((t: number) => t),
+          },
+        }),
+      }
+    : {
+        simulatePressure: element.simulatePressure,
+        size: element.strokeWidth * 4.25,
+        thinning: 0.6,
+        smoothing: 0.5,
+        streamline: 0.5,
+        easing: easingsFunctions.easeOutSine,
+        last: true,
+      };
 
   return getStroke(inputPoints as number[][], options) as [number, number][];
 }

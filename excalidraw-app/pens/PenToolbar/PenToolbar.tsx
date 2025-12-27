@@ -140,6 +140,11 @@ export const PenToolbar: React.FC<PenToolbarProps> = ({ excalidrawAPI }) => {
         currentPenType: pen.type,
       };
 
+      // Apply pen properties following Obsidian Excalidraw plugin patterns:
+      // - strokeWidth: 0 means "keep current canvas width" (don't override)
+      // - backgroundColor/strokeColor: only apply if defined
+      // - fillStyle: "" means "keep current" (don't override)
+      // - roughness: null means "keep current" (don't override)
       if (pen.strokeWidth && pen.strokeWidth > 0) {
         appStateUpdate.currentItemStrokeWidth = pen.strokeWidth;
       }
@@ -149,10 +154,10 @@ export const PenToolbar: React.FC<PenToolbarProps> = ({ excalidrawAPI }) => {
       if (pen.strokeColor) {
         appStateUpdate.currentItemStrokeColor = pen.strokeColor;
       }
-      if (pen.fillStyle !== "") {
+      if (pen.fillStyle) {
         appStateUpdate.currentItemFillStyle = pen.fillStyle;
       }
-      if (pen.roughness !== null) {
+      if (pen.roughness !== null && pen.roughness !== undefined) {
         appStateUpdate.currentItemRoughness = pen.roughness;
       }
       if (resetCustomPen) {
